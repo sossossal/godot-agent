@@ -62,12 +62,16 @@ jobs:
         id: setup_python
         shell: pwsh
         run: |
-          $version = python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
+          $python = "D:\actions-tools\Python312\python.exe"
+          if (-not (Test-Path $python)) {
+            $python = (Get-Command python -ErrorAction Stop).Source
+          }
+          $version = & $python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
           if ([version]$version -lt [version]"3.12") {
             throw "Python 3.12 or newer is required on the self-hosted release runner; found $version"
           }
-          python --version
-          python -m venv .ci-venv
+          & $python --version
+          & $python -m venv .ci-venv
           $venvScripts = (Resolve-Path ".ci-venv\Scripts").Path
           $venvRoot = (Resolve-Path ".ci-venv").Path
           $venvScripts | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
