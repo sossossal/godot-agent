@@ -110,6 +110,15 @@ class ReleaseLiveRunnerBaselineTestCase(unittest.TestCase):
         self.assertEqual(payload["declared_runner_labels"], ["self-hosted", "windows", "godot"])
         self.assertEqual(payload["detected_tools"]["browser_executable"], str(browser_executable.resolve()))
 
+    def test_load_configured_godot_path_tolerates_windows_backslashes(self):
+        config_path = self.project_dir / "config.yaml"
+        config_path.write_text('godot:\n  executable_path: "D:\\a\\godot-agent\\fake_godot.exe"\n', encoding="utf-8")
+
+        self.assertEqual(
+            baseline_module._load_configured_godot_path(config_path),
+            "D:\\a\\godot-agent\\fake_godot.exe",
+        )
+
     def test_main_returns_nonzero_when_runner_baseline_blocks(self):
         self._prepare_project_files()
         manifest_path = self.runtime_dir / "api_server" / "static" / "dist" / "release_manifest.json"

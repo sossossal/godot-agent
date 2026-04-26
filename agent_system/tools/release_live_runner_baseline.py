@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import sys
 from datetime import datetime, timezone
@@ -467,15 +468,23 @@ def _load_configured_godot_path(config_path: Path) -> str:
     if not config_path.exists():
         return ""
     try:
-        payload = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+        source = config_path.read_text(encoding="utf-8")
+        payload = yaml.safe_load(source) or {}
     except Exception:
-        return ""
+        return _extract_godot_path_from_config_text(source if "source" in locals() else "")
     if not isinstance(payload, dict):
         return ""
     godot = payload.get("godot")
     if not isinstance(godot, dict):
         return ""
     return str(godot.get("executable_path") or "").strip()
+
+
+def _extract_godot_path_from_config_text(source: str) -> str:
+    match = re.search(r"(?m)^\s*executable_path\s*:\s*(.+?)\s*$", source or "")
+    if not match:
+        return ""
+    return match.group(1).strip().strip('"').strip("'")
 
 
 def _resolve_powershell_executable() -> dict[str, str]:
