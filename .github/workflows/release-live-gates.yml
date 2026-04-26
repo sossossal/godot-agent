@@ -60,9 +60,13 @@ jobs:
 
       - name: Set up Python
         id: setup_python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+        shell: pwsh
+        run: |
+          $version = python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
+          if ($version -ne "3.12") {
+            throw "Python 3.12 is required on the self-hosted release runner; found $version"
+          }
+          python --version
 
       - name: Install dependencies
         id: install_dependencies
