@@ -1,0 +1,105 @@
+{
+  "template_id": "tower_defense",
+  "display_name": "Tower Defense",
+  "game_genre": "Tower Defense",
+  "version": "1.0.0",
+  "description": "Tower defense template with waves, enemies, and economy loops.",
+  "aliases": ["td", "defense"],
+  "tags": ["waves", "economy", "strategy"],
+  "coding_style": {
+    "naming_convention": "snake_case",
+    "signal_pattern": "SignalBus"
+  },
+  "default_ui_style": {
+    "primary_color": "#D18C12",
+    "corner_radius": 8
+  },
+  "recommended_directories": [
+    "agent_templates/genres",
+    "scenes/maps",
+    "scripts/towers",
+    "scripts/enemies",
+    "scripts/ui",
+    "data_tables",
+    "qa/baselines/tower_defense"
+  ],
+  "starter_data_tables": ["enemy", "loot", "localization"],
+  "starter_gameplay_systems": [
+    {
+      "system_id": "path_lane_graph",
+      "display_name": "Path Lane Graph",
+      "category": "navigation",
+      "summary": "Enemy lane path and map route definition for creep traversal.",
+      "recommended_skills": ["manage_level_workflow", "plan_game_feature"],
+      "suggested_data_tables": [],
+      "acceptance_checks": ["enemy_path_is_defined", "goal_endpoint_exists"],
+      "starter_feature_name": "tower_defense_path_lane_graph",
+      "dependencies": []
+    },
+    {
+      "system_id": "wave_spawner",
+      "display_name": "Wave Spawner",
+      "category": "encounter",
+      "summary": "Wave sequencing, spawn cadence, and victory progression through rounds.",
+      "recommended_skills": ["manage_game_data_tables", "plan_game_feature"],
+      "suggested_data_tables": ["enemy"],
+      "acceptance_checks": ["wave_table_exists", "spawn_cadence_is_defined"],
+      "starter_feature_name": "tower_defense_wave_spawner",
+      "dependencies": ["path_lane_graph"]
+    },
+    {
+      "system_id": "tower_build_system",
+      "display_name": "Tower Build System",
+      "category": "economy",
+      "summary": "Tower placement, slot validation, and build cost handling.",
+      "recommended_skills": ["manage_input_mapping", "plan_game_feature"],
+      "suggested_data_tables": ["loot", "localization"],
+      "acceptance_checks": ["tower_slots_are_interactable", "build_cost_is_checked"],
+      "starter_feature_name": "tower_defense_tower_build_system",
+      "dependencies": ["path_lane_graph"]
+    },
+    {
+      "system_id": "projectile_and_targeting",
+      "display_name": "Projectile And Targeting",
+      "category": "combat",
+      "summary": "Target acquisition, projectile travel, and damage application for towers.",
+      "recommended_skills": ["plan_game_feature", "apply_tween_animation"],
+      "suggested_data_tables": ["enemy"],
+      "acceptance_checks": ["tower_can_acquire_target", "projectile_can_apply_damage"],
+      "starter_feature_name": "tower_defense_projectile_and_targeting",
+      "dependencies": ["tower_build_system", "wave_spawner"]
+    },
+    {
+      "system_id": "upgrade_economy",
+      "display_name": "Upgrade Economy",
+      "category": "economy",
+      "summary": "Upgrade tiers, sell value, and economy pacing for mid-run decisions.",
+      "recommended_skills": ["manage_game_data_tables", "plan_game_feature"],
+      "suggested_data_tables": ["loot", "localization"],
+      "acceptance_checks": ["tower_upgrades_are_defined", "economy_values_can_progress"],
+      "starter_feature_name": "tower_defense_upgrade_economy",
+      "dependencies": ["tower_build_system"]
+    },
+    {
+      "system_id": "result_flow",
+      "display_name": "Result Flow",
+      "category": "flow",
+      "summary": "Wave complete, defeat, and mission result flow for tower defense sessions.",
+      "recommended_skills": ["define_game_flow", "auto_layout_ui"],
+      "suggested_data_tables": ["localization"],
+      "acceptance_checks": ["wave_complete_flow_exists", "defeat_flow_exists"],
+      "starter_feature_name": "tower_defense_result_flow",
+      "dependencies": ["wave_spawner", "upgrade_economy"]
+    }
+  ],
+  "performance_budget": {
+    "max_scene_load_ms": 1300,
+    "min_fps": 60,
+    "max_memory_peak_mb": 320,
+    "max_draw_call_count": 550,
+    "max_node_count": 480,
+    "max_texture_memory_mb": 224,
+    "max_frame_spike_ms": 20,
+    "max_screenshot_diff_ratio": 0.05
+  }
+}

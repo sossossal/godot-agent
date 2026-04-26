@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "liveops_type": "remote_config",
+  "items": [
+    {
+      "config_key": "tutorial_skip_hint",
+      "value_type": "bool",
+      "default_value": true,
+      "owner": "design_ops",
+      "enabled": true,
+      "requires_restart": false,
+      "environments": ["qa", "live"],
+      "rollout_strategy": "percentage",
+      "rollout_percentage": 50,
+      "audience_segments": ["new_players"],
+      "tags": ["tutorial", "ux"],
+      "acceptance_checks": ["owner_declared", "rollout_strategy_defined"],
+      "notes": "为新用户灰度开启教程跳过提示。"
+    }
+  ]
+}

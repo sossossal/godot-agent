@@ -1,0 +1,2 @@
+{"event_name": "live_probe_start", "session_id": "live_probe_session", "timestamp": "2026-04-11T10:00:00Z", "payload": {"build_id": "live"}}
+{"event_name": "live_probe_complete", "session_id": "live_probe_session", "timestamp": "2026-04-11T10:00:03Z", "payload": {"elapsed_seconds": 3}}

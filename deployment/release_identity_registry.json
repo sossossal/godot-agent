@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "notes": [
+    "Maps release request token issuers to allowed subject actors.",
+    "Use session_required plus max_session_age_hours to progressively tighten external release sessions."
+  ],
+  "issuers": [
+    {
+      "issuer_id": "ops_a",
+      "status": "active",
+      "channels": ["qa", "staging", "release"],
+      "target_environments": ["qa", "staging", "production"],
+      "subject_actor_ids": ["producer_a", "release_manager", "ops_a"],
+      "session_required": true,
+      "max_session_age_hours": 0
+    },
+    {
+      "issuer_id": "ci_release",
+      "status": "active",
+      "channels": ["qa", "staging", "release"],
+      "target_environments": ["qa", "staging", "production"],
+      "subject_actor_ids": ["ci_release"],
+      "session_required": true,
+      "max_session_age_hours": 0
+    }
+  ]
+}

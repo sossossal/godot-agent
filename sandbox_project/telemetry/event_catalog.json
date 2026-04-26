@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.4",
+  "events": [
+    {
+      "event_name": "live_probe_start",
+      "category": "playtest",
+      "description": "Live validation probe started.",
+      "feature_id": "live_validation",
+      "privacy_level": "anonymous",
+      "fields": [
+        {
+          "name": "build_id",
+          "type": "string",
+          "required": true,
+          "pii": false
+        }
+      ]
+    },
+    {
+      "event_name": "live_probe_complete",
+      "category": "playtest",
+      "description": "Live validation probe completed.",
+      "feature_id": "live_validation",
+      "privacy_level": "anonymous",
+      "fields": [
+        {
+          "name": "elapsed_seconds",
+          "type": "number",
+          "required": true,
+          "pii": false
+        }
+      ]
+    }
+  ]
+}

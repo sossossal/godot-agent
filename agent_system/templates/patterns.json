@@ -1,0 +1,39 @@
+{
+  "patterns": [
+    {
+      "name": "HealthSystem",
+      "description": "基础生命值系统, 包含受伤、治疗和死亡逻辑",
+      "genre": "General",
+      "steps": [
+        {
+          "skill": "inject_godot_node",
+          "params": { "node_type": "Node", "node_name": "HealthComponent" }
+        },
+        {
+          "skill": "generate_movement_script",
+          "params": { "script_name": "health_component.gd" }
+        }
+      ],
+      "code_snippet": "extends Node\nsignal health_changed(old_val, new_val)\nsignal died\n\n@export var max_health: float = 100.0\n@onready var current_health: float = max_health\n\nfunc take_damage(amount: float):\n\tcurrent_health -= amount\n\thealth_changed.emit(current_health + amount, current_health)\n\tif current_health <= 0:\n\t\tdied.emit()"
+    },
+    {
+      "name": "TopDownPlayer",
+      "description": "完整的俯视角玩家原型, 包含 Sprite2D 和 8 方向移动逻辑",
+      "genre": "Action/RPG",
+      "steps": [
+        {
+          "skill": "create_godot_scene",
+          "params": { "scene_name": "Player", "root_type": "CharacterBody2D" }
+        },
+        {
+          "skill": "generate_movement_script",
+          "params": { "is_top_down": true, "speed": 300.0 }
+        },
+        {
+          "skill": "inject_godot_node",
+          "params": { "node_type": "Sprite2D", "node_name": "Visual" }
+        }
+      ]
+    }
+  ]
+}

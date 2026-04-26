@@ -1,0 +1,104 @@
+{
+  "template_id": "platformer",
+  "display_name": "Platformer",
+  "game_genre": "Platformer",
+  "version": "1.0.0",
+  "description": "2D platformer baseline with movement, quests, UI flow, and release gates.",
+  "aliases": ["2d", "platform", "jump"],
+  "tags": ["2d", "movement", "progression"],
+  "coding_style": {
+    "naming_convention": "snake_case",
+    "signal_pattern": "SignalBus"
+  },
+  "default_ui_style": {
+    "primary_color": "#2E6BFF",
+    "corner_radius": 6
+  },
+  "recommended_directories": [
+    "agent_templates/genres",
+    "scenes/platformer",
+    "scripts/player",
+    "scripts/ui",
+    "data_tables",
+    "qa/baselines/platformer"
+  ],
+  "starter_data_tables": ["dialogue", "quest", "localization"],
+  "starter_gameplay_systems": [
+    {
+      "system_id": "player_controller",
+      "display_name": "Player Controller",
+      "category": "controller",
+      "summary": "Horizontal movement, jump arc, gravity, and grounded state for a 2D avatar.",
+      "recommended_skills": ["generate_movement_script", "manage_input_mapping"],
+      "suggested_data_tables": [],
+      "acceptance_checks": ["player_can_move_horizontally", "player_can_jump", "grounded_state_updates"],
+      "starter_feature_name": "platformer_player_controller",
+      "dependencies": []
+    },
+    {
+      "system_id": "camera_follow",
+      "display_name": "Camera Follow",
+      "category": "camera",
+      "summary": "Side-view camera follow with light transition and landing feedback.",
+      "recommended_skills": ["plan_game_feature", "apply_tween_animation"],
+      "suggested_data_tables": [],
+      "acceptance_checks": ["camera_tracks_player", "camera_transition_ready"],
+      "starter_feature_name": "platformer_camera_follow",
+      "dependencies": ["player_controller"]
+    },
+    {
+      "system_id": "checkpoint_system",
+      "display_name": "Checkpoint System",
+      "category": "progression",
+      "summary": "Checkpoint and respawn loop aligned with structured level markers.",
+      "recommended_skills": ["manage_level_workflow", "plan_game_feature"],
+      "suggested_data_tables": ["quest"],
+      "acceptance_checks": ["checkpoint_can_be_activated", "respawn_returns_to_last_checkpoint"],
+      "starter_feature_name": "platformer_checkpoint_system",
+      "dependencies": ["player_controller"]
+    },
+    {
+      "system_id": "collectable_loop",
+      "display_name": "Collectable Loop",
+      "category": "progression",
+      "summary": "Collectable pickup flow, score routing, and completion counter feedback.",
+      "recommended_skills": ["manage_signal_bus", "plan_game_feature"],
+      "suggested_data_tables": ["quest", "localization"],
+      "acceptance_checks": ["collectables_emit_events", "ui_counter_updates"],
+      "starter_feature_name": "platformer_collectable_loop",
+      "dependencies": ["player_controller"]
+    },
+    {
+      "system_id": "patrol_enemy",
+      "display_name": "Patrol Enemy",
+      "category": "combat",
+      "summary": "Simple patrol or chase enemy that fits early platformer encounter spaces.",
+      "recommended_skills": ["generate_ai_behavior", "manage_level_workflow"],
+      "suggested_data_tables": [],
+      "acceptance_checks": ["enemy_patrol_route_exists", "enemy_reacts_to_player"],
+      "starter_feature_name": "platformer_patrol_enemy",
+      "dependencies": ["player_controller"]
+    },
+    {
+      "system_id": "level_goal_flow",
+      "display_name": "Level Goal Flow",
+      "category": "flow",
+      "summary": "Exit gate or goal trigger that closes the level loop and feeds scene flow.",
+      "recommended_skills": ["define_game_flow", "manage_level_workflow"],
+      "suggested_data_tables": ["dialogue", "localization"],
+      "acceptance_checks": ["goal_trigger_completes_level", "scene_flow_can_advance"],
+      "starter_feature_name": "platformer_level_goal_flow",
+      "dependencies": ["checkpoint_system"]
+    }
+  ],
+  "performance_budget": {
+    "max_scene_load_ms": 1000,
+    "min_fps": 60,
+    "max_memory_peak_mb": 256,
+    "max_draw_call_count": 350,
+    "max_node_count": 220,
+    "max_texture_memory_mb": 128,
+    "max_frame_spike_ms": 18,
+    "max_screenshot_diff_ratio": 0.05
+  }
+}

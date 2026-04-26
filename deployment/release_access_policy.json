@@ -1,0 +1,105 @@
+{
+  "schema_version": "1.0",
+  "notes": [
+    "Local release write gate until external API/session auth is fully wired.",
+    "Customize actor_id and role bindings for your real team before production rollout."
+  ],
+  "actors": [
+    {
+      "actor_id": "qa_lead",
+      "roles": ["qa_lead"]
+    },
+    {
+      "actor_id": "tech_lead",
+      "roles": ["tech_lead"]
+    },
+    {
+      "actor_id": "producer",
+      "roles": ["producer"]
+    },
+    {
+      "actor_id": "ops",
+      "roles": ["ops"]
+    },
+    {
+      "actor_id": "release_manager",
+      "roles": ["release_manager"]
+    },
+    {
+      "actor_id": "producer_a",
+      "roles": ["producer"]
+    },
+    {
+      "actor_id": "ops_a",
+      "roles": ["ops"]
+    },
+    {
+      "actor_id": "ci_release",
+      "roles": ["ci", "release_manager"]
+    },
+    {
+      "actor_id": "portal_smoke",
+      "roles": ["qa_lead"]
+    }
+  ],
+  "rules": [
+    {
+      "rule_id": "promotion_planned_any",
+      "action": "promotion_record",
+      "decisions": ["planned"],
+      "channels": ["qa", "staging", "release"],
+      "roles": ["qa_lead", "tech_lead", "producer", "ops", "release_manager", "ci"],
+      "allow_without_actor": true
+    },
+    {
+      "rule_id": "promotion_non_blocking_qa_staging",
+      "action": "promotion_record",
+      "decisions": ["approved", "promoted"],
+      "channels": ["qa", "staging"],
+      "roles": ["producer", "ops", "release_manager", "ci"]
+    },
+    {
+      "rule_id": "promotion_non_blocking_release",
+      "action": "promotion_record",
+      "decisions": ["approved", "promoted"],
+      "channels": ["release"],
+      "roles": ["ops", "release_manager", "ci"]
+    },
+    {
+      "rule_id": "promotion_blocking_any",
+      "action": "promotion_record",
+      "decisions": ["blocked", "rolled_back", "aborted"],
+      "channels": ["qa", "staging", "release"],
+      "roles": ["qa_lead", "tech_lead", "producer", "ops", "release_manager", "ci"]
+    },
+    {
+      "rule_id": "execution_dry_run_any",
+      "action": "release_execution",
+      "operations": ["dry_run"],
+      "channels": ["qa", "staging", "release"],
+      "roles": ["qa_lead", "tech_lead", "producer", "ops", "release_manager", "ci"],
+      "allow_without_actor": true
+    },
+    {
+      "rule_id": "execution_rollout_qa_staging",
+      "action": "release_execution",
+      "operations": ["canary", "full_rollout"],
+      "channels": ["qa", "staging"],
+      "roles": ["producer", "ops", "release_manager", "ci"]
+    },
+    {
+      "rule_id": "execution_rollout_release",
+      "action": "release_execution",
+      "operations": ["canary", "full_rollout"],
+      "channels": ["release"],
+      "roles": ["ops", "release_manager", "ci"]
+    },
+    {
+      "rule_id": "execution_rollback_any",
+      "action": "release_execution",
+      "operations": ["rollback"],
+      "channels": ["qa", "staging", "release"],
+      "roles": ["ops", "release_manager", "ci"]
+    }
+  ]
+}

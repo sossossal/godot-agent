@@ -1,0 +1,225 @@
+name: release-live-gates
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner_labels:
+        description: JSON array of self-hosted runner labels
+        required: true
+        default: '["self-hosted","windows","godot"]'
+        type: string
+      target_channel:
+        description: Target release channel
+        required: true
+        default: release
+        type: string
+      target_environment:
+        description: Target environment label
+        required: true
+        default: production
+        type: string
+      release_manifest_path:
+        description: Runtime-root-relative release manifest path
+        required: true
+        default: api_server/static/dist/release_manifest.json
+        type: string
+      runner_profile_path:
+        description: Project-root-relative runner profile manifest
+        required: true
+        default: deployment/release_live_runner_profile.json
+        type: string
+      approvers:
+        description: Comma-separated approver ids for report rendering
+        required: false
+        default: ""
+        type: string
+      providers:
+        description: Comma-separated provider ids for agent compatibility
+        required: true
+        default: codex,openai_api
+        type: string
+      artifact_dir:
+        description: Output directory for live CI artifacts
+        required: true
+        default: logs/reports/release_live_ci
+        type: string
+      fail_on_warnings:
+        description: Fail the automated CI gate on warning checks
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  live-release-gates:
+    runs-on: ${{ fromJson(inputs.runner_labels) }}
+    timeout-minutes: 90
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        id: setup_python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        id: install_dependencies
+        shell: pwsh
+        run: python -m pip install --upgrade pip; python -m pip install -r requirements.txt
+
+      - name: Export release-live runner baseline
+        id: export_runner_baseline
+        shell: pwsh
+        run: |
+          python .\tools\export_release_live_runner_baseline.py `
+            --project-root . `
+            --runtime-root . `
+            --channel "${{ inputs.target_channel }}" `
+            --target-environment "${{ inputs.target_environment }}" `
+            --release-manifest-path "${{ inputs.release_manifest_path }}" `
+            --runner-profile-path "${{ inputs.runner_profile_path }}" `
+            --declared-runner-labels '${{ inputs.runner_labels }}' `
+            --fail-on-blockers
+
+      - name: Build verified release distribution handoff
+        id: build_distribution_handoff
+        shell: pwsh
+        run: |
+          python .\tools\export_release_distribution_handoff.py `
+            --project-root . `
+            --runtime-root . `
+            --channel "${{ inputs.target_channel }}" `
+            --target-environment "${{ inputs.target_environment }}" `
+            --release-manifest-path "${{ inputs.release_manifest_path }}"
+
+      - name: Build external signing handoff
+        id: build_distribution_signing_handoff
+        shell: pwsh
+        run: |
+          python .\tools\export_release_distribution_signing_handoff.py `
+            --project-root . `
+            --runtime-root . `
+            --channel "${{ inputs.target_channel }}" `
+            --target-environment "${{ inputs.target_environment }}" `
+            --release-manifest-path "${{ inputs.release_manifest_path }}"
+
+      - name: Build external publish handoff
+        id: build_distribution_publish_handoff
+        shell: pwsh
+        run: |
+          python .\tools\export_release_distribution_publish_handoff.py `
+            --project-root . `
+            --runtime-root . `
+            --channel "${{ inputs.target_channel }}" `
+            --target-environment "${{ inputs.target_environment }}" `
+            --release-manifest-path "${{ inputs.release_manifest_path }}"
+
+      - name: Build request-auth identity handoff
+        id: build_request_auth_identity_handoff
+        shell: pwsh
+        run: |
+          python .\tools\export_release_request_auth_identity_handoff.py `
+            --project-root . `
+            --runtime-root . `
+            --channel "${{ inputs.target_channel }}" `
+            --target-environment "${{ inputs.target_environment }}" `
+            --release-manifest-path "${{ inputs.release_manifest_path }}"
+
+      - name: Run full live validation
+        id: run_full_live_validation
+        shell: pwsh
+        run: |
+          .\tools\run_full_live_validation.ps1 `
+            -ReleaseManifestPath "${{ inputs.release_manifest_path }}"
+
+      - name: Export live release CI artifacts
+        id: export_live_ci_artifacts
+        if: always()
+        shell: pwsh
+        run: |
+          $workflowStepResultsPath = Join-Path 'logs/reports' 'release_live_ci_workflow_steps.json'
+          New-Item -ItemType Directory -Force -Path (Split-Path -Parent $workflowStepResultsPath) | Out-Null
+          @(
+            @{
+              step_id = 'install_dependencies'
+              label = 'Install dependencies'
+              outcome = '${{ steps.install_dependencies.outcome }}'
+              always_run = $false
+            }
+            @{
+              step_id = 'export_runner_baseline'
+              label = 'Export release-live runner baseline'
+              outcome = '${{ steps.export_runner_baseline.outcome }}'
+              always_run = $false
+            }
+            @{
+              step_id = 'build_distribution_handoff'
+              label = 'Build verified release distribution handoff'
+              outcome = '${{ steps.build_distribution_handoff.outcome }}'
+              always_run = $false
+            }
+            @{
+              step_id = 'build_distribution_signing_handoff'
+              label = 'Build external signing handoff'
+              outcome = '${{ steps.build_distribution_signing_handoff.outcome }}'
+              always_run = $false
+            }
+            @{
+              step_id = 'build_distribution_publish_handoff'
+              label = 'Build external publish handoff'
+              outcome = '${{ steps.build_distribution_publish_handoff.outcome }}'
+              always_run = $false
+            }
+            @{
+              step_id = 'build_request_auth_identity_handoff'
+              label = 'Build request-auth identity handoff'
+              outcome = '${{ steps.build_request_auth_identity_handoff.outcome }}'
+              always_run = $false
+            }
+            @{
+              step_id = 'run_full_live_validation'
+              label = 'Run full live validation'
+              outcome = '${{ steps.run_full_live_validation.outcome }}'
+              always_run = $false
+            }
+          ) | ConvertTo-Json -Depth 6 | Set-Content -Path $workflowStepResultsPath -Encoding utf8
+          $args = @(
+            '.\tools\export_release_live_ci_artifacts.py',
+            '--project-root', '.',
+            '--runtime-root', '.',
+            '--output-dir', '${{ inputs.artifact_dir }}',
+            '--channel', '${{ inputs.target_channel }}',
+            '--target-environment', '${{ inputs.target_environment }}',
+            '--release-manifest-path', '${{ inputs.release_manifest_path }}',
+            '--approvers', '${{ inputs.approvers }}',
+            '--providers', '${{ inputs.providers }}',
+            '--mode', 'strict',
+            '--invocation-source', 'github_workflow',
+            '--workflow-step-results-path', $workflowStepResultsPath,
+            '--fail-on-blockers'
+          )
+          if ('${{ inputs.fail_on_warnings }}' -eq 'true') {
+            $args += '--fail-on-warnings'
+          }
+          python @args
+
+      - name: Publish live release summary
+        if: always()
+        shell: pwsh
+        run: |
+          $summaryPath = Join-Path '${{ inputs.artifact_dir }}' 'release_live_ci_summary.md'
+          if (Test-Path $summaryPath) {
+            Get-Content $summaryPath | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          }
+
+      - name: Upload live release artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-live-gates-artifacts
+          path: |
+            ${{ inputs.artifact_dir }}
+            logs/reports/release_live_runner_baseline_${{ inputs.target_channel }}.json
+          if-no-files-found: error

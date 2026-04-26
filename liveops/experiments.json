@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "liveops_type": "experiment_catalog",
+  "items": [
+    {
+      "experiment_id": "tutorial_short_path",
+      "status": "running",
+      "hypothesis": "缩短前置教程步骤可以提升 D1 留存和完成率。",
+      "owner": "product_ops",
+      "audience_segments": ["new_players"],
+      "target_metrics": ["d1_retention", "funnel_completion_rate"],
+      "rollout_percentage": 50,
+      "rollback_rule": "d1_retention 下降超过 3% 或 funnel_completion_rate 下降超过 2% 立即回滚",
+      "variants": [
+        {"variant_id": "control", "weight": 50, "config_overrides": {}},
+        {"variant_id": "short_path", "weight": 50, "config_overrides": {"tutorial_step_count": 3}}
+      ],
+      "acceptance_checks": ["variants_weight_sum_100", "metrics_declared", "rollback_rule_defined"],
+      "notes": "与 telemetry 样本联动的项目级 LiveOps 实验样本。"
+    }
+  ]
+}

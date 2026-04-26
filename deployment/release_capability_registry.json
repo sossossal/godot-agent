@@ -1,0 +1,349 @@
+{
+  "schema_version": "1.0",
+  "registry_id": "release_control_plane_capabilities",
+  "capabilities": [
+    {
+      "capability_id": "release_candidate_checklist_read",
+      "label": "Release Candidate Checklist",
+      "group": "release_governance",
+      "surface_types": ["command", "gateway_method"],
+      "risk_level": "medium",
+      "requires_actor": false,
+      "requires_request_auth": false,
+      "default_enabled": true,
+      "optional_heavy": false,
+      "sandbox_profile": "read_only",
+      "artifact_contracts": ["release_candidate_checklist", "release_summary", "release_qa_evidence"],
+      "entrypoints": ["/release-candidate/checklist"],
+      "owners": ["qa_lead", "tech_lead"],
+      "notes": [
+        "控制面只读入口，用于收敛 RC、QA 与 release manifest 证据。",
+        "不应绕过 manifest/QA gate 直接推断发布 readiness。"
+      ]
+    },
+    {
+      "capability_id": "release_promotion_plan_read",
+      "label": "Release Promotion Plan",
+      "group": "release_control_plane",
+      "surface_types": ["command", "gateway_method"],
+      "risk_level": "medium",
+      "requires_actor": false,
+      "requires_request_auth": false,
+      "default_enabled": true,
+      "optional_heavy": false,
+      "sandbox_profile": "read_only",
+      "artifact_contracts": ["release_promotion_plan", "release_review_bundle"],
+      "entrypoints": ["/release-promotion/plan", "/release-promotion/review-bundle"],
+      "owners": ["producer", "qa_lead", "tech_lead"],
+      "notes": [
+        "负责把 RC、matrix、signoff、distribution、request_auth 和 live CI 汇总为统一 promotion plan。"
+      ]
+    },
+    {
+      "capability_id": "release_promotion_record_write",
+      "label": "Release Promotion Record",
+      "group": "release_control_plane",
+      "surface_types": ["command", "gateway_method"],
+      "risk_level": "high",
+      "requires_actor": true,
+      "requires_request_auth": true,
+      "default_enabled": true,
+      "optional_heavy": false,
+      "sandbox_profile": "release_write",
+      "artifact_contracts": ["release_promotion_history", "release_promotion_plan"],
+      "entrypoints": ["/release-promotion/record"],
+      "policy_action": "promotion_record",
+      "policy_decision": "approved",
+      "owners": ["producer", "ops", "release_manager"],
+      "notes": [
+        "高风险写接口，必须绑定 actor、authorization 和 request_auth。"
+      ]
+    },
+    {
+      "capability_id": "release_execution_status_read",
+      "label": "Release Execution Status",
+      "group": "release_control_plane",
+      "surface_types": ["command", "gateway_method"],
+      "risk_level": "medium",
+      "requires_actor": false,
+      "requires_request_auth": false,
+      "default_enabled": true,
+      "optional_heavy": false,
+      "sandbox_profile": "read_only",
+      "artifact_contracts": ["release_execution_status", "release_promotion_plan", "release_live_ci_summary", "release_artifact_manifest"],
+      "entrypoints": ["/release-execution/status", "/release-execution/report", "/release-artifact-manifest"],
+      "owners": ["release_manager", "ops"],
+      "notes": [
+        "用于审计 rollout、rollback、channel binding 和 release gate 摘要。"
+      ]
+    },
+    {
+      "capability_id": "release_execution_dry_run_write",
+      "label": "Release Execution Dry Run",
+      "group": "release_control_plane",
+      "surface_types": ["command", "gateway_method"],
+      "risk_level": "medium",
+      "requires_actor": false,
+      "requires_request_auth": true,
+      "default_enabled": true,
+      "optional_heavy": false,
+      "sandbox_profile": "release_write",
+      "artifact_contracts": ["release_execution_status", "release_promotion_history"],
+      "entrypoints": ["/release-execution/run"],
+      "policy_action": "release_execution",
+      "policy_operation": "dry_run",
+      "owners": ["release_manager", "ops"],
+      "notes": [
+        "低风险 rehearsal 写入口，通常用于执行前校验与演练。"
+      ]
+    },
+    {
+      "capability_id": "release_execution_rollout_write",
+      "label": "Release Execution Rollout",
+      "group": "release_control_plane",
+      "surface_types": ["command", "gateway_method"],
+      "risk_level": "critical",
+      "requires_actor": true,
+      "requires_request_auth": true,
+      "default_enabled": true,
+      "optional_heavy": false,
+      "sandbox_profile": "release_write",
+      "artifact_contracts": ["release_execution_status", "release_promotion_history"],
+      "entrypoints": ["/release-execution/run"],
+      "policy_action": "release_execution",
+      "policy_operation": "canary",
+      "owners": ["release_manager", "ops"],
+      "notes": [
+        "高风险 rollout 写入口，代表 canary / full_rollout 两类真实放量动作。"
+      ]
+    },
+    {
+      "capability_id": "release_execution_rollback_write",
+      "label": "Release Execution Rollback",
+      "group": "release_control_plane",
+      "surface_types": ["command", "gateway_method"],
+      "risk_level": "critical",
+      "requires_actor": true,
+      "requires_request_auth": true,
+      "default_enabled": true,
+      "optional_heavy": false,
+      "sandbox_profile": "release_write",
+      "artifact_contracts": ["release_execution_status", "release_promotion_history"],
+      "entrypoints": ["/release-execution/rollback"],
+      "policy_action": "release_execution",
+      "policy_operation": "rollback",
+      "owners": ["release_manager", "ops"],
+      "notes": [
+        "高风险 rollback 写入口，要求明确 actor、authorization 与 request_auth。"
+      ]
+    },
+    {
+      "capability_id": "release_live_ci_summary_read",
+      "label": "Release Live CI Summary",
+      "group": "release_runtime",
+      "surface_types": ["command", "gateway_method"],
+      "risk_level": "medium",
+      "requires_actor": false,
+      "requires_request_auth": false,
+      "default_enabled": true,
+      "optional_heavy": false,
+      "sandbox_profile": "read_only",
+      "artifact_contracts": ["release_live_ci_summary", "release_artifact_manifest", "release_promotion_history"],
+      "entrypoints": ["/release-live-ci/summary", "/release-live-ci/summary-report", "/release-artifact-manifest"],
+      "owners": ["qa_lead", "ops"],
+      "notes": [
+        "统一读取 fixed runner workflow、local replay 和 full live validation 的诊断摘要。"
+      ]
+    },
+    {
+      "capability_id": "release_live_ci_workflow_dispatch_write",
+      "label": "Release Live CI Workflow Dispatch",
+      "group": "release_runtime",
+      "surface_types": ["command", "gateway_method"],
+      "risk_level": "high",
+      "requires_actor": true,
+      "requires_request_auth": true,
+      "default_enabled": true,
+      "optional_heavy": false,
+      "sandbox_profile": "release_write",
+      "artifact_contracts": ["release_live_dispatch_preflight", "release_live_ci_summary", "release_artifact_manifest"],
+      "entrypoints": ["/release-live-ci/dispatch"],
+      "policy_action": "release_execution",
+      "policy_operation": "workflow_dispatch",
+      "owners": ["ops", "release_manager"],
+      "notes": [
+        "用于触发真实 GitHub Actions release-live-gates workflow_dispatch，必须绑定 actor、request_auth 和显式 dispatch preflight。"
+      ]
+    },
+    {
+      "capability_id": "release_delivery_readiness_read",
+      "label": "Release Delivery Readiness",
+      "group": "release_governance",
+      "surface_types": ["command", "gateway_method"],
+      "risk_level": "medium",
+      "requires_actor": false,
+      "requires_request_auth": false,
+      "default_enabled": true,
+      "optional_heavy": false,
+      "sandbox_profile": "read_only",
+      "artifact_contracts": ["release_delivery_readiness", "release_promotion_plan", "release_live_ci_summary", "release_artifact_manifest"],
+      "entrypoints": ["/release-delivery-readiness", "/release-delivery-readiness/report", "/release-artifact-manifest"],
+      "owners": ["ops", "release_manager", "qa_lead"],
+      "notes": [
+        "聚合外部 identity 边界、真实 self-hosted workflow 证据和外部分发交付状态。",
+        "用于交付级 closeout，不直接替代 promotion/rollout 写接口。"
+      ]
+    },
+    {
+      "capability_id": "full_live_validation_run",
+      "label": "Full Live Validation",
+      "group": "release_runtime",
+      "surface_types": ["command", "hook"],
+      "risk_level": "high",
+      "requires_actor": false,
+      "requires_request_auth": false,
+      "default_enabled": false,
+      "optional_heavy": true,
+      "sandbox_profile": "local_process",
+      "artifact_contracts": ["release_live_ci_summary", "release_artifact_manifest", "release_promotion_plan"],
+      "entrypoints": ["tools/run_full_live_validation.ps1", "tools/run_release_live_gates_locally.ps1"],
+      "owners": ["qa_lead", "ops"],
+      "notes": [
+        "重型 runtime lane，不应作为默认轻量检查入口。"
+      ]
+    },
+    {
+      "capability_id": "portal_browser_click_smoke_run",
+      "label": "Portal Browser Click Smoke",
+      "group": "release_runtime",
+      "surface_types": ["tool", "command"],
+      "risk_level": "medium",
+      "requires_actor": false,
+      "requires_request_auth": false,
+      "default_enabled": false,
+      "optional_heavy": true,
+      "sandbox_profile": "browser_automation",
+      "artifact_contracts": ["release_live_ci_summary", "release_artifact_manifest", "release_promotion_history"],
+      "entrypoints": ["python tools/run_portal_browser_click_smoke.py", "/release-artifact-manifest"],
+      "owners": ["qa_lead"],
+      "notes": [
+        "用于真实 Portal 流程回归，产出 history-report flow 等 browser 级证据。"
+      ]
+    },
+    {
+      "capability_id": "godot_editor_live_run",
+      "label": "Godot Editor Live Runtime",
+      "group": "release_runtime",
+      "surface_types": ["tool", "command"],
+      "risk_level": "high",
+      "requires_actor": false,
+      "requires_request_auth": false,
+      "default_enabled": false,
+      "optional_heavy": true,
+      "sandbox_profile": "godot_gui",
+      "artifact_contracts": ["build_run_matrix", "release_live_ci_summary", "release_artifact_manifest"],
+      "entrypoints": ["tools/run_full_live_validation.ps1", "godot live runner"],
+      "owners": ["tech_lead", "qa_lead"],
+      "notes": [
+        "依赖 Godot GUI/编辑器，必须和非 live CI 分离。"
+      ]
+    },
+    {
+      "capability_id": "remote_mcp_live_bridge",
+      "label": "Remote MCP Live Bridge",
+      "group": "release_runtime",
+      "surface_types": ["tool", "gateway_method"],
+      "risk_level": "high",
+      "requires_actor": false,
+      "requires_request_auth": false,
+      "default_enabled": false,
+      "optional_heavy": true,
+      "sandbox_profile": "network_bridge",
+      "artifact_contracts": ["agent_provider_compatibility", "release_live_ci_summary", "release_artifact_manifest"],
+      "entrypoints": ["/mcp/remote-manifest", "bridge/remote_mcp_server.py"],
+      "owners": ["tech_lead"],
+      "notes": [
+        "远端桥接能力应保持可选，并由独立 runtime gate 控制。"
+      ]
+    },
+    {
+      "capability_id": "release_distribution_export",
+      "label": "Release Distribution Export",
+      "group": "release_distribution",
+      "surface_types": ["command", "gateway_method"],
+      "risk_level": "high",
+      "requires_actor": false,
+      "requires_request_auth": false,
+      "default_enabled": true,
+      "optional_heavy": false,
+      "sandbox_profile": "workspace_write",
+      "artifact_contracts": ["release_distribution_bundle", "release_promotion_plan", "release_execution_status"],
+      "entrypoints": [
+        "python tools/export_release_distribution_bundle.py",
+        "python tools/export_release_distribution_archive.py",
+        "python tools/export_release_distribution_publish_handoff.py"
+      ],
+      "owners": ["ops", "release_manager"],
+      "notes": [
+        "负责 bundle、archive、channel index、handoff、signing、publish intake 的导出。"
+      ]
+    },
+    {
+      "capability_id": "release_distribution_publish_receipt_write",
+      "label": "Release Distribution Publish Receipt",
+      "group": "release_distribution",
+      "surface_types": ["command", "gateway_method"],
+      "risk_level": "high",
+      "requires_actor": true,
+      "requires_request_auth": true,
+      "default_enabled": true,
+      "optional_heavy": false,
+      "sandbox_profile": "release_write",
+      "artifact_contracts": ["release_distribution_bundle", "release_promotion_history", "release_execution_status"],
+      "entrypoints": ["python tools/record_release_distribution_publish_receipt.py"],
+      "owners": ["ops", "release_manager"],
+      "notes": [
+        "把外部分发完成态重新绑定回当前 build_id/version/channel。"
+      ]
+    },
+    {
+      "capability_id": "release_request_auth_identity_boundary_export",
+      "label": "Release Request Auth Identity Boundary",
+      "group": "release_identity",
+      "surface_types": ["command", "gateway_method"],
+      "risk_level": "high",
+      "requires_actor": false,
+      "requires_request_auth": false,
+      "default_enabled": true,
+      "optional_heavy": false,
+      "sandbox_profile": "workspace_write",
+      "artifact_contracts": ["release_promotion_plan", "release_execution_status", "release_promotion_history"],
+      "entrypoints": [
+        "python tools/export_release_request_auth_posture.py",
+        "python tools/export_release_request_auth_identity_handoff.py"
+      ],
+      "owners": ["ops", "security"],
+      "notes": [
+        "负责 posture、rotation、identity audit 与对外 identity handoff intake。"
+      ]
+    },
+    {
+      "capability_id": "release_promotion_history_read",
+      "label": "Release Promotion History",
+      "group": "release_audit",
+      "surface_types": ["command", "gateway_method"],
+      "risk_level": "low",
+      "requires_actor": false,
+      "requires_request_auth": false,
+      "default_enabled": true,
+      "optional_heavy": false,
+      "sandbox_profile": "read_only",
+      "artifact_contracts": ["release_promotion_history", "release_promotion_plan", "release_live_ci_summary", "release_artifact_manifest"],
+      "entrypoints": ["/release-promotion/history", "/release-promotion/history-report", "/release-artifact-manifest"],
+      "owners": ["producer", "qa_lead", "ops"],
+      "notes": [
+        "用于 history ledger、history-report 和 Portal 人工审计链。"
+      ]
+    }
+  ]
+}

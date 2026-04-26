@@ -1,45 +1,66 @@
 """
-TesterRole，ResourceManagerRole，SimulationRole — 简洁实现
+测试角色 (修复版)
+职责: 场景冒烟测试、输入模拟自动化
 """
-# tester.py
-from typing import Dict, List, Any
+
+import base64
+import os
+import re
+import tempfile
+import time
+from pathlib import Path
+from typing import Dict, List, Any, Optional
+from ..models import Task, TaskStatus, Artifact
 from .base import BaseRole
+from ..skills.registry import SkillRegistry
 
 
 class TesterRole(BaseRole):
+    """测试角色 (技能化重构版)"""
+    
     def get_description(self) -> str:
-        return "测试专家，生成自动化测试脚本和 GUT 单元测试"
-
+        return "测试工程师, 擅长执行场景冒烟测试和自动化功能验证"
+    
     def get_capabilities(self) -> List[str]:
-        return ["GUT 单元测试", "场景功能测试", "性能压力测试", "输入模拟测试"]
-
-    def execute(self, command: str, context: Dict[str, Any]) -> Dict[str, Any]:
-        code = '''\
-# test_player.gd — GUT 单元测试示例（需安装 GUT 插件）
-extends GutTest
-
-var player_scene = preload("res://scenes/player.tscn")
-var player
-
-func before_each():
-	player = player_scene.instantiate()
-	add_child(player)
-
-func after_each():
-	player.queue_free()
-
-func test_player_starts_with_full_health():
-	assert_eq(player.health, player.max_health, "初始血量应为满血")
-
-func test_player_takes_damage():
-	var initial_hp = player.health
-	player.take_damage(20)
-	assert_eq(player.health, initial_hp - 20, "受伤后血量应减少 20")
-
-func test_player_dies_at_zero_hp():
-	player.take_damage(player.max_health)
-	assert_true(player.is_dead, "血量归零后应死亡")
-'''
-        return self._success_result("GUT 测试脚本已生成",
-            {"script_name": "test_player.gd", "code": code,
-             "tips": "需要在 Godot 中安装 GUT 插件（https://github.com/bitwes/Gut）"})
+        return ["运行场景冒烟测试", "模拟玩家输入验证", "端到端自动化测试", "运行期截图产物"]
+    
+    def execute(self, task: Task) -> Task:
+        """执行测试任务"""
+        task.status = TaskStatus.RUNNING
+        command = task.prompt
+        
+        try:
+            # 🆕 模块化技能调用
+            if any(k in command for k in ["逻辑审计", "逻辑检查", "语法检查", "信号审计"]):
+                skill_name = "audit_logic_errors"
+            elif any(k in command for k in ["调试", "debug", "报错分析"]):
+                skill_name = "auto_debug_runtime"
+            elif any(k in command for k in ["端到端", "e2e", "模拟", "断言"]):
+                skill_name = "e2e_test_scene"
+            elif any(k in command for k in ["截图", "快照", "视觉反馈"]):
+                skill_name = "quick_capture_scene"
+            else:
+                skill_name = "smoke_test_scene"
+            
+            skill_res = SkillRegistry.get_skill_with_params(
+                skill_name, 
+                command, 
+                self.godot_cli, 
+                self.index_service
+            )
+            
+            if skill_res:
+                skill, params = skill_res
+                result = skill.execute(task, params)
+                self._apply_skill_result_contract(task, result)
+                self._merge_result_artifacts(task, result)
+                
+                if result.success:
+                    return self._success_task(task, result.message)
+                else:
+                    return self._error_task(task, result.message, result.error)
+            
+            return self._error_task(task, f"未找到匹配的测试技能: {skill_name}")
+            
+        except Exception as e:
+            return self._error_task(task, f"测试引擎异常: {str(e)}", str(e))

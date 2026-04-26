@@ -1,0 +1,105 @@
+{
+  "template_id": "topdown_action",
+  "display_name": "Topdown Action",
+  "game_genre": "Topdown Action",
+  "version": "1.0.0",
+  "description": "Topdown action template with combat, loot, and encounter pacing.",
+  "aliases": ["topdown", "top-down", "action"],
+  "tags": ["2d", "combat", "loot"],
+  "coding_style": {
+    "naming_convention": "snake_case",
+    "signal_pattern": "SignalBus"
+  },
+  "default_ui_style": {
+    "primary_color": "#D94F2B",
+    "corner_radius": 8
+  },
+  "recommended_directories": [
+    "agent_templates/genres",
+    "scenes/levels",
+    "scripts/player",
+    "scripts/enemies",
+    "scripts/combat",
+    "data_tables",
+    "qa/baselines/topdown_action"
+  ],
+  "starter_data_tables": ["enemy", "loot", "localization"],
+  "starter_gameplay_systems": [
+    {
+      "system_id": "player_controller",
+      "display_name": "Topdown Controller",
+      "category": "controller",
+      "summary": "Eight-direction move input, facing logic, and dodge-ready controller base.",
+      "recommended_skills": ["generate_movement_script", "manage_input_mapping"],
+      "suggested_data_tables": [],
+      "acceptance_checks": ["player_can_move_in_8_directions", "input_map_covers_attack_and_interact"],
+      "starter_feature_name": "topdown_player_controller",
+      "dependencies": []
+    },
+    {
+      "system_id": "combat_core",
+      "display_name": "Combat Core",
+      "category": "combat",
+      "summary": "Primary attack, hit detection, and enemy damage routing for close-range encounters.",
+      "recommended_skills": ["plan_game_feature", "manage_signal_bus"],
+      "suggested_data_tables": ["enemy"],
+      "acceptance_checks": ["primary_attack_can_fire", "damage_event_reaches_target"],
+      "starter_feature_name": "topdown_combat_core",
+      "dependencies": ["player_controller"]
+    },
+    {
+      "system_id": "health_and_damage",
+      "display_name": "Health And Damage",
+      "category": "combat",
+      "summary": "Shared health, death, and invulnerability timing for player and enemies.",
+      "recommended_skills": ["plan_game_feature", "manage_signal_bus"],
+      "suggested_data_tables": ["enemy"],
+      "acceptance_checks": ["entities_have_health_state", "death_flow_is_defined"],
+      "starter_feature_name": "topdown_health_and_damage",
+      "dependencies": ["combat_core"]
+    },
+    {
+      "system_id": "interaction_loop",
+      "display_name": "Interaction Loop",
+      "category": "interaction",
+      "summary": "Prompt, interact action, and world pickup or trigger handling.",
+      "recommended_skills": ["manage_level_workflow", "manage_input_mapping"],
+      "suggested_data_tables": ["localization"],
+      "acceptance_checks": ["interaction_prompt_is_available", "interact_action_triggers_world_object"],
+      "starter_feature_name": "topdown_interaction_loop",
+      "dependencies": ["player_controller"]
+    },
+    {
+      "system_id": "loot_drop_loop",
+      "display_name": "Loot Drop Loop",
+      "category": "economy",
+      "summary": "Enemy loot drop, pickup feedback, and early economy sink hooks.",
+      "recommended_skills": ["manage_game_data_tables", "manage_signal_bus"],
+      "suggested_data_tables": ["loot", "enemy"],
+      "acceptance_checks": ["enemy_can_drop_loot", "pickup_updates_runtime_state"],
+      "starter_feature_name": "topdown_loot_drop_loop",
+      "dependencies": ["health_and_damage"]
+    },
+    {
+      "system_id": "encounter_director",
+      "display_name": "Encounter Director",
+      "category": "encounter",
+      "summary": "Spawn pacing and room encounter readiness for combat spaces.",
+      "recommended_skills": ["manage_level_workflow", "generate_ai_behavior"],
+      "suggested_data_tables": ["enemy"],
+      "acceptance_checks": ["encounter_zone_is_defined", "spawn_pacing_is_configured"],
+      "starter_feature_name": "topdown_encounter_director",
+      "dependencies": ["combat_core", "health_and_damage"]
+    }
+  ],
+  "performance_budget": {
+    "max_scene_load_ms": 1200,
+    "min_fps": 60,
+    "max_memory_peak_mb": 320,
+    "max_draw_call_count": 450,
+    "max_node_count": 320,
+    "max_texture_memory_mb": 192,
+    "max_frame_spike_ms": 18,
+    "max_screenshot_diff_ratio": 0.05
+  }
+}

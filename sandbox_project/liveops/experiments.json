@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "liveops_type": "experiment_catalog",
+  "items": [
+    {
+      "liveops_type": "experiment_catalog",
+      "experiment_id": "live_tutorial_short_path",
+      "status": "running",
+      "hypothesis": "缩短教程路径提升完成率",
+      "owner": "product_ops",
+      "audience_segments": [],
+      "target_metrics": [
+        "tutorial_completion_rate",
+        "d1_retention"
+      ],
+      "rollout_percentage": 40.0,
+      "rollback_rule": "tutorial_completion_rate 下降 3% 回滚",
+      "variants": [
+        {
+          "variant_id": "control",
+          "weight": 50.0,
+          "config_overrides": {}
+        },
+        {
+          "variant_id": "short_path",
+          "weight": 50.0,
+          "config_overrides": {}
+        }
+      ],
+      "acceptance_checks": [],
+      "notes": ""
+    }
+  ]
+}

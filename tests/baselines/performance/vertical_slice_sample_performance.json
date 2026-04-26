@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "scene_path": "res://scenes/Main.tscn",
+  "metrics": {
+    "scene_load_ms": 420,
+    "fps": 60,
+    "memory_peak_mb": 128,
+    "draw_call_count": 180,
+    "node_count": 120,
+    "texture_memory_mb": 72,
+    "frame_spike_ms": 11,
+    "screenshot_diff_ratio": 0.012
+  },
+  "frame_breakdown": [
+    {"stage": "render", "ms": 7.2, "budget_ms": 8.0},
+    {"stage": "script", "ms": 2.4, "budget_ms": 4.0},
+    {"stage": "physics", "ms": 1.7, "budget_ms": 3.0}
+  ],
+  "memory_trend": {
+    "sample_count": 4,
+    "min_mb": 116,
+    "max_mb": 128,
+    "avg_mb": 122,
+    "growth_mb": 12,
+    "trend_status": "growing"
+  },
+  "budgets": {
+    "max_scene_load_ms": 900,
+    "min_fps": 55,
+    "max_memory_peak_mb": 192,
+    "max_draw_call_count": 280,
+    "max_node_count": 180,
+    "max_texture_memory_mb": 96,
+    "max_frame_spike_ms": 16,
+    "max_screenshot_diff_ratio": 0.035,
+    "scene_load_regression_ratio": 0.25,
+    "fps_drop_ratio": 0.1,
+    "memory_peak_regression_ratio": 0.2,
+    "draw_call_regression_ratio": 0.2,
+    "node_count_regression_ratio": 0.2,
+    "texture_memory_regression_ratio": 0.2,
+    "frame_spike_regression_ratio": 0.25,
+    "screenshot_diff_regression_ratio": 0.3
+  }
+}

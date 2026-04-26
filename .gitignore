@@ -1,0 +1,72 @@
+# .gitignore for Godot Agent
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# Test and coverage caches
+.pytest_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+pytest-cache-files-*/
+tests/.tmp*/
+tests/runtime-artifacts-*/
+tests/__pycache__/
+tests/test_report.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Runtime artifacts
+logs/
+.agent_result.json
+.godot/
+.import/
+export.cfg
+export_presets.cfg
+.mono/
+data_*/
+!api_server/static/dist/
+api_server/static/dist/*
+!api_server/static/dist/.gitkeep
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+.cache/
+
+# OS
+.DS_Store
+Thumbs.db

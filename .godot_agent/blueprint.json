@@ -1,0 +1,47 @@
+{
+  "project_name": "New Game",
+  "game_genre": "3D",
+  "coding_style": {
+    "naming_convention": "snake_case",
+    "class_name_required": "true",
+    "signal_pattern": "SignalBus"
+  },
+  "ui_styles": {
+    "primary_color": "#ffffff",
+    "corner_radius": 4
+  },
+  "features": {
+    "3D_Environment": {
+      "name": "3D_Environment",
+      "description": "已配置 3D 环境场景: res://scenes/Main3D.tscn",
+      "status": "completed",
+      "files": [
+        "res://scenes/Main3D.tscn"
+      ],
+      "creation_skill": "setup_3d_environment",
+      "creation_params": {
+        "add_ground": true,
+        "add_camera": true,
+        "add_light": true
+      },
+      "created_at": 1775567898.160692
+    },
+    "generate_movement_script": {
+      "name": "generate_movement_script",
+      "description": "由技能 generate_movement_script 产出",
+      "status": "completed",
+      "files": [
+        "res://agent_modules/scripts/player_movement.gd"
+      ],
+      "creation_skill": "generate_movement_script",
+      "creation_params": {
+        "is_top_down": false
+      },
+      "created_at": 1775641923.9393504
+    }
+  },
+  "applied_patterns": [],
+  "scene_topology": [],
+  "global_autoloads": [],
+  "last_updated": 1775641923.9393504
+}

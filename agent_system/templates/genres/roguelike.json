@@ -1,0 +1,105 @@
+{
+  "template_id": "roguelike",
+  "display_name": "Roguelike",
+  "game_genre": "Roguelike",
+  "version": "1.0.0",
+  "description": "Roguelike template with encounter generation, loot, and replay loops.",
+  "aliases": ["rogue", "runbased", "run-based"],
+  "tags": ["procedural", "replay", "loot"],
+  "coding_style": {
+    "naming_convention": "snake_case",
+    "signal_pattern": "SignalBus"
+  },
+  "default_ui_style": {
+    "primary_color": "#1E8F5B",
+    "corner_radius": 6
+  },
+  "recommended_directories": [
+    "agent_templates/genres",
+    "scenes/rooms",
+    "scripts/player",
+    "scripts/enemies",
+    "scripts/systems",
+    "data_tables",
+    "qa/baselines/roguelike"
+  ],
+  "starter_data_tables": ["enemy", "loot", "localization"],
+  "starter_gameplay_systems": [
+    {
+      "system_id": "run_seed_bootstrap",
+      "display_name": "Run Seed Bootstrap",
+      "category": "run",
+      "summary": "Seed capture and reproducible run bootstrap for debug and balancing.",
+      "recommended_skills": ["plan_game_feature", "manage_blueprint_snapshots"],
+      "suggested_data_tables": [],
+      "acceptance_checks": ["run_seed_is_recorded", "same_seed_is_reproducible"],
+      "starter_feature_name": "roguelike_run_seed_bootstrap",
+      "dependencies": []
+    },
+    {
+      "system_id": "room_generation",
+      "display_name": "Room Generation",
+      "category": "generation",
+      "summary": "Room graph assembly and doorway connectivity for each run.",
+      "recommended_skills": ["manage_level_workflow", "plan_game_feature"],
+      "suggested_data_tables": [],
+      "acceptance_checks": ["room_graph_exists", "critical_path_can_be_generated"],
+      "starter_feature_name": "roguelike_room_generation",
+      "dependencies": ["run_seed_bootstrap"]
+    },
+    {
+      "system_id": "enemy_wave_director",
+      "display_name": "Enemy Wave Director",
+      "category": "encounter",
+      "summary": "Run-time encounter pacing, spawn composition, and clear-room gate.",
+      "recommended_skills": ["generate_ai_behavior", "manage_level_workflow"],
+      "suggested_data_tables": ["enemy"],
+      "acceptance_checks": ["encounter_spawn_rules_exist", "room_clear_gate_is_defined"],
+      "starter_feature_name": "roguelike_enemy_wave_director",
+      "dependencies": ["room_generation"]
+    },
+    {
+      "system_id": "loot_pool",
+      "display_name": "Loot Pool",
+      "category": "economy",
+      "summary": "Randomized reward pool with rarity bands and choice moments.",
+      "recommended_skills": ["manage_game_data_tables", "plan_game_feature"],
+      "suggested_data_tables": ["loot"],
+      "acceptance_checks": ["loot_pool_can_roll_rewards", "rarity_bands_are_defined"],
+      "starter_feature_name": "roguelike_loot_pool",
+      "dependencies": ["enemy_wave_director"]
+    },
+    {
+      "system_id": "meta_progression",
+      "display_name": "Meta Progression",
+      "category": "progression",
+      "summary": "Persistent unlock or currency layer that survives across runs.",
+      "recommended_skills": ["plan_game_feature", "manage_blueprint_snapshots"],
+      "suggested_data_tables": ["quest", "localization"],
+      "acceptance_checks": ["persistent_progress_can_be_saved", "unlock_flow_is_defined"],
+      "starter_feature_name": "roguelike_meta_progression",
+      "dependencies": ["loot_pool"]
+    },
+    {
+      "system_id": "run_summary",
+      "display_name": "Run Summary",
+      "category": "ui",
+      "summary": "End-of-run summary, seed display, and reward recap surface.",
+      "recommended_skills": ["auto_layout_ui", "manage_signal_bus"],
+      "suggested_data_tables": ["localization"],
+      "acceptance_checks": ["run_summary_can_render", "run_metrics_are_exposed"],
+      "starter_feature_name": "roguelike_run_summary",
+      "dependencies": ["meta_progression"]
+    }
+  ],
+  "performance_budget": {
+    "max_scene_load_ms": 1100,
+    "min_fps": 60,
+    "max_memory_peak_mb": 320,
+    "max_draw_call_count": 400,
+    "max_node_count": 260,
+    "max_texture_memory_mb": 160,
+    "max_frame_spike_ms": 18,
+    "max_screenshot_diff_ratio": 0.05
+  }
+}

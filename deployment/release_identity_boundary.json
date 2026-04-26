@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "profiles": [
+    {
+      "profile_id": "release_identity_boundary",
+      "target_channels": ["release"],
+      "target_environments": ["production"],
+      "provider_mode": "project_manifest",
+      "provider_id": "release_request_auth_manifest",
+      "session_policy": {
+        "required": true,
+        "max_session_age_hours": 24,
+        "backend": "identity_registry"
+      },
+      "secret_rotation": {
+        "required": true,
+        "backend": "deployment_manifest",
+        "owner": "ops_release",
+        "rotation_window_days": 30
+      },
+      "external_handoff": {
+        "required": true,
+        "mode": "manual_operator",
+        "target_id": "release_identity_intake",
+        "owner": "ops_release"
+      },
+      "issuer_policy": "identity_registry_scoped"
+    },
+    {
+      "profile_id": "staging_identity_boundary",
+      "target_channels": ["staging"],
+      "target_environments": ["staging"],
+      "provider_mode": "project_manifest",
+      "provider_id": "release_request_auth_manifest",
+      "session_policy": {
+        "required": true,
+        "max_session_age_hours": 48,
+        "backend": "identity_registry"
+      },
+      "secret_rotation": {
+        "required": true,
+        "backend": "deployment_manifest",
+        "owner": "ops_release",
+        "rotation_window_days": 30
+      },
+      "external_handoff": {
+        "required": true,
+        "mode": "manual_operator",
+        "target_id": "staging_identity_intake",
+        "owner": "ops_release"
+      },
+      "issuer_policy": "identity_registry_scoped"
+    }
+  ]
+}

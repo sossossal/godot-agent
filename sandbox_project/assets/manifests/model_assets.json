@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.1",
+  "asset_type": "model",
+  "asset_label": "GLTF 模型资源",
+  "default_directory": "assets/models",
+  "allowed_extensions": [
+    ".glb",
+    ".gltf"
+  ],
+  "budget": {
+    "max_dimension": null,
+    "max_memory_mb": 48.0
+  },
+  "entries": [
+    {
+      "asset_id": "live_guard",
+      "source_path": "res://raw_assets/models/live_guard.blend",
+      "target_path": "res://assets/models/live_guard.glb",
+      "source_tool": "blender",
+      "width": null,
+      "height": null,
+      "frame_width": null,
+      "frame_height": null,
+      "lod_count": 2,
+      "texture_set": "",
+      "package_version": "",
+      "license_name": "",
+      "dependency_targets": [],
+      "estimated_memory_mb": null,
+      "tags": [],
+      "notes": ""
+    },
+    {
+      "asset_id": "live_guard_api",
+      "source_path": "res://raw_assets/models/live_guard_api.blend",
+      "target_path": "res://assets/models/live_guard_api.glb",
+      "source_tool": "blender",
+      "width": null,
+      "height": null,
+      "frame_width": null,
+      "frame_height": null,
+      "lod_count": 2,
+      "texture_set": "",
+      "package_version": "",
+      "license_name": "",
+      "dependency_targets": [
+        "res://assets/models/live_guard_api_albedo.png"
+      ],
+      "estimated_memory_mb": null,
+      "tags": [],
+      "notes": ""
+    }
+  ]
+}

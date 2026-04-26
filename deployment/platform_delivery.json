@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "platforms": [
+    {
+      "platform_id": "windows_desktop",
+      "store": "itch",
+      "preset_name": "Windows Desktop",
+      "output_path": "builds/windows/game.exe",
+      "arch": "x86_64",
+      "feature_flags": ["cloud_save", "analytics", "achievements"]
+    },
+    {
+      "platform_id": "web",
+      "store": "web",
+      "preset_name": "Web",
+      "output_path": "builds/web/index.html",
+      "arch": "wasm32",
+      "feature_flags": ["analytics", "leaderboard"]
+    }
+  ],
+  "savegame": {
+    "schema_id": "profile_save",
+    "version": "1.0.0",
+    "save_mode": "cloud_optional",
+    "slot_count": 3,
+    "fields": [
+      {"name": "player_level", "type": "int", "required": true, "default": 1},
+      {"name": "inventory_items", "type": "json", "required": true, "default": []},
+      {"name": "checkpoint_id", "type": "string", "required": false, "default": ""}
+    ]
+  },
+  "services": {
+    "cloud_save": true,
+    "achievements": true,
+    "leaderboard": true,
+    "analytics": true
+  },
+  "multiplayer": {
+    "enabled": false,
+    "mode": "offline",
+    "transport": "offline",
+    "max_players": 1,
+    "rollback_supported": false
+  }
+}

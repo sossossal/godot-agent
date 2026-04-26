@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.1",
+  "asset_type": "texture",
+  "asset_label": "贴图资源",
+  "default_directory": "assets/textures",
+  "allowed_extensions": [
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".webp"
+  ],
+  "budget": {
+    "max_dimension": 2048,
+    "max_memory_mb": 8.0
+  },
+  "entries": [
+    {
+      "asset_id": "hero_diffuse",
+      "source_path": "res://raw_assets/hero_diffuse.png",
+      "target_path": "res://assets/textures/hero_diffuse.png",
+      "width": 1024,
+      "height": 1024,
+      "frame_width": null,
+      "frame_height": null,
+      "estimated_memory_mb": 4.0,
+      "tags": [
+        "character",
+        "diffuse"
+      ],
+      "notes": "主角漫反射贴图"
+    },
+    {
+      "asset_id": "live_probe_texture",
+      "source_path": "res://raw_assets/live_probe_texture.png",
+      "target_path": "res://assets/textures/live_probe_texture.png",
+      "source_tool": "",
+      "width": 64,
+      "height": 64,
+      "frame_width": null,
+      "frame_height": null,
+      "lod_count": null,
+      "texture_set": "",
+      "package_version": "",
+      "license_name": "",
+      "dependency_targets": [],
+      "estimated_memory_mb": 0.1,
+      "tags": [],
+      "notes": ""
+    }
+  ]
+}

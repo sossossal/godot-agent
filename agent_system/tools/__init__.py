@@ -1,5 +1,6 @@
-"""工具层 __init__"""
-from .godot_cli import GodotCLI
-from .script_library import ScriptLibrary
+"""工具包初始化"""
 
-__all__ = ["GodotCLI", "ScriptLibrary"]
+from .godot_cli import GodotCLI
+from .scene_tools import SceneTools
+
+__all__ = ["GodotCLI", "SceneTools"]

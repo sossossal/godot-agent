@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "scene_path": "scenes/portal_perf_scene.tscn",
+  "metrics": {
+    "draw_call_count": 240,
+    "node_count": 180,
+    "fps": 60.0,
+    "memory_peak_mb": 210.0,
+    "frame_spike_ms": 12.0
+  },
+  "budgets": {
+    "max_draw_call_count": 320.0,
+    "max_node_count": 220.0,
+    "min_fps": 55.0,
+    "max_memory_peak_mb": 260.0,
+    "max_frame_spike_ms": 20.0
+  },
+  "generated_at": 1776011565
+}

@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0",
+  "profiles": [
+    {
+      "profile_id": "release_external_windows",
+      "target_channels": ["release"],
+      "target_environments": ["production"],
+      "primary_installer": "portable_handoff",
+      "installer_types": ["portable_handoff", "archive_zip"],
+      "signing": {
+        "required": true,
+        "mode": "manual_pending",
+        "profile_id": "windows_release_codesign"
+      },
+      "publish_targets": [
+        {
+          "target_id": "qa_handoff",
+          "kind": "filesystem"
+        },
+        {
+          "target_id": "github_release_manual",
+          "kind": "manual_release_channel"
+        }
+      ],
+      "first_run_bootstrap": "doctor_self_check",
+      "upgrade_strategy": "in_place_backup",
+      "uninstall_strategy": "scripted_cleanup"
+    },
+    {
+      "profile_id": "staging_internal_windows",
+      "target_channels": ["staging"],
+      "target_environments": ["staging"],
+      "primary_installer": "portable_handoff",
+      "installer_types": ["portable_handoff", "archive_zip"],
+      "signing": {
+        "required": false,
+        "mode": "sha256_only",
+        "profile_id": ""
+      },
+      "publish_targets": [
+        {
+          "target_id": "staging_ci_artifact",
+          "kind": "ci_artifact"
+        }
+      ],
+      "first_run_bootstrap": "doctor_self_check",
+      "upgrade_strategy": "in_place_backup",
+      "uninstall_strategy": "scripted_cleanup"
+    }
+  ]
+}

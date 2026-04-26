@@ -1,0 +1,106 @@
+{
+  "template_id": "arpg",
+  "display_name": "ARPG",
+  "game_genre": "ARPG",
+  "version": "1.0.0",
+  "description": "Action RPG template with enemy stats, loot, UI, and progression scaffolding.",
+  "aliases": ["actionrpg", "action_rpg", "rpg"],
+  "tags": ["combat", "progression", "loot"],
+  "coding_style": {
+    "naming_convention": "snake_case",
+    "signal_pattern": "SignalBus"
+  },
+  "default_ui_style": {
+    "primary_color": "#7A2BF5",
+    "corner_radius": 8
+  },
+  "recommended_directories": [
+    "agent_templates/genres",
+    "scenes/world",
+    "scripts/player",
+    "scripts/enemies",
+    "scripts/ui",
+    "scripts/systems",
+    "data_tables",
+    "qa/baselines/arpg"
+  ],
+  "starter_data_tables": ["enemy", "loot", "quest", "localization"],
+  "starter_gameplay_systems": [
+    {
+      "system_id": "player_controller",
+      "display_name": "ARPG Controller",
+      "category": "controller",
+      "summary": "Character movement, facing, and navigation-ready traversal baseline.",
+      "recommended_skills": ["generate_movement_script", "manage_input_mapping"],
+      "suggested_data_tables": [],
+      "acceptance_checks": ["player_can_move", "input_map_supports_traversal"],
+      "starter_feature_name": "arpg_player_controller",
+      "dependencies": []
+    },
+    {
+      "system_id": "combat_abilities",
+      "display_name": "Combat Abilities",
+      "category": "combat",
+      "summary": "Basic attack, skill slot routing, and hit confirm events.",
+      "recommended_skills": ["plan_game_feature", "manage_signal_bus"],
+      "suggested_data_tables": ["enemy"],
+      "acceptance_checks": ["basic_attack_exists", "skill_slots_are_routed"],
+      "starter_feature_name": "arpg_combat_abilities",
+      "dependencies": ["player_controller"]
+    },
+    {
+      "system_id": "health_and_resources",
+      "display_name": "Health And Resources",
+      "category": "combat",
+      "summary": "Health, mana or stamina, death, and recovery state management.",
+      "recommended_skills": ["plan_game_feature", "manage_signal_bus"],
+      "suggested_data_tables": ["enemy"],
+      "acceptance_checks": ["health_and_resource_bars_can_update", "death_state_is_defined"],
+      "starter_feature_name": "arpg_health_and_resources",
+      "dependencies": ["combat_abilities"]
+    },
+    {
+      "system_id": "quest_and_interaction",
+      "display_name": "Quest And Interaction",
+      "category": "progression",
+      "summary": "Quest giver, world interaction, and objective completion events.",
+      "recommended_skills": ["manage_game_data_tables", "manage_level_workflow"],
+      "suggested_data_tables": ["quest", "localization"],
+      "acceptance_checks": ["quest_flow_is_defined", "world_interaction_can_trigger_objectives"],
+      "starter_feature_name": "arpg_quest_and_interaction",
+      "dependencies": ["player_controller"]
+    },
+    {
+      "system_id": "loot_and_inventory",
+      "display_name": "Loot And Inventory",
+      "category": "economy",
+      "summary": "Drop pickup, inventory state, and item reward presentation.",
+      "recommended_skills": ["manage_game_data_tables", "plan_game_feature"],
+      "suggested_data_tables": ["loot", "quest"],
+      "acceptance_checks": ["loot_can_enter_inventory", "reward_feedback_is_visible"],
+      "starter_feature_name": "arpg_loot_and_inventory",
+      "dependencies": ["health_and_resources"]
+    },
+    {
+      "system_id": "cooldown_and_progression",
+      "display_name": "Cooldown And Progression",
+      "category": "progression",
+      "summary": "Cooldown timers, unlock pacing, and progression milestone hooks.",
+      "recommended_skills": ["plan_game_feature", "manage_signal_bus"],
+      "suggested_data_tables": ["quest", "localization"],
+      "acceptance_checks": ["cooldowns_tick_correctly", "progression_hooks_are_defined"],
+      "starter_feature_name": "arpg_cooldown_and_progression",
+      "dependencies": ["combat_abilities", "loot_and_inventory"]
+    }
+  ],
+  "performance_budget": {
+    "max_scene_load_ms": 1400,
+    "min_fps": 55,
+    "max_memory_peak_mb": 384,
+    "max_draw_call_count": 650,
+    "max_node_count": 520,
+    "max_texture_memory_mb": 256,
+    "max_frame_spike_ms": 20,
+    "max_screenshot_diff_ratio": 0.05
+  }
+}

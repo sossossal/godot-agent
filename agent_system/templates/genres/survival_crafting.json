@@ -1,0 +1,105 @@
+{
+  "template_id": "survival_crafting",
+  "display_name": "Survival Crafting",
+  "game_genre": "Survival Crafting",
+  "version": "1.0.0",
+  "description": "Survival crafting template with resource loops, inventory, and progression.",
+  "aliases": ["survival", "crafting"],
+  "tags": ["survival", "inventory", "resource_loops"],
+  "coding_style": {
+    "naming_convention": "snake_case",
+    "signal_pattern": "SignalBus"
+  },
+  "default_ui_style": {
+    "primary_color": "#4C8A53",
+    "corner_radius": 7
+  },
+  "recommended_directories": [
+    "agent_templates/genres",
+    "scenes/world",
+    "scripts/player",
+    "scripts/crafting",
+    "scripts/inventory",
+    "data_tables",
+    "qa/baselines/survival_crafting"
+  ],
+  "starter_data_tables": ["loot", "quest", "localization"],
+  "starter_gameplay_systems": [
+    {
+      "system_id": "player_controller",
+      "display_name": "Survival Controller",
+      "category": "controller",
+      "summary": "Traversal-ready player controller with interaction and gather hooks.",
+      "recommended_skills": ["generate_movement_script", "manage_input_mapping"],
+      "suggested_data_tables": [],
+      "acceptance_checks": ["player_can_move", "interact_input_is_bound"],
+      "starter_feature_name": "survival_player_controller",
+      "dependencies": []
+    },
+    {
+      "system_id": "inventory_core",
+      "display_name": "Inventory Core",
+      "category": "inventory",
+      "summary": "Inventory state, stack logic, and basic item transfer behavior.",
+      "recommended_skills": ["plan_game_feature", "manage_signal_bus"],
+      "suggested_data_tables": ["loot", "localization"],
+      "acceptance_checks": ["items_can_enter_inventory", "stack_rules_are_defined"],
+      "starter_feature_name": "survival_inventory_core",
+      "dependencies": ["player_controller"]
+    },
+    {
+      "system_id": "gather_loop",
+      "display_name": "Gather Loop",
+      "category": "resource_loop",
+      "summary": "Resource node interaction, gather timing, and yield result flow.",
+      "recommended_skills": ["manage_level_workflow", "plan_game_feature"],
+      "suggested_data_tables": ["loot"],
+      "acceptance_checks": ["resource_nodes_are_interactable", "gathering_returns_items"],
+      "starter_feature_name": "survival_gather_loop",
+      "dependencies": ["player_controller", "inventory_core"]
+    },
+    {
+      "system_id": "crafting_recipes",
+      "display_name": "Crafting Recipes",
+      "category": "crafting",
+      "summary": "Recipe definition, requirement checks, and crafted item output.",
+      "recommended_skills": ["manage_game_data_tables", "plan_game_feature"],
+      "suggested_data_tables": ["loot", "quest"],
+      "acceptance_checks": ["recipes_can_be_resolved", "crafting_consumes_inputs"],
+      "starter_feature_name": "survival_crafting_recipes",
+      "dependencies": ["inventory_core", "gather_loop"]
+    },
+    {
+      "system_id": "durability_and_tools",
+      "display_name": "Durability And Tools",
+      "category": "crafting",
+      "summary": "Tool durability decay and repair-ready state for crafted equipment.",
+      "recommended_skills": ["plan_game_feature", "manage_signal_bus"],
+      "suggested_data_tables": ["loot"],
+      "acceptance_checks": ["tools_have_durability", "durability_can_decay"],
+      "starter_feature_name": "survival_durability_and_tools",
+      "dependencies": ["crafting_recipes"]
+    },
+    {
+      "system_id": "survival_stats",
+      "display_name": "Survival Stats",
+      "category": "progression",
+      "summary": "Health, hunger, thirst, or stamina loop tied to crafting progression.",
+      "recommended_skills": ["plan_game_feature", "auto_layout_ui"],
+      "suggested_data_tables": ["localization"],
+      "acceptance_checks": ["survival_stats_tick", "ui_surfaces_runtime_stats"],
+      "starter_feature_name": "survival_survival_stats",
+      "dependencies": ["inventory_core"]
+    }
+  ],
+  "performance_budget": {
+    "max_scene_load_ms": 1500,
+    "min_fps": 55,
+    "max_memory_peak_mb": 448,
+    "max_draw_call_count": 700,
+    "max_node_count": 600,
+    "max_texture_memory_mb": 320,
+    "max_frame_spike_ms": 22,
+    "max_screenshot_diff_ratio": 0.05
+  }
+}

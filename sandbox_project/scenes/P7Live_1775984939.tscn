@@ -1,0 +1,43 @@
+[gd_scene load_steps=3 format=3 uid="uid://ctvelqdn35tip"]
+
+[ext_resource type="Script" uid="uid://jqimnj0eatig" path="res://scripts/sandbox_root.gd" id="1_ano61"]
+[ext_resource type="PackedScene" uid="uid://b4u3g7xv6be3j" path="res://sandbox_main.tscn" id="2_us4gy"]
+
+[node name="SandboxMain" type="Node2D"]
+script = ExtResource("1_ano61")
+
+[node name="P7ParentA_1775983686" type="Node2D" parent="."]
+position = Vector2(10, 20)
+
+[node name="P7Child_1775983686" type="Node2D" parent="P7ParentA_1775983686"]
+position = Vector2(30, 40)
+
+[node name="P7ParentB_1775983686" type="Node2D" parent="."]
+
+[node name="P7ChildRenamed_1775983686" type="Node2D" parent="P7ParentB_1775983686"]
+position = Vector2(124, 110)
+
+[node name="P7ParentA_1775984939" type="Node2D" parent="."]
+position = Vector2(10, 20)
+
+[node name="P7Child_1775984939" type="Node2D" parent="P7ParentA_1775984939"]
+position = Vector2(30, 40)
+
+[node name="P7ParentB_1775984939" type="Node2D" parent="."]
+
+[node name="P7ChildRenamed_1775984939" type="Node2D" parent="P7ParentB_1775984939"]
+position = Vector2(40, 60)
+
+[node name="P7SandboxInstance_1775984939" type="Node2D" parent="P7ParentB_1775984939" instance=ExtResource("2_us4gy")]
+script = ExtResource("1_ano61")
+
+[node name="P7ParentA_1775983686" type="Node2D" parent="P7ParentB_1775984939/P7SandboxInstance_1775984939"]
+position = Vector2(10, 20)
+
+[node name="P7Child_1775983686" type="Node2D" parent="P7ParentB_1775984939/P7SandboxInstance_1775984939/P7ParentA_1775983686"]
+position = Vector2(30, 40)
+
+[node name="P7ParentB_1775983686" type="Node2D" parent="P7ParentB_1775984939/P7SandboxInstance_1775984939"]
+
+[node name="P7ChildRenamed_1775983686" type="Node2D" parent="P7ParentB_1775984939/P7SandboxInstance_1775984939/P7ParentB_1775983686"]
+position = Vector2(124, 110)

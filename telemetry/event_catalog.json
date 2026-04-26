@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.1",
+  "events": [
+    {
+      "event_name": "session_start",
+      "category": "session",
+      "description": "A playtest session started.",
+      "feature_id": "vertical_slice_2d",
+      "privacy_level": "anonymous",
+      "fields": [
+        {"name": "build_id", "type": "string", "required": true, "pii": false},
+        {"name": "channel", "type": "string", "required": true, "pii": false},
+        {"name": "player_id", "type": "string", "required": false, "pii": false}
+      ]
+    },
+    {
+      "event_name": "level_start",
+      "category": "gameplay",
+      "description": "The player entered a level.",
+      "feature_id": "vertical_slice_2d",
+      "privacy_level": "anonymous",
+      "fields": [
+        {"name": "level_id", "type": "string", "required": true, "pii": false}
+      ]
+    },
+    {
+      "event_name": "level_complete",
+      "category": "gameplay",
+      "description": "The player completed the target level.",
+      "feature_id": "vertical_slice_2d",
+      "privacy_level": "anonymous",
+      "fields": [
+        {"name": "level_id", "type": "string", "required": true, "pii": false},
+        {"name": "elapsed_seconds", "type": "number", "required": true, "pii": false}
+      ]
+    },
+    {
+      "event_name": "session_end",
+      "category": "session",
+      "description": "A playtest session ended normally.",
+      "feature_id": "vertical_slice_2d",
+      "privacy_level": "anonymous",
+      "fields": [
+        {"name": "reason", "type": "string", "required": true, "pii": false},
+        {"name": "player_id", "type": "string", "required": false, "pii": false}
+      ]
+    },
+    {
+      "event_name": "crash",
+      "category": "error",
+      "description": "A playtest session terminated due to a fatal runtime error.",
+      "feature_id": "vertical_slice_2d",
+      "privacy_level": "restricted",
+      "fields": [
+        {"name": "error_code", "type": "string", "required": true, "pii": false},
+        {"name": "crash_type", "type": "string", "required": false, "pii": false},
+        {"name": "stack_hash", "type": "string", "required": false, "pii": false},
+        {"name": "crash_signature", "type": "string", "required": false, "pii": false},
+        {"name": "scene_path", "type": "string", "required": false, "pii": false}
+      ]
+    }
+  ]
+}

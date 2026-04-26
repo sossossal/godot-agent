@@ -1,0 +1,177 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Godot Agent: 执行命令",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "${workspaceFolder}/ide_integration/vscode_agent.py",
+        "${input:agentCommand}"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Godot Agent: 创建场景",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "${workspaceFolder}/ide_integration/vscode_agent.py",
+        "创建一个名为 ${input:sceneName} 的 ${input:sceneType} 场景"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Godot Agent: 生成代码",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "${workspaceFolder}/ide_integration/vscode_agent.py",
+        "${input:codeGenCommand}"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Godot Agent: 打开 Godot 编辑器",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "${workspaceFolder}/ide_integration/godot_controller.py",
+        "open"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Godot Agent: 在 Godot 中创建场景",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "${workspaceFolder}/ide_integration/godot_controller.py",
+        "create",
+        "${input:sceneName}",
+        "${input:sceneType}"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Godot Agent: 检查 Godot 状态",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "${workspaceFolder}/ide_integration/godot_controller.py",
+        "status"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Godot Agent: 打开交互模式",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "${workspaceFolder}/examples/interactive_demo.py"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      }
+    },
+    {
+      "label": "Godot Agent: 启动 API 服务器",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "${workspaceFolder}/api_server/main.py"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^(.*)$",
+          "file": 1,
+          "location": 2,
+          "message": 3
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*启动.*$",
+          "endsPattern": "^.*Application startup complete.*$"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "agentCommand",
+      "type": "promptString",
+      "description": "输入 Agent 命令 (例如: 创建一个3D场景)",
+      "default": "创建一个2D场景"
+    },
+    {
+      "id": "sceneName",
+      "type": "promptString",
+      "description": "场景名称",
+      "default": "NewScene"
+    },
+    {
+      "id": "sceneType",
+      "type": "pickString",
+      "description": "场景类型",
+      "options": ["2D", "3D"],
+      "default": "2D"
+    },
+    {
+      "id": "codeGenCommand",
+      "type": "pickString",
+      "description": "选择要生成的代码类型",
+      "options": [
+        "生成2D玩家移动脚本",
+        "生成3D玩家移动脚本",
+        "生成血量系统",
+        "生成单例管理器",
+        "为敌人创建巡逻AI",
+        "生成追击AI",
+        "生成警戒AI",
+        "生成状态机",
+        "生成金币收集逻辑",
+        "生成库存系统",
+        "生成对话系统",
+        "审计项目资源命名"
+      ],
+      "default": "生成2D玩家移动脚本"
+    }
+  ]
+}

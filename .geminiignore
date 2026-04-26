@@ -1,0 +1,9 @@
+# Gemini CLI Ignore Patterns
+pytest-cache-files-*
+logs/tmp*
+.tmp*
+.godot/
+.git/
+node_modules/
+venv/
+__pycache__/

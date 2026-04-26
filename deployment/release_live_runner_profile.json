@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0",
+  "profiles": [
+    {
+      "profile_id": "staging_windows_runner",
+      "target_channels": [
+        "staging"
+      ],
+      "target_environments": [
+        "staging"
+      ],
+      "required_runner_os": "Windows",
+      "required_runner_arches": [
+        "x64"
+      ],
+      "required_runner_labels": [
+        "self-hosted",
+        "windows",
+        "godot"
+      ],
+      "allowed_runner_names": [],
+      "notes": [
+        "固定到带 Godot、Chromium 和 PowerShell 的 Windows self-hosted runner。",
+        "staging 本地 replay 与 fixed runner rehearsal 使用这条 profile。",
+        "如果已经确定唯一 runner，可继续填写 allowed_runner_names 进一步收紧。"
+      ]
+    },
+    {
+      "profile_id": "release_windows_runner",
+      "target_channels": [
+        "release"
+      ],
+      "target_environments": [
+        "production"
+      ],
+      "required_runner_os": "Windows",
+      "required_runner_arches": [
+        "x64"
+      ],
+      "required_runner_labels": [
+        "self-hosted",
+        "windows",
+        "godot"
+      ],
+      "allowed_runner_names": [],
+      "notes": [
+        "固定到带 Godot、Chromium 和 PowerShell 的 Windows self-hosted runner。",
+        "workflow_dispatch 传入的 runner_labels 也应命中 self-hosted/windows/godot。",
+        "如果已经确定唯一 runner，可继续填写 allowed_runner_names 进一步收紧。"
+      ]
+    }
+  ]
+}

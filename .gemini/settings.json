@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "godot": {
+      "command": "python",
+      "args": [
+        "D:\\新建文件夹\\godot-agent\\bridge\\mcp_server.py"
+      ]
+    }
+  }
+}

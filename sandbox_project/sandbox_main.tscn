@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3 uid="uid://b4u3g7xv6be3j"]
+
+[ext_resource type="Script" uid="uid://jqimnj0eatig" path="res://scripts/sandbox_root.gd" id="1_root_script"]
+
+[node name="SandboxMain" type="Node2D"]
+script = ExtResource("1_root_script")
+
+[node name="P7ParentA_1775983686" type="Node2D" parent="."]
+position = Vector2(10, 20)
+
+[node name="P7Child_1775983686" type="Node2D" parent="P7ParentA_1775983686"]
+position = Vector2(30, 40)
+
+[node name="P7ParentB_1775983686" type="Node2D" parent="."]
+
+[node name="P7ChildRenamed_1775983686" type="Node2D" parent="P7ParentB_1775983686"]
+position = Vector2(124, 110)

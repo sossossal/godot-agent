@@ -1,0 +1,2913 @@
+{
+  "classes": {
+    "LiveUiConfirmAudioRouter": {
+      "path": "res://scripts/audio/live_ui_confirm_audio_router.gd",
+      "base": null,
+      "signals": [],
+      "methods": [
+        {
+          "name": "play_event",
+          "args": "event_name, parent",
+          "line": 9
+        }
+      ],
+      "line": 3
+    }
+  },
+  "files": {
+    "sandbox_main.tscn": {
+      "hash": "ccb78282b5b9f2871136346d0919776f",
+      "mtime": 1775983752.554738,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scripts/sandbox_root.gd": {
+      "hash": "aa77b11388755318137ab220d9e238a6",
+      "mtime": 1775644590.9468873,
+      "symbols": [
+        {
+          "name": "_ready",
+          "type": "函数",
+          "line": 4,
+          "column": 6,
+          "signature": "_ready() -> void"
+        }
+      ],
+      "refs": [
+        {
+          "name": "extends",
+          "type": null,
+          "line": 1,
+          "column": 1,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "Node2D",
+          "type": "类",
+          "line": 1,
+          "column": 9,
+          "context": "extends",
+          "scope": null
+        },
+        {
+          "name": "func",
+          "type": null,
+          "line": 4,
+          "column": 1,
+          "context": "identifier",
+          "scope": "_ready"
+        },
+        {
+          "name": "void",
+          "type": null,
+          "line": 4,
+          "column": 18,
+          "context": "identifier",
+          "scope": "_ready"
+        },
+        {
+          "name": "process_mode",
+          "type": null,
+          "line": 5,
+          "column": 5,
+          "context": "identifier",
+          "scope": "_ready"
+        },
+        {
+          "name": "Node",
+          "type": null,
+          "line": 5,
+          "column": 20,
+          "context": "member",
+          "scope": "_ready"
+        }
+      ],
+      "deps": [],
+      "type": "gd",
+      "class_name": null
+    },
+    "scenes/TestScene_1775646473.tscn": {
+      "hash": "f95a56d0bdec4784b6a0b4260e56604e",
+      "mtime": 1775646474.0583968,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestSprite.tscn": {
+      "hash": "9a621a309bf8d33cee1a43ed425e208d",
+      "mtime": 1777135758.2104323,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1775646474.tscn": {
+      "hash": "bf129c7e15b04112e01d362e8ac0b094",
+      "mtime": 1775646474.9555595,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1775660977.tscn": {
+      "hash": "1ad3046dfdf5452527779dc7ec7ddfc5",
+      "mtime": 1775660977.4498005,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1775661072.tscn": {
+      "hash": "5ad28821d9391ce3720773cde0639cc4",
+      "mtime": 1775661073.047206,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1775661110.tscn": {
+      "hash": "07aaa467e8c8c083f0f9c46259d8459d",
+      "mtime": 1775661110.4570282,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1775660977.tscn": {
+      "hash": "d406f8fd16b4814455c6313407522731",
+      "mtime": 1775660978.1351447,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1775661073.tscn": {
+      "hash": "d4f3ce9da32e033753475a4904b4b2e6",
+      "mtime": 1775661073.6509368,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1775661111.tscn": {
+      "hash": "4f2f422621e4484adf91cd0b5494c605",
+      "mtime": 1775661111.6569908,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1775664634.tscn": {
+      "hash": "4ae56b334484fa120364edaf86311b88",
+      "mtime": 1775664635.1350083,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1775664636.tscn": {
+      "hash": "620ea53220bc736a8a9db3d8ea7db4e0",
+      "mtime": 1775664637.0324543,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1775895814.tscn": {
+      "hash": "4f39969a6d129716713526938c0df440",
+      "mtime": 1775895815.4638174,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1775895847.tscn": {
+      "hash": "8461b2bb082cd8cbacee4c597290ec03",
+      "mtime": 1775895849.1952517,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1775896058.tscn": {
+      "hash": "a3987d19f36519154d6b8c70f9b34e4a",
+      "mtime": 1775896059.502183,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1775896061.tscn": {
+      "hash": "0681be6693180ff38edb340e0ab458fb",
+      "mtime": 1775896062.653312,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1775899085.tscn": {
+      "hash": "34e75cba9c28e710bd1864383df9c6ca",
+      "mtime": 1775899087.105165,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1775899088.tscn": {
+      "hash": "5ff791c97577685f398ca188c531a64b",
+      "mtime": 1775899089.9564385,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1775942248.tscn": {
+      "hash": "a0a86fe451a74a21e6f252ae625cce3e",
+      "mtime": 1775942249.1905217,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1775942249.tscn": {
+      "hash": "2a9b1b997d8d2d15ab0b03fefd38c372",
+      "mtime": 1775942249.8902414,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/levels/live_validation_level.tscn": {
+      "hash": "b283b17858847ba91084ea523050a70c",
+      "mtime": 1777135778.5458858,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1775942402.tscn": {
+      "hash": "847653c1ab193f34336c01da0aa85531",
+      "mtime": 1775942402.366667,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1775942402.tscn": {
+      "hash": "a8704c46bd4ddfbcce15ad6b80d9c582",
+      "mtime": 1775942403.1654973,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1775942657.tscn": {
+      "hash": "81a823408cffff714e2328724955cc27",
+      "mtime": 1775942657.555707,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1775942657.tscn": {
+      "hash": "7ff7600c2d1c7eacb725ab4ba5b155fa",
+      "mtime": 1775942658.2554967,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1775975379.tscn": {
+      "hash": "cae68b40bda1ed4a91823b586886801b",
+      "mtime": 1775975379.7545033,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1775975380.tscn": {
+      "hash": "b2dccbb6a55d2e0124c264b98baa0bfc",
+      "mtime": 1775975380.4505138,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1775980428.tscn": {
+      "hash": "c5a9992e31f7cc2fc0f6e87bf68520c0",
+      "mtime": 1775982335.1413932,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1775980429.tscn": {
+      "hash": "e94c4962e6898626751e576d77cf6562",
+      "mtime": 1775982335.1433973,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/P7Live_1775984939.tscn": {
+      "hash": "11fe3a5e313bb07e4149c818013837dc",
+      "mtime": 1775984945.916707,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/P7Live_1775985289.tscn": {
+      "hash": "720696aa4e772add5f8a4c763a883c3c",
+      "mtime": 1775985297.7345843,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/P7Live_1775985557.tscn": {
+      "hash": "d870948c711da797a80d0401fd5fcf6b",
+      "mtime": 1775985565.083004,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1775985551.tscn": {
+      "hash": "e10ddf45ac3cff30def16cb41e7ef228",
+      "mtime": 1775985551.2999685,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1775985551.tscn": {
+      "hash": "c0d73400b93b59f3b66a3976af50cdd5",
+      "mtime": 1775985551.9502132,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/levels/live_p8_level.tscn": {
+      "hash": "24b8477d15138788d8b33a00b612f2a0",
+      "mtime": 1777135783.1394696,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scripts/audio/live_ui_confirm_audio_router.gd": {
+      "hash": "9bd91310bd16bbf14e69215c678f3d68",
+      "mtime": 1777135785.8172984,
+      "symbols": [
+        {
+          "name": "LiveUiConfirmAudioRouter",
+          "type": "类",
+          "line": 3,
+          "column": 12
+        },
+        {
+          "name": "play_event",
+          "type": "函数",
+          "line": 9,
+          "column": 6,
+          "signature": "play_event(event_name: String, parent: Node = self) -> Node",
+          "args": [
+            "event_name",
+            "parent"
+          ]
+        }
+      ],
+      "refs": [
+        {
+          "name": "extends",
+          "type": null,
+          "line": 1,
+          "column": 1,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "Node",
+          "type": "类",
+          "line": 1,
+          "column": 9,
+          "context": "extends",
+          "scope": null
+        },
+        {
+          "name": "class_name",
+          "type": null,
+          "line": 3,
+          "column": 1,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "export",
+          "type": null,
+          "line": 6,
+          "column": 2,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 6,
+          "column": 9,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "AudioStream",
+          "type": "类",
+          "line": 6,
+          "column": 29,
+          "context": "type_hint",
+          "scope": null
+        },
+        {
+          "name": "preload",
+          "type": "函数",
+          "line": 6,
+          "column": 43,
+          "context": "call",
+          "scope": null
+        },
+        {
+          "name": "const",
+          "type": null,
+          "line": 7,
+          "column": 1,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "func",
+          "type": null,
+          "line": 9,
+          "column": 1,
+          "context": "identifier",
+          "scope": "play_event"
+        },
+        {
+          "name": "String",
+          "type": "类",
+          "line": 9,
+          "column": 29,
+          "context": "type_hint",
+          "scope": "play_event"
+        },
+        {
+          "name": "Node",
+          "type": "类",
+          "line": 9,
+          "column": 45,
+          "context": "type_hint",
+          "scope": "play_event"
+        },
+        {
+          "name": "self",
+          "type": null,
+          "line": 9,
+          "column": 52,
+          "context": "identifier",
+          "scope": "play_event"
+        },
+        {
+          "name": "Node",
+          "type": "类",
+          "line": 9,
+          "column": 61,
+          "context": "type_hint",
+          "scope": "play_event"
+        },
+        {
+          "name": "if",
+          "type": null,
+          "line": 10,
+          "column": 2,
+          "context": "identifier",
+          "scope": "play_event"
+        },
+        {
+          "name": "not",
+          "type": null,
+          "line": 10,
+          "column": 5,
+          "context": "identifier",
+          "scope": "play_event"
+        },
+        {
+          "name": "EVENT_TO_BUS",
+          "type": null,
+          "line": 10,
+          "column": 9,
+          "context": "member",
+          "scope": "play_event"
+        },
+        {
+          "name": "push_warning",
+          "type": "函数",
+          "line": 11,
+          "column": 3,
+          "context": "call",
+          "scope": "play_event"
+        },
+        {
+          "name": "return",
+          "type": null,
+          "line": 12,
+          "column": 3,
+          "context": "identifier",
+          "scope": "play_event"
+        },
+        {
+          "name": "null",
+          "type": null,
+          "line": 12,
+          "column": 10,
+          "context": "identifier",
+          "scope": "play_event"
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 13,
+          "column": 2,
+          "context": "identifier",
+          "scope": "play_event"
+        },
+        {
+          "name": "AudioStreamPlayer",
+          "type": "类",
+          "line": 13,
+          "column": 16,
+          "context": "constructor",
+          "scope": "play_event"
+        },
+        {
+          "name": "EVENT_TO_BUS",
+          "type": null,
+          "line": 14,
+          "column": 15,
+          "context": "identifier",
+          "scope": "play_event"
+        },
+        {
+          "name": "false",
+          "type": null,
+          "line": 15,
+          "column": 20,
+          "context": "identifier",
+          "scope": "play_event"
+        },
+        {
+          "name": "default_stream",
+          "type": null,
+          "line": 16,
+          "column": 18,
+          "context": "identifier",
+          "scope": "play_event"
+        },
+        {
+          "name": "if",
+          "type": null,
+          "line": 19,
+          "column": 2,
+          "context": "identifier",
+          "scope": "play_event"
+        },
+        {
+          "name": "default_stream",
+          "type": null,
+          "line": 19,
+          "column": 5,
+          "context": "identifier",
+          "scope": "play_event"
+        },
+        {
+          "name": "null",
+          "type": null,
+          "line": 19,
+          "column": 23,
+          "context": "identifier",
+          "scope": "play_event"
+        },
+        {
+          "name": "and",
+          "type": null,
+          "line": 19,
+          "column": 28,
+          "context": "identifier",
+          "scope": "play_event"
+        },
+        {
+          "name": "not",
+          "type": null,
+          "line": 19,
+          "column": 32,
+          "context": "identifier",
+          "scope": "play_event"
+        },
+        {
+          "name": "return",
+          "type": null,
+          "line": 21,
+          "column": 2,
+          "context": "identifier",
+          "scope": "play_event"
+        }
+      ],
+      "deps": [
+        "assets/audio/live_ui_confirm.ogg"
+      ],
+      "type": "gd",
+      "class_name": "LiveUiConfirmAudioRouter"
+    },
+    "scenes/P7Live_1776768322.tscn": {
+      "hash": "0eba8fb48135315a046e4ea60690e453",
+      "mtime": 1776768336.1110275,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1776768313.tscn": {
+      "hash": "b98644f14dc294c743aec05fbc4334ba",
+      "mtime": 1776768313.9270604,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1776768314.tscn": {
+      "hash": "c8f6d4984637e405edf9289401fa4ef4",
+      "mtime": 1776768315.17312,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/P7Live_1776770553.tscn": {
+      "hash": "ae94e4840b37590e2711eb274a363cce",
+      "mtime": 1776770566.6524298,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1776770543.tscn": {
+      "hash": "cca52f04fbb7c672770c2e34ecd0698a",
+      "mtime": 1776770544.1219885,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1776770545.tscn": {
+      "hash": "0144159fb7a0c87878962705a9ad2705",
+      "mtime": 1776770545.9967604,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/P7Live_1776782249.tscn": {
+      "hash": "5af7b929bdc6c9d85071ee83cce90c88",
+      "mtime": 1776782262.32136,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1776782241.tscn": {
+      "hash": "1765b8cadd3e33c622d91d7dc1869c27",
+      "mtime": 1776782241.7468464,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1776782242.tscn": {
+      "hash": "b5d61f69298fd592aa3568a457d3a8c3",
+      "mtime": 1776782243.4124568,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/P7Live_1776786706.tscn": {
+      "hash": "9a19c22adb87706d6256517da6bb0862",
+      "mtime": 1776786718.0746763,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1776786698.tscn": {
+      "hash": "551bf7ce0468292e94579efe139e4386",
+      "mtime": 1776786698.2356875,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1776786698.tscn": {
+      "hash": "6e6258e8a473fa844cfeb9bc8ed626de",
+      "mtime": 1776786699.0658512,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/P7Live_1776788959.tscn": {
+      "hash": "6904054b6d0f29bb8219b3da866cb787",
+      "mtime": 1776788971.6762717,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1776788951.tscn": {
+      "hash": "df8230b2191410fc769c0bc4d4e4d891",
+      "mtime": 1776788951.4910963,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1776788951.tscn": {
+      "hash": "bc38d1d4991776500ae021ae8d402cdf",
+      "mtime": 1776788952.4095435,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1776875291.tscn": {
+      "hash": "766e23f049674067b138917b8ab02e17",
+      "mtime": 1776875292.5547261,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1776875294.tscn": {
+      "hash": "d820c9832df50774d1bbc67207853243",
+      "mtime": 1776875295.788455,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/P7Live_1776877479.tscn": {
+      "hash": "ef4d58fff1b10315c8d7fc11131f1b7c",
+      "mtime": 1776877510.5800977,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1776877448.tscn": {
+      "hash": "2e279b4ee60885623e53a5fdf9b71a84",
+      "mtime": 1776877452.658387,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1776877456.tscn": {
+      "hash": "0e59ee49f2d3d59ed20e0d9fd4361edc",
+      "mtime": 1776877459.976514,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/P7Live_1776878074.tscn": {
+      "hash": "39ba3b559536b97204118127e61418fa",
+      "mtime": 1776878094.778381,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1776878062.tscn": {
+      "hash": "d8691cf957f068493efd5c36ca1ebf8e",
+      "mtime": 1776878063.65752,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1776878064.tscn": {
+      "hash": "4f4b3ceb9911aa2926c2b9ab40c00cb0",
+      "mtime": 1776878066.1507447,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/P7Live_1776879774.tscn": {
+      "hash": "e4a4ae8866e9ecfa323c3e7972492439",
+      "mtime": 1776879799.4591057,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1776879759.tscn": {
+      "hash": "bcb2805da69196a53a9e1cebabbf1617",
+      "mtime": 1776879761.0583675,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1776879762.tscn": {
+      "hash": "f1c0a1e60d0c0cd26eec7991538a0e7e",
+      "mtime": 1776879764.2820425,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/P7Live_1776882765.tscn": {
+      "hash": "c732133532c7ef0e7d2c2a3e67cafe0a",
+      "mtime": 1776882788.2198873,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1776882752.tscn": {
+      "hash": "9b60dc2e37d185fde894dbace575a41a",
+      "mtime": 1776882753.739946,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1776882755.tscn": {
+      "hash": "1e8139a4ccbd8823daaf4051a4feffb0",
+      "mtime": 1776882756.7243369,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/P7Live_1777135097.tscn": {
+      "hash": "a822d9b5ea3685398fc888f6fe68ae39",
+      "mtime": 1777135110.8773375,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1777135087.tscn": {
+      "hash": "1aae9314f99f768058c527d75cf8a56d",
+      "mtime": 1777135087.899996,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1777135088.tscn": {
+      "hash": "cf96626df0dc284c4ea518404415339c",
+      "mtime": 1777135089.7096128,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/P7Live_1777135392.tscn": {
+      "hash": "ca82e38e1a29f092425a08450c0f7c55",
+      "mtime": 1777135406.8299108,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1777135381.tscn": {
+      "hash": "662b5c89a2224608f667aaeb74550bd5",
+      "mtime": 1777135382.4519162,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1777135383.tscn": {
+      "hash": "750e0c2ae1960caab7dd0f92c5d06fbc",
+      "mtime": 1777135384.3352075,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/P7Live_1777135765.tscn": {
+      "hash": "6a277f16cb900c658a6d41ab60ccc328",
+      "mtime": 1777135776.8054755,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1777135758.tscn": {
+      "hash": "dc21e65e0879482c5e14af130a19bbc7",
+      "mtime": 1777135758.658293,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1777135759.tscn": {
+      "hash": "e6736768599e3f05e59f0ab94eb9c61c",
+      "mtime": 1777135759.4926572,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    }
+  },
+  "scenes": {
+    "sandbox_main.tscn": {
+      "nodes": [
+        {
+          "name": "SandboxMain",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "P7ParentA_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775983686"
+        },
+        {
+          "name": "P7ParentB_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775983686"
+        }
+      ]
+    },
+    "scenes/TestScene_1775646473.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1775646473",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/TestSprite.tscn": {
+      "nodes": [
+        {
+          "name": "TestSprite",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1775646474.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1775646474",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/TestScene_1775660977.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1775660977",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/TestScene_1775661072.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1775661072",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/TestScene_1775661110.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1775661110",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1775660977.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1775660977",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1775661073.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1775661073",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1775661111.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1775661111",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/TestScene_1775664634.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1775664634",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1775664636.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1775664636",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/TestScene_1775895814.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1775895814",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1775895847.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1775895847",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/TestScene_1775896058.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1775896058",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1775896061.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1775896061",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/TestScene_1775899085.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1775899085",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1775899088.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1775899088",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/TestScene_1775942248.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1775942248",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1775942249.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1775942249",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/levels/live_validation_level.tscn": {
+      "nodes": [
+        {
+          "name": "LiveValidationLevel",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "PlayerSpawn",
+          "type": "Marker2D",
+          "parent": "."
+        },
+        {
+          "name": "LevelExit",
+          "type": "Marker2D",
+          "parent": "."
+        },
+        {
+          "name": "CheckpointA",
+          "type": "Marker2D",
+          "parent": "."
+        },
+        {
+          "name": "NavigationZoneMain",
+          "type": "NavigationRegion2D",
+          "parent": "."
+        },
+        {
+          "name": "EnemyNavigationAgent",
+          "type": "NavigationAgent2D",
+          "parent": "."
+        },
+        {
+          "name": "TileLayerGround",
+          "type": "TileMap",
+          "parent": "."
+        },
+        {
+          "name": "TriggerLevelExit",
+          "type": "Area2D",
+          "parent": "."
+        },
+        {
+          "name": "CollisionShape",
+          "type": "CollisionShape2D",
+          "parent": "TriggerLevelExit"
+        },
+        {
+          "name": "CollisionProfileWorld",
+          "type": "Node",
+          "parent": "."
+        },
+        {
+          "name": "CollisionProfilePlayer",
+          "type": "Node",
+          "parent": "."
+        },
+        {
+          "name": "CollisionProfileEnemy",
+          "type": "Node",
+          "parent": "."
+        },
+        {
+          "name": "LevelBounds",
+          "type": "Node",
+          "parent": "."
+        },
+        {
+          "name": "BoundsMin",
+          "type": "Marker2D",
+          "parent": "LevelBounds"
+        },
+        {
+          "name": "BoundsMax",
+          "type": "Marker2D",
+          "parent": "LevelBounds"
+        }
+      ]
+    },
+    "scenes/TestScene_1775942402.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1775942402",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1775942402.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1775942402",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/TestScene_1775942657.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1775942657",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1775942657.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1775942657",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/TestScene_1775975379.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1775975379",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1775975380.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1775975380",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/TestScene_1775980428.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1775980428",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1775980429.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1775980429",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/P7Live_1775984939.tscn": {
+      "nodes": [
+        {
+          "name": "SandboxMain",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "P7ParentA_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775983686"
+        },
+        {
+          "name": "P7ParentB_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775983686"
+        },
+        {
+          "name": "P7ParentA_1775984939",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775984939",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775984939"
+        },
+        {
+          "name": "P7ParentB_1775984939",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775984939",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775984939"
+        },
+        {
+          "name": "P7SandboxInstance_1775984939",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775984939"
+        },
+        {
+          "name": "P7ParentA_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775984939/P7SandboxInstance_1775984939"
+        },
+        {
+          "name": "P7Child_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775984939/P7SandboxInstance_1775984939/P7ParentA_1775983686"
+        },
+        {
+          "name": "P7ParentB_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775984939/P7SandboxInstance_1775984939"
+        },
+        {
+          "name": "P7ChildRenamed_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775984939/P7SandboxInstance_1775984939/P7ParentB_1775983686"
+        }
+      ]
+    },
+    "scenes/P7Live_1775985289.tscn": {
+      "nodes": [
+        {
+          "name": "SandboxMain",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "P7ParentA_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775983686"
+        },
+        {
+          "name": "P7ParentB_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775983686"
+        },
+        {
+          "name": "P7ParentA_1775985289",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775985289",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775985289"
+        },
+        {
+          "name": "P7ParentB_1775985289",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775985289",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775985289"
+        },
+        {
+          "name": "P7ParentA_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775985289/P7SandboxInstance_1775985289"
+        },
+        {
+          "name": "P7ParentB_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775985289/P7SandboxInstance_1775985289"
+        }
+      ]
+    },
+    "scenes/P7Live_1775985557.tscn": {
+      "nodes": [
+        {
+          "name": "SandboxMain",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "P7ParentA_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775983686"
+        },
+        {
+          "name": "P7ParentB_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775983686"
+        },
+        {
+          "name": "P7ParentA_1775985557",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775985557",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775985557"
+        },
+        {
+          "name": "P7ParentB_1775985557",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775985557",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775985557"
+        },
+        {
+          "name": "P7ParentA_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775985557/P7SandboxInstance_1775985557"
+        },
+        {
+          "name": "P7ParentB_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775985557/P7SandboxInstance_1775985557"
+        }
+      ]
+    },
+    "scenes/TestScene_1775985551.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1775985551",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1775985551.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1775985551",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/levels/live_p8_level.tscn": {
+      "nodes": [
+        {
+          "name": "LiveP8Level",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "PlayerSpawn",
+          "type": "Marker2D",
+          "parent": "."
+        },
+        {
+          "name": "VendorPoint",
+          "type": "Marker2D",
+          "parent": "."
+        },
+        {
+          "name": "LevelExit",
+          "type": "Marker2D",
+          "parent": "."
+        },
+        {
+          "name": "CheckpointA",
+          "type": "Marker2D",
+          "parent": "."
+        },
+        {
+          "name": "NavigationZoneTownSquare",
+          "type": "NavigationRegion2D",
+          "parent": "."
+        },
+        {
+          "name": "NavigationZoneMain",
+          "type": "NavigationRegion2D",
+          "parent": "."
+        },
+        {
+          "name": "NpcNavigationAgent",
+          "type": "NavigationAgent2D",
+          "parent": "."
+        },
+        {
+          "name": "TileLayerHubGround",
+          "type": "TileMap",
+          "parent": "."
+        },
+        {
+          "name": "TriggerLevelGate",
+          "type": "Area2D",
+          "parent": "."
+        },
+        {
+          "name": "CollisionShape",
+          "type": "CollisionShape2D",
+          "parent": "TriggerLevelGate"
+        },
+        {
+          "name": "CollisionProfileWorld",
+          "type": "Node",
+          "parent": "."
+        },
+        {
+          "name": "CollisionProfilePlayer",
+          "type": "Node",
+          "parent": "."
+        },
+        {
+          "name": "CollisionProfileNpc",
+          "type": "Node",
+          "parent": "."
+        },
+        {
+          "name": "LevelBounds",
+          "type": "Node",
+          "parent": "."
+        },
+        {
+          "name": "BoundsMin",
+          "type": "Marker2D",
+          "parent": "LevelBounds"
+        },
+        {
+          "name": "BoundsMax",
+          "type": "Marker2D",
+          "parent": "LevelBounds"
+        },
+        {
+          "name": "LiveExtraTrigger",
+          "type": "Area2D",
+          "parent": "."
+        }
+      ]
+    },
+    "scenes/P7Live_1776768322.tscn": {
+      "nodes": [
+        {
+          "name": "SandboxMain",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "P7ParentA_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775983686"
+        },
+        {
+          "name": "P7ParentB_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775983686"
+        },
+        {
+          "name": "P7ParentA_1776768322",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1776768322",
+          "type": "Node2D",
+          "parent": "P7ParentA_1776768322"
+        },
+        {
+          "name": "P7ParentB_1776768322",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1776768322",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776768322"
+        },
+        {
+          "name": "P7ParentA_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776768322/P7SandboxInstance_1776768322"
+        },
+        {
+          "name": "P7ParentB_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776768322/P7SandboxInstance_1776768322"
+        }
+      ]
+    },
+    "scenes/TestScene_1776768313.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1776768313",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1776768314.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1776768314",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/P7Live_1776770553.tscn": {
+      "nodes": [
+        {
+          "name": "SandboxMain",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "P7ParentA_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775983686"
+        },
+        {
+          "name": "P7ParentB_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775983686"
+        },
+        {
+          "name": "P7ParentA_1776770553",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1776770553",
+          "type": "Node2D",
+          "parent": "P7ParentA_1776770553"
+        },
+        {
+          "name": "P7ParentB_1776770553",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1776770553",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776770553"
+        },
+        {
+          "name": "P7ParentA_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776770553/P7SandboxInstance_1776770553"
+        },
+        {
+          "name": "P7ParentB_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776770553/P7SandboxInstance_1776770553"
+        }
+      ]
+    },
+    "scenes/TestScene_1776770543.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1776770543",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1776770545.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1776770545",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/P7Live_1776782249.tscn": {
+      "nodes": [
+        {
+          "name": "SandboxMain",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "P7ParentA_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775983686"
+        },
+        {
+          "name": "P7ParentB_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775983686"
+        },
+        {
+          "name": "P7ParentA_1776782249",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1776782249",
+          "type": "Node2D",
+          "parent": "P7ParentA_1776782249"
+        },
+        {
+          "name": "P7ParentB_1776782249",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1776782249",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776782249"
+        },
+        {
+          "name": "P7ParentA_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776782249/P7SandboxInstance_1776782249"
+        },
+        {
+          "name": "P7ParentB_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776782249/P7SandboxInstance_1776782249"
+        }
+      ]
+    },
+    "scenes/TestScene_1776782241.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1776782241",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1776782242.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1776782242",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/P7Live_1776786706.tscn": {
+      "nodes": [
+        {
+          "name": "SandboxMain",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "P7ParentA_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775983686"
+        },
+        {
+          "name": "P7ParentB_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775983686"
+        },
+        {
+          "name": "P7ParentA_1776786706",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1776786706",
+          "type": "Node2D",
+          "parent": "P7ParentA_1776786706"
+        },
+        {
+          "name": "P7ParentB_1776786706",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1776786706",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776786706"
+        },
+        {
+          "name": "P7ParentA_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776786706/P7SandboxInstance_1776786706"
+        },
+        {
+          "name": "P7ParentB_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776786706/P7SandboxInstance_1776786706"
+        }
+      ]
+    },
+    "scenes/TestScene_1776786698.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1776786698",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1776786698.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1776786698",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/P7Live_1776788959.tscn": {
+      "nodes": [
+        {
+          "name": "SandboxMain",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "P7ParentA_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775983686"
+        },
+        {
+          "name": "P7ParentB_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775983686"
+        },
+        {
+          "name": "P7ParentA_1776788959",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1776788959",
+          "type": "Node2D",
+          "parent": "P7ParentA_1776788959"
+        },
+        {
+          "name": "P7ParentB_1776788959",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1776788959",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776788959"
+        },
+        {
+          "name": "P7ParentA_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776788959/P7SandboxInstance_1776788959"
+        },
+        {
+          "name": "P7ParentB_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776788959/P7SandboxInstance_1776788959"
+        }
+      ]
+    },
+    "scenes/TestScene_1776788951.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1776788951",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1776788951.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1776788951",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/TestScene_1776875291.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1776875291",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1776875294.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1776875294",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/P7Live_1776877479.tscn": {
+      "nodes": [
+        {
+          "name": "SandboxMain",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "P7ParentA_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775983686"
+        },
+        {
+          "name": "P7ParentB_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775983686"
+        },
+        {
+          "name": "P7ParentA_1776877479",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1776877479",
+          "type": "Node2D",
+          "parent": "P7ParentA_1776877479"
+        },
+        {
+          "name": "P7ParentB_1776877479",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1776877479",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776877479"
+        },
+        {
+          "name": "P7ParentA_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776877479/P7SandboxInstance_1776877479"
+        },
+        {
+          "name": "P7ParentB_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776877479/P7SandboxInstance_1776877479"
+        }
+      ]
+    },
+    "scenes/TestScene_1776877448.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1776877448",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1776877456.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1776877456",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/P7Live_1776878074.tscn": {
+      "nodes": [
+        {
+          "name": "SandboxMain",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "P7ParentA_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775983686"
+        },
+        {
+          "name": "P7ParentB_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775983686"
+        },
+        {
+          "name": "P7ParentA_1776878074",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1776878074",
+          "type": "Node2D",
+          "parent": "P7ParentA_1776878074"
+        },
+        {
+          "name": "P7ParentB_1776878074",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1776878074",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776878074"
+        },
+        {
+          "name": "P7ParentA_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776878074/P7SandboxInstance_1776878074"
+        },
+        {
+          "name": "P7ParentB_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776878074/P7SandboxInstance_1776878074"
+        }
+      ]
+    },
+    "scenes/TestScene_1776878062.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1776878062",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1776878064.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1776878064",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/P7Live_1776879774.tscn": {
+      "nodes": [
+        {
+          "name": "SandboxMain",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "P7ParentA_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775983686"
+        },
+        {
+          "name": "P7ParentB_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775983686"
+        },
+        {
+          "name": "P7ParentA_1776879774",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1776879774",
+          "type": "Node2D",
+          "parent": "P7ParentA_1776879774"
+        },
+        {
+          "name": "P7ParentB_1776879774",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1776879774",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776879774"
+        },
+        {
+          "name": "P7ParentA_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776879774/P7SandboxInstance_1776879774"
+        },
+        {
+          "name": "P7ParentB_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776879774/P7SandboxInstance_1776879774"
+        }
+      ]
+    },
+    "scenes/TestScene_1776879759.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1776879759",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1776879762.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1776879762",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/P7Live_1776882765.tscn": {
+      "nodes": [
+        {
+          "name": "SandboxMain",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "P7ParentA_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775983686"
+        },
+        {
+          "name": "P7ParentB_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775983686"
+        },
+        {
+          "name": "P7ParentA_1776882765",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1776882765",
+          "type": "Node2D",
+          "parent": "P7ParentA_1776882765"
+        },
+        {
+          "name": "P7ParentB_1776882765",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1776882765",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776882765"
+        },
+        {
+          "name": "P7ParentA_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776882765/P7SandboxInstance_1776882765"
+        },
+        {
+          "name": "P7ParentB_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1776882765/P7SandboxInstance_1776882765"
+        }
+      ]
+    },
+    "scenes/TestScene_1776882752.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1776882752",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1776882755.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1776882755",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/P7Live_1777135097.tscn": {
+      "nodes": [
+        {
+          "name": "SandboxMain",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "P7ParentA_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775983686"
+        },
+        {
+          "name": "P7ParentB_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775983686"
+        },
+        {
+          "name": "P7ParentA_1777135097",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1777135097",
+          "type": "Node2D",
+          "parent": "P7ParentA_1777135097"
+        },
+        {
+          "name": "P7ParentB_1777135097",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1777135097",
+          "type": "Node2D",
+          "parent": "P7ParentB_1777135097"
+        },
+        {
+          "name": "P7ParentA_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1777135097/P7SandboxInstance_1777135097"
+        },
+        {
+          "name": "P7ParentB_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1777135097/P7SandboxInstance_1777135097"
+        }
+      ]
+    },
+    "scenes/TestScene_1777135087.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1777135087",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1777135088.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1777135088",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/P7Live_1777135392.tscn": {
+      "nodes": [
+        {
+          "name": "SandboxMain",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "P7ParentA_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775983686"
+        },
+        {
+          "name": "P7ParentB_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775983686"
+        },
+        {
+          "name": "P7ParentA_1777135392",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1777135392",
+          "type": "Node2D",
+          "parent": "P7ParentA_1777135392"
+        },
+        {
+          "name": "P7ParentB_1777135392",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1777135392",
+          "type": "Node2D",
+          "parent": "P7ParentB_1777135392"
+        },
+        {
+          "name": "P7ParentA_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1777135392/P7SandboxInstance_1777135392"
+        },
+        {
+          "name": "P7ParentB_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1777135392/P7SandboxInstance_1777135392"
+        }
+      ]
+    },
+    "scenes/TestScene_1777135381.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1777135381",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1777135383.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1777135383",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/P7Live_1777135765.tscn": {
+      "nodes": [
+        {
+          "name": "SandboxMain",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "P7ParentA_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775983686"
+        },
+        {
+          "name": "P7ParentB_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775983686"
+        },
+        {
+          "name": "P7ParentA_1777135765",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1777135765",
+          "type": "Node2D",
+          "parent": "P7ParentA_1777135765"
+        },
+        {
+          "name": "P7ParentB_1777135765",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1777135765",
+          "type": "Node2D",
+          "parent": "P7ParentB_1777135765"
+        },
+        {
+          "name": "P7ParentA_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1777135765/P7SandboxInstance_1777135765"
+        },
+        {
+          "name": "P7ParentB_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1777135765/P7SandboxInstance_1777135765"
+        }
+      ]
+    },
+    "scenes/TestScene_1777135758.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1777135758",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1777135759.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1777135759",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    }
+  },
+  "graph": {
+    "assets/audio/live_ui_confirm.ogg": [
+      "scripts/audio/live_ui_confirm_audio_router.gd"
+    ]
+  },
+  "symbol_definitions": {
+    "函数::_ready": [
+      {
+        "path": "scripts/sandbox_root.gd",
+        "line": 4,
+        "column": 6,
+        "type": "函数",
+        "signature": "_ready() -> void"
+      }
+    ],
+    "类::LiveUiConfirmAudioRouter": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 3,
+        "column": 12,
+        "type": "类",
+        "signature": null
+      }
+    ],
+    "函数::play_event": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 9,
+        "column": 6,
+        "type": "函数",
+        "signature": "play_event(event_name: String, parent: Node = self) -> Node"
+      }
+    ]
+  },
+  "symbol_references": {
+    "*::extends": [
+      {
+        "path": "scripts/sandbox_root.gd",
+        "line": 1,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 1,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      }
+    ],
+    "类::Node2D": [
+      {
+        "path": "scripts/sandbox_root.gd",
+        "line": 1,
+        "column": 9,
+        "type": "类",
+        "context": "extends",
+        "scope": null
+      }
+    ],
+    "*::func": [
+      {
+        "path": "scripts/sandbox_root.gd",
+        "line": 4,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": "_ready"
+      },
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 9,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": "play_event"
+      }
+    ],
+    "*::void": [
+      {
+        "path": "scripts/sandbox_root.gd",
+        "line": 4,
+        "column": 18,
+        "type": null,
+        "context": "identifier",
+        "scope": "_ready"
+      }
+    ],
+    "*::process_mode": [
+      {
+        "path": "scripts/sandbox_root.gd",
+        "line": 5,
+        "column": 5,
+        "type": null,
+        "context": "identifier",
+        "scope": "_ready"
+      }
+    ],
+    "*::Node": [
+      {
+        "path": "scripts/sandbox_root.gd",
+        "line": 5,
+        "column": 20,
+        "type": null,
+        "context": "member",
+        "scope": "_ready"
+      }
+    ],
+    "类::Node": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 1,
+        "column": 9,
+        "type": "类",
+        "context": "extends",
+        "scope": null
+      },
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 9,
+        "column": 45,
+        "type": "类",
+        "context": "type_hint",
+        "scope": "play_event"
+      },
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 9,
+        "column": 61,
+        "type": "类",
+        "context": "type_hint",
+        "scope": "play_event"
+      }
+    ],
+    "*::class_name": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 3,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      }
+    ],
+    "*::export": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 6,
+        "column": 2,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      }
+    ],
+    "*::var": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 6,
+        "column": 9,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 13,
+        "column": 2,
+        "type": null,
+        "context": "identifier",
+        "scope": "play_event"
+      }
+    ],
+    "类::AudioStream": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 6,
+        "column": 29,
+        "type": "类",
+        "context": "type_hint",
+        "scope": null
+      }
+    ],
+    "函数::preload": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 6,
+        "column": 43,
+        "type": "函数",
+        "context": "call",
+        "scope": null
+      }
+    ],
+    "*::const": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 7,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      }
+    ],
+    "类::String": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 9,
+        "column": 29,
+        "type": "类",
+        "context": "type_hint",
+        "scope": "play_event"
+      }
+    ],
+    "*::self": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 9,
+        "column": 52,
+        "type": null,
+        "context": "identifier",
+        "scope": "play_event"
+      }
+    ],
+    "*::if": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 10,
+        "column": 2,
+        "type": null,
+        "context": "identifier",
+        "scope": "play_event"
+      },
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 19,
+        "column": 2,
+        "type": null,
+        "context": "identifier",
+        "scope": "play_event"
+      }
+    ],
+    "*::not": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 10,
+        "column": 5,
+        "type": null,
+        "context": "identifier",
+        "scope": "play_event"
+      },
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 19,
+        "column": 32,
+        "type": null,
+        "context": "identifier",
+        "scope": "play_event"
+      }
+    ],
+    "*::EVENT_TO_BUS": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 10,
+        "column": 9,
+        "type": null,
+        "context": "member",
+        "scope": "play_event"
+      },
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 14,
+        "column": 15,
+        "type": null,
+        "context": "identifier",
+        "scope": "play_event"
+      }
+    ],
+    "函数::push_warning": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 11,
+        "column": 3,
+        "type": "函数",
+        "context": "call",
+        "scope": "play_event"
+      }
+    ],
+    "*::return": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 12,
+        "column": 3,
+        "type": null,
+        "context": "identifier",
+        "scope": "play_event"
+      },
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 21,
+        "column": 2,
+        "type": null,
+        "context": "identifier",
+        "scope": "play_event"
+      }
+    ],
+    "*::null": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 12,
+        "column": 10,
+        "type": null,
+        "context": "identifier",
+        "scope": "play_event"
+      },
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 19,
+        "column": 23,
+        "type": null,
+        "context": "identifier",
+        "scope": "play_event"
+      }
+    ],
+    "类::AudioStreamPlayer": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 13,
+        "column": 16,
+        "type": "类",
+        "context": "constructor",
+        "scope": "play_event"
+      }
+    ],
+    "*::false": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 15,
+        "column": 20,
+        "type": null,
+        "context": "identifier",
+        "scope": "play_event"
+      }
+    ],
+    "*::default_stream": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 16,
+        "column": 18,
+        "type": null,
+        "context": "identifier",
+        "scope": "play_event"
+      },
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 19,
+        "column": 5,
+        "type": null,
+        "context": "identifier",
+        "scope": "play_event"
+      }
+    ],
+    "*::and": [
+      {
+        "path": "scripts/audio/live_ui_confirm_audio_router.gd",
+        "line": 19,
+        "column": 28,
+        "type": null,
+        "context": "identifier",
+        "scope": "play_event"
+      }
+    ]
+  },
+  "updated_at": 1777211772.6130908
+}

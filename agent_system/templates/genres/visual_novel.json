@@ -1,0 +1,104 @@
+{
+  "template_id": "visual_novel",
+  "display_name": "Visual Novel",
+  "game_genre": "Visual Novel",
+  "version": "1.0.0",
+  "description": "Narrative-heavy template with dialogue, localization, and branching flow.",
+  "aliases": ["vn", "narrative"],
+  "tags": ["dialogue", "branching", "localization"],
+  "coding_style": {
+    "naming_convention": "snake_case",
+    "signal_pattern": "SignalBus"
+  },
+  "default_ui_style": {
+    "primary_color": "#C94D8B",
+    "corner_radius": 10
+  },
+  "recommended_directories": [
+    "agent_templates/genres",
+    "scenes/story",
+    "scripts/dialogue",
+    "scripts/ui",
+    "data_tables",
+    "qa/baselines/visual_novel"
+  ],
+  "starter_data_tables": ["dialogue", "localization", "quest"],
+  "starter_gameplay_systems": [
+    {
+      "system_id": "dialogue_runner",
+      "display_name": "Dialogue Runner",
+      "category": "narrative",
+      "summary": "Dialogue playback with speaker, pacing, and line progression control.",
+      "recommended_skills": ["generate_dialogue_system", "auto_layout_ui"],
+      "suggested_data_tables": ["dialogue", "localization"],
+      "acceptance_checks": ["dialogue_lines_can_render", "line_progression_works"],
+      "starter_feature_name": "visual_novel_dialogue_runner",
+      "dependencies": []
+    },
+    {
+      "system_id": "branching_choices",
+      "display_name": "Branching Choices",
+      "category": "narrative",
+      "summary": "Choice selection and route branching with immediate UI feedback.",
+      "recommended_skills": ["generate_dialogue_system", "manage_signal_bus"],
+      "suggested_data_tables": ["dialogue", "localization"],
+      "acceptance_checks": ["choices_can_branch_story", "selected_choice_is_recorded"],
+      "starter_feature_name": "visual_novel_branching_choices",
+      "dependencies": ["dialogue_runner"]
+    },
+    {
+      "system_id": "variable_flags",
+      "display_name": "Variable Flags",
+      "category": "state",
+      "summary": "Story flags, route conditions, and persistent narrative state variables.",
+      "recommended_skills": ["plan_game_feature", "manage_signal_bus"],
+      "suggested_data_tables": ["quest"],
+      "acceptance_checks": ["story_flags_can_toggle", "route_conditions_are_evaluable"],
+      "starter_feature_name": "visual_novel_variable_flags",
+      "dependencies": ["branching_choices"]
+    },
+    {
+      "system_id": "save_and_load",
+      "display_name": "Save And Load",
+      "category": "state",
+      "summary": "Manual and quick save flow for story progress and route state.",
+      "recommended_skills": ["plan_game_feature", "manage_blueprint_snapshots"],
+      "suggested_data_tables": [],
+      "acceptance_checks": ["story_state_can_be_saved", "saved_state_can_be_restored"],
+      "starter_feature_name": "visual_novel_save_and_load",
+      "dependencies": ["variable_flags"]
+    },
+    {
+      "system_id": "localization_surface",
+      "display_name": "Localization Surface",
+      "category": "ui",
+      "summary": "Text surface and lookup path that keeps story UI localization-ready.",
+      "recommended_skills": ["manage_game_data_tables", "auto_layout_ui"],
+      "suggested_data_tables": ["localization", "dialogue"],
+      "acceptance_checks": ["localized_text_lookup_exists", "ui_can_swap_locale"],
+      "starter_feature_name": "visual_novel_localization_surface",
+      "dependencies": ["dialogue_runner"]
+    },
+    {
+      "system_id": "scene_transition",
+      "display_name": "Scene Transition",
+      "category": "flow",
+      "summary": "Transition flow between story scenes, menus, and route milestones.",
+      "recommended_skills": ["define_game_flow", "apply_tween_animation"],
+      "suggested_data_tables": ["quest", "localization"],
+      "acceptance_checks": ["scene_transition_can_trigger", "route_flow_can_advance"],
+      "starter_feature_name": "visual_novel_scene_transition",
+      "dependencies": ["branching_choices", "save_and_load"]
+    }
+  ],
+  "performance_budget": {
+    "max_scene_load_ms": 900,
+    "min_fps": 60,
+    "max_memory_peak_mb": 192,
+    "max_draw_call_count": 220,
+    "max_node_count": 180,
+    "max_texture_memory_mb": 128,
+    "max_frame_spike_ms": 16,
+    "max_screenshot_diff_ratio": 0.05
+  }
+}

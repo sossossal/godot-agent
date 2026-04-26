@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "liveops_type": "remote_config",
+  "items": [
+    {
+      "liveops_type": "remote_config",
+      "config_key": "live_spawn_multiplier",
+      "value_type": "float",
+      "default_value": 1.1,
+      "owner": "design_ops",
+      "enabled": true,
+      "requires_restart": false,
+      "environments": [
+        "qa",
+        "live"
+      ],
+      "rollout_strategy": "percentage",
+      "rollout_percentage": 25.0,
+      "audience_segments": [
+        "new_players"
+      ],
+      "tags": [
+        "balance",
+        "combat"
+      ],
+      "acceptance_checks": [
+        "owner_declared",
+        "rollout_strategy_defined",
+        "rollback_plan_recorded"
+      ],
+      "notes": "用于灰度提高首个 combat 场景刷怪系数"
+    }
+  ]
+}

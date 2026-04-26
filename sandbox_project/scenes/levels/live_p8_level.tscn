@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[node name="LiveP8Level" type="Node2D"]
+
+[node name="PlayerSpawn" type="Marker2D" parent="."]
+position = Vector2(0.0, 0.0)
+
+[node name="VendorPoint" type="Marker2D" parent="."]
+position = Vector2(480.0, 0.0)
+
+[node name="LevelExit" type="Marker2D" parent="."]
+position = Vector2(960.0, 0.0)
+
+[node name="CheckpointA" type="Marker2D" parent="."]
+position = Vector2(160.0, 0.0)
+
+[node name="NavigationZoneTownSquare" type="NavigationRegion2D" parent="."]
+
+[node name="NavigationZoneMain" type="NavigationRegion2D" parent="."]
+
+[node name="NpcNavigationAgent" type="NavigationAgent2D" parent="."]
+position = Vector2(0.0, 0.0)
+
+[node name="TileLayerHubGround" type="TileMap" parent="."]
+
+[node name="TriggerLevelGate" type="Area2D" parent="."]
+position = Vector2(960.0, 0.0)
+
+[node name="CollisionShape" type="CollisionShape2D" parent="TriggerLevelGate"]
+
+[node name="CollisionProfileWorld" type="Node" parent="."]
+
+[node name="CollisionProfilePlayer" type="Node" parent="."]
+
+[node name="CollisionProfileNpc" type="Node" parent="."]
+
+[node name="LevelBounds" type="Node" parent="."]
+[node name="BoundsMin" type="Marker2D" parent="LevelBounds"]
+position = Vector2(-128.0, -160.0)
+
+[node name="BoundsMax" type="Marker2D" parent="LevelBounds"]
+position = Vector2(1216.0, 512.0)
+[node name="LiveExtraTrigger" type="Area2D" parent="."]
+

@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "presentation_type": "audio",
+  "presentation_label": "音频表现",
+  "generated_path_count": 1,
+  "generated_paths": [
+    "res://scripts/audio/live_ui_confirm_audio_router.gd"
+  ],
+  "entries": [
+    {
+      "profile_id": "live_ui_confirm",
+      "presentation_type": "audio",
+      "audio_role": "ui",
+      "event_name": "live_ui_confirm",
+      "bus_name": "UI",
+      "audio_stream_path": "res://assets/audio/live_ui_confirm.ogg",
+      "autoplay": false,
+      "acceptance_checks": [
+        "audio_event_declared",
+        "bus_mapping_declared",
+        "router_script_generated"
+      ],
+      "notes": "",
+      "target_script_path": "res://scripts/audio/live_ui_confirm_audio_router.gd",
+      "generation_targets": [
+        "res://scripts/audio/live_ui_confirm_audio_router.gd"
+      ]
+    }
+  ]
+}

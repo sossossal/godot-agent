@@ -1,45 +1,56 @@
-# Godot Studio Agent — 配置文件
-# 修改 godot.executable_path 指向你的 Godot 可执行文件
+# Godot Agent 系统配置文件 (V1.4.0)
 
+# 1. 环境配置 (Environment)
 godot:
-  # Windows 示例: C:/Godot/Godot_v4.x.exe
-  # 留空则自动从 PATH 中查找
-  executable_path: ""
-  # 默认操作的 Godot 项目路径（可在 Web UI 中动态修改）
-  project_path: ""
+  executable_path: ""          # Godot 可执行文件路径
+  project_path: "."            # 锁定为主项目路径
+  editor_port: 6007            # 插件通信端口
+  timeout: 30                  # 命令执行超时 (秒)
 
-api:
-  host: "0.0.0.0"
-  port: 8000
-  reload: true
+# 2. 路由配置 (Routing)
+routing:
+  default_priority: 5          # 默认优先级
+  confidence_threshold: 0.3    # 识别阈值
+  
+# 3. 角色功能配置 (Roles)
+roles:
+  architect:
+    enabled: true
+    priority: 6
+    keywords: ["制作", "规划", "设定", "蓝图"]
+  
+  developer:
+    enabled: true
+    priority: 5
+    keywords: ["创建", "添加", "场景", "节点", "注入", "挂载"]
+  
+  code_generator:
+    enabled: true
+    priority: 2
+    keywords: ["生成", "代码", "脚本", "逻辑", "信号", "重构"]
+    default_language: "gdscript"
+  
+  tester:
+    enabled: true
+    priority: 3
+    keywords: ["测试", "验证", "调试", "运行", "截图"]
+  
+  resource_manager:
+    enabled: true
+    priority: 4
+    keywords: ["发布", "导出", "整理", "审计", "修复"]
 
-# LLM 语义路由（可选）
-# 当关键词路由置信度 < 0.3 时自动触发
-# 支持 openai / gemini / ollama
+# 4. 运行与日志配置 (Runtime)
+runtime:
+  generated_root: "agent_modules" # 文件隔离目录
+  history_enabled: true
+  history_path: "logs/task_history.json"
+  log_level: "INFO"
+  auto_save: true
+  debug: false
+
+# 5. LLM 配置 (用于语义参数映射)
 llm:
   enabled: false
-  provider: "openai" # openai | gemini | ollama
-  model: "gpt-4o-mini"
-  api_key: "" # 从环境变量 OPENAI_API_KEY 读取也可
-  ollama_base_url: "http://localhost:11434"
-
-# 角色配置（可临时禁用某个角色）
-roles:
-  developer: { enabled: true }
-  code_generator: { enabled: true }
-  tester: { enabled: true }
-  ai_controller: { enabled: true }
-  resource_manager: { enabled: true }
-  simulation: { enabled: true }
-  narrative: { enabled: true }
-  ui_designer: { enabled: true }
-  audio_manager: { enabled: true }
-  level_designer: { enabled: true }
-  optimizer: { enabled: true }
-
-# 未来功能预留
-future:
-  multiplayer_agent: { enabled: false } # 联机/多人游戏 Agent（预留）
-  shader_generator: { enabled: false } # Shader 代码自动生成（预留）
-  localization_agent: { enabled: false } # 多语言本地化 Agent（预留）
-  itch_publisher: { enabled: false } # 一键发布到 itch.io（预留）
+  api_key: ""
+  base_url: "https://api.openai.com/v1"

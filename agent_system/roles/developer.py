@@ -1,103 +1,74 @@
 """
-DeveloperRole — 场景/节点/项目开发角色
+项目开发角色 (上下文增强版)
+职责: 场景创建、实时节点注入、多级上下文感知
 """
-from typing import Dict, List, Any
+
+from typing import Dict, List, Any, Optional
+from ..models import Task, TaskStatus, Artifact
 from .base import BaseRole
+from ..skills.registry import SkillRegistry
 
 
 class DeveloperRole(BaseRole):
-    """负责创建场景、节点和组织项目结构"""
-
+    """项目开发角色 (技能化重构版)"""
+    
     def get_description(self) -> str:
-        return "项目开发专家，擅长创建场景、节点和管理 Godot 项目结构"
-
+        return "项目架构师, 支持实时感知编辑器选中节点并进行针对性修改"
+    
     def get_capabilities(self) -> List[str]:
-        return [
-            "创建 2D/3D 场景",
-            "添加和配置节点",
-            "组织项目文件结构",
-            "生成 .tscn 场景文件",
-            "配置节点属性和信号",
-            "初始化新 Godot 项目",
-        ]
+        return ["创建场景", "生成关卡模板与审计", "添加节点", "实时感知选中节点", "增量修改"]
+    
+    def execute(self, task: Task) -> Task:
+        """执行开发任务"""
+        task.status = TaskStatus.RUNNING
+        command = task.prompt
+        
+        try:
+            # 🆕 增强型模块化技能分发逻辑
+            if any(keyword in command for keyword in ["输入", "按键", "键位", "映射"]):
+                skill_name = "manage_input_mapping"
+            elif "关卡" in command:
+                skill_name = "manage_level_workflow"
+            elif "场景" in command:
+                skill_name = "create_godot_scene"
+            elif "挂载" in command or "绑定脚本" in command or "设置脚本" in command:
+                skill_name = "attach_script_to_node"
+            elif "碰撞" in command or "物理" in command:
+                skill_name = "configure_physics_collision"
+            elif "实例化" in command or "预制件" in command:
+                skill_name = "instantiate_scene_prefab"
+            elif "UI" in command or "布局" in command or "界面" in command:
+                skill_name = "auto_layout_ui"
+            elif "粒子" in command or "特效" in command or "VFX" in command:
+                skill_name = "inject_vfx_particle"
+            elif "3D环境" in command or "搭建3D" in command:
+                skill_name = "setup_3d_environment"
+            elif "3D几何体" in command or "立方体" in command or "球体" in command:
+                skill_name = "inject_3d_primitive"
+            elif "节点" in command or "组件" in command:
+                skill_name = "inject_godot_node"
+            else:
+                return self._error_task(task, "未识别的开发指令")
 
-    def execute(self, command: str, context: Dict[str, Any]) -> Dict[str, Any]:
-        if "2D" in command or "横版" in command or "平台" in command:
-            return self._create_2d_scene(command)
-        elif "3D" in command or "三维" in command:
-            return self._create_3d_scene(command)
-        elif "初始化" in command or "新项目" in command:
-            return self._init_project(command)
-        else:
-            return self._create_basic_scene(command)
-
-    def _create_2d_scene(self, command: str) -> Dict[str, Any]:
-        scene_content = '''[gd_scene load_steps=2 format=3 uid="uid://b2d_main"]
-
-[node name="Main" type="Node2D"]
-
-[node name="Player" type="CharacterBody2D" parent="."]
-script = ExtResource("player.gd")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
-
-[node name="Camera2D" type="Camera2D" parent="Player"]
-enabled = true
-
-[node name="TileMap" type="TileMap" parent="."]
-
-[node name="Enemies" type="Node2D" parent="."]
-
-[node name="UI" type="CanvasLayer" parent="."]
-'''
-        return self._success_result(
-            "2D 场景已生成",
-            {"scene_name": "main_2d.tscn", "scene_content": scene_content,
-             "tips": "请在 Godot 编辑器中导入此场景文件，并配置 TileSet"}
-        )
-
-    def _create_3d_scene(self, command: str) -> Dict[str, Any]:
-        scene_content = '''[gd_scene load_steps=2 format=3]
-
-[node name="Main" type="Node3D"]
-
-[node name="Player" type="CharacterBody3D" parent="."]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Player"]
-
-[node name="Camera3D" type="Camera3D" parent="Player"]
-position = Vector3(0, 1.5, 3)
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-rotation_degrees = Vector3(-45, 45, 0)
-'''
-        return self._success_result(
-            "3D 场景已生成",
-            {"scene_name": "main_3d.tscn", "scene_content": scene_content}
-        )
-
-    def _init_project(self, command: str) -> Dict[str, Any]:
-        structure = {
-            "scenes/": "主场景目录",
-            "scripts/": "GDScript 脚本",
-            "assets/sprites/": "精灵图集",
-            "assets/audio/bgm/": "背景音乐",
-            "assets/audio/sfx/": "音效",
-            "assets/fonts/": "字体",
-            "ui/": "UI 场景",
-            "data/": "游戏数据 JSON",
-            "saves/": "存档（运行时生成）",
-        }
-        return self._success_result(
-            "项目目录结构已规划",
-            {"directories": structure, "tips": "请在 Godot 项目根目录手动创建以上目录"}
-        )
-
-    def _create_basic_scene(self, command: str) -> Dict[str, Any]:
-        return self._success_result(
-            "基础场景模板已生成",
-            {"scene_name": "new_scene.tscn",
-             "tips": "请描述具体场景类型（2D/3D）以获得更精准的模板"}
-        )
+            skill_res = SkillRegistry.get_skill_with_params(
+                skill_name, 
+                command, 
+                self.godot_cli, 
+                self.index_service
+            )
+            
+            if skill_res:
+                skill, params = skill_res
+                result = skill.execute(task, params)
+                self._apply_skill_result_contract(task, result)
+                self._merge_result_artifacts(task, result)
+                
+                if result.success:
+                    return self._success_task(task, result.message)
+                else:
+                    return self._error_task(task, result.message, result.error)
+            
+            return self._error_task(task, f"无法匹配开发技能: {skill_name}")
+            
+        except Exception as e:
+            return self._error_task(task, f"开发任务异常: {str(e)}", str(e))

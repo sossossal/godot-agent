@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "allow_local_without_token": false,
+  "tokens": [
+    {
+      "token_id": "staging_release_control",
+      "token_sha256": "fa82d29e0a62144a853c2ddc961ddd6b0e4f9a9869a89d7281687956742f28a5",
+      "actions": [
+        "promotion_record",
+        "release_execution"
+      ],
+      "channels": [
+        "staging"
+      ],
+      "target_environments": [
+        "staging"
+      ],
+      "actor_ids": [
+        "producer_a",
+        "release_manager",
+        "ops_a"
+      ],
+      "expires_at": "2099-01-01T00:00:00Z",
+      "session_id": "staging-session-20260422",
+      "issued_by": "ops_a",
+      "issued_at": "2026-04-22T17:00:00Z",
+      "revoked": false
+    }
+  ]
+}
