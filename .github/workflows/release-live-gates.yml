@@ -63,8 +63,8 @@ jobs:
         shell: pwsh
         run: |
           $version = python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
-          if ($version -ne "3.12") {
-            throw "Python 3.12 is required on the self-hosted release runner; found $version"
+          if ([version]$version -lt [version]"3.12") {
+            throw "Python 3.12 or newer is required on the self-hosted release runner; found $version"
           }
           python --version
 
