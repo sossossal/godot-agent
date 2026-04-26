@@ -73,6 +73,12 @@ jobs:
         shell: pwsh
         run: python -m pip install --upgrade pip; python -m pip install -r requirements.txt
 
+      - name: Prepare staging release fixture
+        id: prepare_release_fixture
+        shell: pwsh
+        run: |
+          python -c "from tools.export_release_ci_artifacts import _prepare_release_fixture, _prepare_runtime_reports; manifest = _prepare_release_fixture(channel='${{ inputs.target_channel }}'); _prepare_runtime_reports(manifest)"
+
       - name: Export release-live runner baseline
         id: export_runner_baseline
         shell: pwsh
