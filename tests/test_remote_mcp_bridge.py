@@ -27,6 +27,11 @@ class RemoteMcpBridgeTestCase(unittest.TestCase):
             "godot_capture",
             "godot_production_validate",
             "godot_agent_compat",
+            "godot_create_game_plan",
+            "godot_apply_game_plan",
+            "godot_audit_game_scene_graph",
+            "godot_review_game_creation",
+            "godot_plan_game_template_migration",
         })
 
     def test_remote_bridge_manifest_endpoint(self):

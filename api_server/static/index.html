@@ -153,7 +153,7 @@
         .data-table-meta { font-size: 0.76em; color: #9ca3af; margin-bottom: 10px; line-height: 1.4; }
         .data-table-issues { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
         .data-table-empty { border: 1px dashed #2d2d3d; border-radius: 8px; padding: 10px; font-size: 0.76em; color: #6b7280; }
-        .art-asset-toolbar, .presentation-toolbar, .liveops-toolbar, .telemetry-toolbar, .performance-toolbar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+        .art-asset-toolbar, .presentation-toolbar, .liveops-toolbar, .telemetry-toolbar, .performance-toolbar, .game-creation-toolbar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
         .art-asset-toolbar select, .art-asset-toolbar input, .art-asset-toolbar textarea,
         .presentation-toolbar select, .presentation-toolbar input, .presentation-toolbar textarea,
         .liveops-toolbar select, .liveops-toolbar input, .liveops-toolbar textarea,
@@ -162,27 +162,27 @@
             flex: 1; min-width: 0; background: #10101a; border: 1px solid #2d2d3d; color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 0.76em; box-sizing: border-box;
         }
         .art-asset-toolbar textarea, .presentation-toolbar textarea, .liveops-toolbar textarea, .telemetry-toolbar textarea, .performance-toolbar textarea { min-height: 68px; resize: vertical; font-family: inherit; }
-        .art-asset-field-grid, .presentation-field-grid, .performance-field-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 10px; }
-        .art-asset-field-grid input, .presentation-field-grid input, .performance-field-grid input { width: 100%; box-sizing: border-box; background: #10101a; border: 1px solid #2d2d3d; color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 0.76em; }
-        .art-asset-field-grid .full, .presentation-field-grid .full { grid-column: 1 / -1; }
+        .art-asset-field-grid, .presentation-field-grid, .performance-field-grid, .game-creation-field-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 10px; }
+        .art-asset-field-grid input, .presentation-field-grid input, .performance-field-grid input, .game-creation-field-grid input { width: 100%; box-sizing: border-box; background: #10101a; border: 1px solid #2d2d3d; color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 0.76em; }
+        .art-asset-field-grid .full, .presentation-field-grid .full, .game-creation-field-grid .full { grid-column: 1 / -1; }
         .performance-field-grid .full { grid-column: 1 / -1; }
-        .art-asset-list, .presentation-list, .liveops-list, .telemetry-list, .performance-list { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; }
-        .art-asset-card, .presentation-card, .liveops-card, .telemetry-card, .performance-card { border: 1px solid #2d2d3d; border-left-width: 3px; border-radius: 8px; padding: 8px; background: #151520; font-size: 0.76em; }
+        .art-asset-list, .presentation-list, .liveops-list, .telemetry-list, .performance-list, .game-creation-list { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; }
+        .art-asset-card, .presentation-card, .liveops-card, .telemetry-card, .performance-card, .game-creation-card { border: 1px solid #2d2d3d; border-left-width: 3px; border-radius: 8px; padding: 8px; background: #151520; font-size: 0.76em; }
         .art-asset-card.template, .presentation-card.template { border-left-color: var(--info); }
         .art-asset-card.managed, .presentation-card.managed { border-left-color: var(--success); }
         .liveops-card.passed, .telemetry-card.passed, .performance-card.passed { border-left-color: var(--success); }
         .liveops-card.warning, .telemetry-card.warning, .performance-card.warning { border-left-color: var(--warning); }
         .liveops-card.blocked, .telemetry-card.blocked, .performance-card.blocked { border-left-color: var(--error); }
-        .art-asset-head, .presentation-head, .liveops-head, .telemetry-head, .performance-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
-        .art-asset-title, .presentation-title, .liveops-title, .telemetry-title, .performance-title { font-weight: 700; color: #f8fafc; }
-        .art-asset-body, .presentation-body, .liveops-body, .telemetry-body, .performance-body { color: #cbd5e1; line-height: 1.45; word-break: break-word; }
+        .art-asset-head, .presentation-head, .liveops-head, .telemetry-head, .performance-head, .game-creation-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+        .art-asset-title, .presentation-title, .liveops-title, .telemetry-title, .performance-title, .game-creation-title { font-weight: 700; color: #f8fafc; }
+        .art-asset-body, .presentation-body, .liveops-body, .telemetry-body, .performance-body, .game-creation-body { color: #cbd5e1; line-height: 1.45; word-break: break-word; }
         .presentation-toggle-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; font-size: 0.76em; color: #cbd5e1; }
         .presentation-toggle-row label { display: inline-flex; align-items: center; gap: 6px; }
         @media (max-width: 960px) {
-            .art-asset-field-grid, .presentation-field-grid, .performance-field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .art-asset-field-grid, .presentation-field-grid, .performance-field-grid, .game-creation-field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
         @media (max-width: 720px) {
-            .art-asset-field-grid, .presentation-field-grid, .performance-field-grid { grid-template-columns: 1fr; }
+            .art-asset-field-grid, .presentation-field-grid, .performance-field-grid, .game-creation-field-grid { grid-template-columns: 1fr; }
         }
         .onboarding-meta { font-size: 0.76em; color: #9ca3af; margin-bottom: 10px; line-height: 1.4; }
         .onboarding-list { display: flex; flex-direction: column; gap: 8px; }
@@ -430,6 +430,32 @@
         </div>
         <div id="agent-compat-list" class="quality-list">
             <div class="empty-state">点击检查后查看 MCP、API、skills、contracts 兼容矩阵。</div>
+        </div>
+        <div style="font-weight: 700; margin: 24px 0 12px; font-size: 0.9em;">游戏创建向导</div>
+        <div id="game-creation-meta" class="data-table-meta">正在加载 game creation templates...</div>
+        <div class="game-creation-toolbar">
+            <select id="game-creation-template-select" onchange="setGameCreationField('template_id', this.value)"></select>
+            <input type="text" id="game-creation-title-input" placeholder="游戏标题，例如 Demo Runner" oninput="setGameCreationField('title', this.value)">
+            <input type="text" id="game-creation-genre-input" placeholder="genre: platformer_2d" oninput="setGameCreationField('genre', this.value)">
+        </div>
+        <div class="game-creation-field-grid">
+            <input type="text" id="game-creation-platforms-input" placeholder="target platforms: desktop,web" oninput="setGameCreationListField('target_platforms', this.value)">
+            <input type="text" id="game-creation-features-input" placeholder="features: player_movement,jump,coin_collection" oninput="setGameCreationListField('features', this.value)">
+            <input type="text" id="game-creation-notes-input" class="full" placeholder="notes / trial context" oninput="setGameCreationField('notes', this.value)">
+        </div>
+        <div class="filter-row">
+            <button class="filter-btn" onclick="refreshGameCreationTemplates(true)">读取模板</button>
+            <button class="filter-btn" onclick="planGameCreation()">预览计划</button>
+            <button class="filter-btn" onclick="applyGameCreation(false)">写入脚手架</button>
+            <button class="filter-btn" onclick="applyGameCreation(true)">覆盖写入</button>
+            <button class="filter-btn" onclick="auditGameCreationSceneGraph()">审计场景树</button>
+            <button class="filter-btn" onclick="reviewGameCreation()">生成验收摘要</button>
+        </div>
+        <div id="game-creation-issues" class="data-table-issues">
+            <div class="data-table-empty">预览或写入后在这里查看 blocking / warning checks。</div>
+        </div>
+        <div id="game-creation-list" class="game-creation-list">
+            <div class="data-table-empty">先选择模板并预览计划，再写入 Godot 项目脚手架。</div>
         </div>
         <div style="font-weight: 700; margin: 24px 0 12px; font-size: 0.9em;">Release Capability Registry</div>
         <div id="release-capability-registry-meta" class="quality-meta">正在加载 release capability registry。</div>
@@ -1109,6 +1135,10 @@
         let releasePromotionPlan = null;
         let agentProviderProfiles = null;
         let agentCompatibilityMatrix = null;
+        let gameCreationTemplates = null;
+        let gameCreationProfile = null;
+        let gameCreationAudit = null;
+        let gameCreationReview = null;
         let lastEditorEventId = null;
         let lastArtifactProject = null;
         let artifactRefreshCounter = 0;
@@ -2110,6 +2140,320 @@
                 .split(/[\n,;]/)
                 .map(item => item.trim())
                 .filter(Boolean);
+        }
+
+        function buildGameCreationEmptyState() {
+            const defaultTemplate = gameCreationTemplates?.default_template_id || 'platformer_2d';
+            return {
+                schema_version: '',
+                title: 'Platformer Prototype',
+                genre: 'platformer_2d',
+                template_id: defaultTemplate,
+                features: ['player_movement', 'jump', 'coin_collection', 'enemy_patrol', 'health', 'hud'],
+                target_platforms: ['desktop', 'web'],
+                notes: '',
+                scene_plan: [],
+                asset_plan: [],
+                module_plan: [],
+                skill_binding_plan: [],
+                block_diagram: '',
+                godot_response_map: [],
+                data_tables: [],
+                artifact_paths: [],
+                generated_files: [],
+                skipped_files: [],
+                blocking_checks: [],
+                warning_checks: [],
+                status: 'draft',
+                ready: false,
+                should_block: false,
+                manifest_path: 'data_tables/game_creation/game_creation_profile.json',
+            };
+        }
+
+        function ensureGameCreationState() {
+            if (!gameCreationProfile) {
+                gameCreationProfile = buildGameCreationEmptyState();
+            }
+            return gameCreationProfile;
+        }
+
+        function setGameCreationState(payload, options = {}) {
+            const previous = options.preserveDraft && gameCreationProfile ? gameCreationProfile : null;
+            const source = payload || {};
+            gameCreationProfile = {
+                ...buildGameCreationEmptyState(),
+                ...previous,
+                ...source,
+                features: Array.isArray(source.features) ? source.features : (previous?.features || buildGameCreationEmptyState().features),
+                target_platforms: Array.isArray(source.target_platforms) ? source.target_platforms : (previous?.target_platforms || ['desktop', 'web']),
+                scene_plan: Array.isArray(source.scene_plan) ? source.scene_plan : (previous?.scene_plan || []),
+                asset_plan: Array.isArray(source.asset_plan) ? source.asset_plan : (previous?.asset_plan || []),
+                module_plan: Array.isArray(source.module_plan) ? source.module_plan : (previous?.module_plan || []),
+                skill_binding_plan: Array.isArray(source.skill_binding_plan) ? source.skill_binding_plan : (previous?.skill_binding_plan || []),
+                block_diagram: String(source.block_diagram || previous?.block_diagram || ''),
+                godot_response_map: Array.isArray(source.godot_response_map) ? source.godot_response_map : (previous?.godot_response_map || []),
+                data_tables: Array.isArray(source.data_tables) ? source.data_tables : (previous?.data_tables || []),
+                artifact_paths: Array.isArray(source.artifact_paths) ? source.artifact_paths : (previous?.artifact_paths || []),
+                generated_files: Array.isArray(source.generated_files) ? source.generated_files : (previous?.generated_files || []),
+                skipped_files: Array.isArray(source.skipped_files) ? source.skipped_files : (previous?.skipped_files || []),
+                blocking_checks: Array.isArray(source.blocking_checks) ? source.blocking_checks : (previous?.blocking_checks || []),
+                warning_checks: Array.isArray(source.warning_checks) ? source.warning_checks : (previous?.warning_checks || []),
+            };
+            renderGameCreationPanel();
+        }
+
+        function setGameCreationField(field, value) {
+            const state = ensureGameCreationState();
+            state[field] = String(value || '').trim();
+            if (field === 'template_id' && !state.genre) {
+                state.genre = state.template_id || 'platformer_2d';
+            }
+        }
+
+        function setGameCreationListField(field, value) {
+            const state = ensureGameCreationState();
+            state[field] = splitPortalList(value);
+        }
+
+        function buildGameCreationRequest(overwrite = false) {
+            const state = ensureGameCreationState();
+            return {
+                project_path: currentProject,
+                title: state.title || 'Platformer Prototype',
+                genre: state.genre || 'platformer_2d',
+                template_id: state.template_id || gameCreationTemplates?.default_template_id || 'platformer_2d',
+                features: Array.isArray(state.features) ? state.features : [],
+                target_platforms: Array.isArray(state.target_platforms) ? state.target_platforms : [],
+                notes: state.notes || '',
+                overwrite: Boolean(overwrite),
+            };
+        }
+
+        function renderGameCreationPanel() {
+            const state = ensureGameCreationState();
+            const meta = document.getElementById('game-creation-meta');
+            const issues = document.getElementById('game-creation-issues');
+            const list = document.getElementById('game-creation-list');
+            if (!meta || !issues || !list) return;
+
+            const templateSelect = document.getElementById('game-creation-template-select');
+            const templates = Array.isArray(gameCreationTemplates?.items) ? gameCreationTemplates.items : [];
+            if (templateSelect) {
+                const selected = state.template_id || gameCreationTemplates?.default_template_id || 'platformer_2d';
+                templateSelect.innerHTML = templates.length
+                    ? templates.map(item => `<option value="${escapeHtml(item.template_id)}" ${item.template_id === selected ? 'selected' : ''}>${escapeHtml(item.label || item.template_id)}</option>`).join('')
+                    : `<option value="${escapeHtml(selected)}">${escapeHtml(selected)}</option>`;
+                if (templateSelect.value !== selected) templateSelect.value = selected;
+            }
+
+            const inputValues = {
+                'game-creation-title-input': state.title || '',
+                'game-creation-genre-input': state.genre || '',
+                'game-creation-platforms-input': (state.target_platforms || []).join(', '),
+                'game-creation-features-input': (state.features || []).join(', '),
+                'game-creation-notes-input': state.notes || '',
+            };
+            for (const [elementId, value] of Object.entries(inputValues)) {
+                const element = document.getElementById(elementId);
+                if (element && element.value !== value) element.value = value;
+            }
+
+            meta.innerHTML =
+                `状态: ${escapeHtml(String(state.status || 'draft').toUpperCase())}` +
+                `<br>Title: ${escapeHtml(state.title || '-')}` +
+                ` / Template: ${escapeHtml(state.template_id || '-')}` +
+                ` / Platforms: ${escapeHtml((state.target_platforms || []).join(', ') || '-')}` +
+                `<br>Manifest: ${escapeHtml(state.manifest_path || 'data_tables/game_creation/game_creation_profile.json')}` +
+                ` / Generated: ${escapeHtml(String((state.generated_files || []).length))}` +
+                ` / Skipped: ${escapeHtml(String((state.skipped_files || []).length))}`;
+
+            const issueLines = [
+                ...(state.blocking_checks || []).map(item => `blocking: ${item}`),
+                ...(state.warning_checks || []).map(item => `warning: ${item}`),
+            ];
+            issues.innerHTML = issueLines.length
+                ? issueLines.map(line => `<div class="plan-summary-item">${escapeHtml(line)}</div>`).join('')
+                : '<div class="data-table-empty">当前没有 game creation 阻断或警告。</div>';
+
+            const sceneLines = (state.scene_plan || []).map(item => `${item.role || 'scene'}=${item.path || '-'}`);
+            const assetLines = (state.asset_plan || []).map(item => `${item.asset_id || 'asset'}:${item.usage || item.type || '-'}`);
+            const tableLines = (state.data_tables || []).map(item => `${item.schema || 'table'}=${item.path || '-'}`);
+            const moduleLines = (state.module_plan || []).map(item => `${item.module_id || 'module'}=${item.script_path || '-'}`);
+            const skillLines = (state.skill_binding_plan || []).slice(0, 16).map(item => `${item.module_id || 'module'}:${item.skill_name || '-'}`);
+            const constraintLines = (state.module_plan || [])
+                .flatMap(item => (item.constraints || []).slice(0, 2).map(rule => `${item.module_id || 'module'}:${rule}`))
+                .slice(0, 10);
+            const responseLines = (state.godot_response_map || []).map(item => `${item.trigger || 'trigger'} -> ${item.node_path || '-'} -> ${item.response || '-'}`);
+            const artifactLines = (state.artifact_paths || []).slice(0, 12);
+            const generatedLines = (state.generated_files || []).slice(0, 12);
+            const skippedLines = (state.skipped_files || []).slice(0, 12);
+            const audit = gameCreationAudit || {};
+            const review = gameCreationReview || {};
+            const auditMissingLines = [
+                ...(audit.missing_scenes || []).map(item => `scene:${item}`),
+                ...(audit.missing_scripts || []).map(item => `script:${item}`),
+                ...(audit.missing_nodes || []).map(item => `node:${item}`),
+                ...(audit.missing_signals || []).map(item => `signal:${item}`),
+            ].slice(0, 12);
+            const reviewLines = (review.acceptance_checklist || []).slice(0, 8).map(item => `${item.status || 'pending'}:${item.label || '-'}`);
+            list.innerHTML = `
+                <div class="game-creation-card ${state.should_block ? 'blocked' : (state.warning_checks?.length ? 'warning' : 'passed')}">
+                    <div class="game-creation-head">
+                        <span class="severity-pill ${qualityPillClass(state.status || 'passed')}">${escapeHtml(String(state.status || 'draft').toUpperCase())}</span>
+                        <span class="game-creation-title">Plan</span>
+                    </div>
+                    <div class="game-creation-body">
+                        features=${escapeHtml((state.features || []).join(', ') || 'none')}<br>
+                        scenes=${escapeHtml(sceneLines.join(' | ') || 'none')}<br>
+                        input=${escapeHtml(Object.keys(state.input_map || {}).join(', ') || 'none')}<br>
+                        acceptance=${escapeHtml((state.acceptance_criteria || []).join(' | ') || 'none')}
+                    </div>
+                </div>
+                <div class="game-creation-card ${state.module_plan?.length ? 'passed' : 'warning'}">
+                    <div class="game-creation-head">
+                        <span class="severity-pill ${state.module_plan?.length ? 'info' : 'warning'}">MODULES</span>
+                        <span class="game-creation-title">Block Structure</span>
+                    </div>
+                    <div class="game-creation-body">
+                        modules=${escapeHtml(moduleLines.join(' | ') || 'none')}<br>
+                        skills=${escapeHtml(skillLines.join(' | ') || 'none')}<br>
+                        constraints=${escapeHtml(constraintLines.join(' | ') || 'none')}<br>
+                        responses=${escapeHtml(responseLines.join(' | ') || 'none')}<br>
+                        diagram=<br><pre style="white-space:pre-wrap;margin:6px 0 0;color:#cbd5e1;">${escapeHtml(state.block_diagram || 'none')}</pre>
+                    </div>
+                </div>
+                <div class="game-creation-card ${audit.status ? (audit.should_block ? 'blocked' : (audit.warning_checks?.length ? 'warning' : 'passed')) : 'warning'}">
+                    <div class="game-creation-head">
+                        <span class="severity-pill ${qualityPillClass(audit.status || 'skipped')}">${escapeHtml(String(audit.status || 'AUDIT').toUpperCase())}</span>
+                        <span class="game-creation-title">Scene Graph Audit</span>
+                    </div>
+                    <div class="game-creation-body">
+                        scenes=${escapeHtml(String(audit.scene_count || 0))} / nodes=${escapeHtml(String(audit.node_count || 0))} / modules=${escapeHtml(String(audit.expected_module_count || 0))}<br>
+                        live=${escapeHtml(String(Boolean(audit.live_snapshot_used)))} / source=${escapeHtml(audit.live_snapshot_source || '-')} / live_nodes=${escapeHtml(String(audit.live_snapshot_node_count || 0))}<br>
+                        missing=${escapeHtml(auditMissingLines.join(' | ') || 'none')}<br>
+                        report=${escapeHtml(audit.manifest_path || 'data_tables/game_creation/game_creation_profile.json')}
+                    </div>
+                </div>
+                <div class="game-creation-card ${review.status ? (review.should_block ? 'blocked' : (review.warning_checks?.length ? 'warning' : 'passed')) : 'warning'}">
+                    <div class="game-creation-head">
+                        <span class="severity-pill ${qualityPillClass(review.status || 'skipped')}">${escapeHtml(String(review.status || 'REVIEW').toUpperCase())}</span>
+                        <span class="game-creation-title">Acceptance Review</span>
+                    </div>
+                    <div class="game-creation-body">
+                        ready=${escapeHtml(String(Boolean(review.ready_for_acceptance)))} / acceptance=${escapeHtml(String(review.ready_acceptance_count || 0))}/${escapeHtml(String(review.acceptance_count || 0))} / modules=${escapeHtml(String(review.passed_module_count || 0))}/${escapeHtml(String(review.module_count || 0))}<br>
+                        data=${escapeHtml(String(review.passed_data_table_count || 0))}/${escapeHtml(String(review.data_table_count || 0))}<br>
+                        live=${escapeHtml(String(Boolean((review.audit_summary || {}).live_snapshot_used)))} / live_nodes=${escapeHtml(String((review.audit_summary || {}).live_snapshot_node_count || 0))}<br>
+                        checklist=${escapeHtml(reviewLines.join(' | ') || 'none')}<br>
+                        blockers=${escapeHtml((review.blocking_checks || []).slice(0, 8).join(' | ') || 'none')}
+                    </div>
+                </div>
+                <div class="game-creation-card ${generatedLines.length ? 'passed' : 'warning'}">
+                    <div class="game-creation-head">
+                        <span class="severity-pill ${generatedLines.length ? 'info' : 'warning'}">${generatedLines.length ? 'WRITTEN' : 'PREVIEW'}</span>
+                        <span class="game-creation-title">Artifacts</span>
+                    </div>
+                    <div class="game-creation-body">
+                        planned=${escapeHtml(artifactLines.join(' | ') || 'none')}<br>
+                        generated=${escapeHtml(generatedLines.join(' | ') || 'none')}<br>
+                        skipped=${escapeHtml(skippedLines.join(' | ') || 'none')}<br>
+                        assets=${escapeHtml(assetLines.join(' | ') || 'none')}<br>
+                        data=${escapeHtml(tableLines.join(' | ') || 'none')}
+                    </div>
+                </div>
+            `;
+        }
+
+        async function refreshGameCreationTemplates(showMessage = false) {
+            try {
+                const res = await fetch(`/game-creation/templates?project_path=${encodeURIComponent(currentProject)}`);
+                if (!res.ok) throw new Error('game creation templates failed');
+                gameCreationTemplates = await res.json();
+                setGameCreationState(ensureGameCreationState(), { preserveDraft: true });
+                if (showMessage) appendMsg("SYSTEM", "已载入 game creation templates");
+            } catch (error) {
+                renderGameCreationPanel();
+                if (showMessage) appendMsg("ERROR", error.message || "读取 game creation templates 失败");
+            }
+        }
+
+        async function planGameCreation() {
+            try {
+                const res = await fetch('/game-creation/plan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(buildGameCreationRequest(false)),
+                });
+                const payload = await res.json();
+                if (!res.ok) throw new Error(payload.detail || 'game creation plan failed');
+                setGameCreationState(payload);
+                appendMsg("SYSTEM", payload.message || `游戏创建计划: ${payload.status || 'passed'}`, payload);
+            } catch (error) {
+                appendMsg("ERROR", error.message || "游戏创建计划失败");
+            }
+        }
+
+        async function applyGameCreation(overwrite = false) {
+            try {
+                const res = await fetch('/game-creation/apply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(buildGameCreationRequest(overwrite)),
+                });
+                const payload = await res.json();
+                if (!res.ok) throw new Error(payload.detail || 'game creation apply failed');
+                setGameCreationState(payload);
+                appendMsg("SYSTEM", payload.message || `游戏创建脚手架写入: ${payload.status || 'passed'}`, payload);
+                await refreshArtifactCenter(true);
+            } catch (error) {
+                appendMsg("ERROR", error.message || "游戏创建脚手架写入失败");
+            }
+        }
+
+        async function auditGameCreationSceneGraph() {
+            try {
+                const state = ensureGameCreationState();
+                const res = await fetch('/game-creation/audit-scene-graph', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        project_path: currentProject,
+                        manifest_path: state.manifest_path || 'data_tables/game_creation/game_creation_profile.json',
+                        write_report: true,
+                    }),
+                });
+                const payload = await res.json();
+                if (!res.ok) throw new Error(payload.detail || 'scene graph audit failed');
+                gameCreationAudit = payload;
+                renderGameCreationPanel();
+                appendMsg("SYSTEM", payload.message || `场景树审计: ${payload.status || 'passed'}`, payload);
+                await refreshArtifactCenter(true);
+            } catch (error) {
+                appendMsg("ERROR", error.message || "场景树审计失败");
+            }
+        }
+
+        async function reviewGameCreation() {
+            try {
+                const state = ensureGameCreationState();
+                const res = await fetch('/game-creation/review', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        project_path: currentProject,
+                        manifest_path: state.manifest_path || 'data_tables/game_creation/game_creation_profile.json',
+                        write_reports: true,
+                    }),
+                });
+                const payload = await res.json();
+                if (!res.ok) throw new Error(payload.detail || 'game creation review failed');
+                gameCreationReview = payload;
+                renderGameCreationPanel();
+                appendMsg("SYSTEM", payload.message || `游戏创建验收摘要: ${payload.status || 'passed'}`, payload);
+                await refreshArtifactCenter(true);
+            } catch (error) {
+                appendMsg("ERROR", error.message || "游戏创建验收摘要失败");
+            }
         }
 
         function normalizeArtAssetManifestPath(path) {
@@ -9702,7 +10046,12 @@
                 releaseCapabilityRegistry = null;
                 releaseCapabilityPolicy = null;
                 releaseDeliveryReadiness = null;
+                gameCreationTemplates = null;
+                gameCreationProfile = null;
+                gameCreationAudit = null;
+                gameCreationReview = null;
                 sceneOwnershipBoard = null;
+                renderGameCreationPanel();
                 renderReleaseCapabilityRegistryPanel();
                 renderReleaseCapabilityPolicyPanel();
                 renderReleaseDeliveryReadinessPanel();
@@ -9719,6 +10068,7 @@
                 refreshProductionReadiness();
                 refreshReleaseCandidateChecklist();
                 refreshBuildRunMatrix();
+                refreshGameCreationTemplates();
                 refreshReleaseCapabilityRegistry();
                 refreshReleaseCapabilityPolicy();
                 refreshReleaseDeliveryReadiness();
@@ -9838,6 +10188,8 @@
         refreshProductionReadiness();
         refreshReleaseCandidateChecklist();
         refreshBuildRunMatrix();
+        renderGameCreationPanel();
+        refreshGameCreationTemplates();
         renderReleaseCapabilityRegistryPanel();
         renderReleaseCapabilityPolicyPanel();
         renderReleaseDeliveryReadinessPanel();

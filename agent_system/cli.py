@@ -15,8 +15,18 @@ from .router import GodotAgentRouter
 from .models import TaskStatus
 from .tools.doctor import SystemDoctor, default_doctor_report_path
 from .tools.agent_compatibility import build_agent_compatibility_matrix, list_agent_provider_profiles
+from .tools.game_creation_wizard import (
+    apply_game_creation_plan,
+    build_game_creation_input_replay,
+    build_game_creation_template_migration,
+    build_game_creation_review,
+    build_game_creation_plan,
+    build_scene_graph_audit,
+    list_game_creation_templates,
+)
 from .tools.governance import build_governance_enforcement, build_governance_policy
 from .tools.production_scale import build_production_readiness, list_production_scenarios
+from .tools.roadmap_status import build_roadmap_status
 
 
 def setup_io():
@@ -284,6 +294,107 @@ def cmd_agent_compat(args):
     return 0 if payload.get("passed") else 1
 
 
+def cmd_roadmap(args):
+    """输出路线图状态盘点。"""
+    project_root = Path(args.project_root or args.project or ".").resolve()
+    payload = build_roadmap_status(project_root)
+    if args.json:
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+    else:
+        print(
+            "路线图状态: "
+            f"{payload['done_count']}/{payload['total_count']} done | "
+            f"partial={payload['partial_count']} | pending={payload['pending_count']} | "
+            f"remaining={payload['remaining_count']}"
+        )
+        for item in payload.get("remaining_items", [])[:10]:
+            print(f"- [{item['status']}] {item['item_id']}: {item['title']} -> {item.get('next_action') or item.get('summary')}")
+    return 0
+
+
+def cmd_game_create(args):
+    """执行 P19 游戏创建向导"""
+    if args.templates:
+        payload = list_game_creation_templates()
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+        return 0
+
+    project_root = Path(args.project_root or args.project or ".").resolve()
+    if args.audit:
+        payload = build_scene_graph_audit(
+            project_root,
+            manifest_path=args.manifest_path,
+            write_report=args.write_report,
+        )
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+        return 1 if payload.get("should_block") else 0
+    if args.review:
+        payload = build_game_creation_review(
+            project_root,
+            manifest_path=args.manifest_path,
+            write_reports=args.write_report,
+        )
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+        return 1 if payload.get("should_block") else 0
+    if args.replay:
+        payload = build_game_creation_input_replay(
+            project_root,
+            manifest_path=args.manifest_path,
+            input_replay_path=args.input_replay_path,
+            write_report=args.write_report,
+            write_script=not args.no_replay_script,
+            execute_replay=args.execute_replay,
+            promote_baseline=args.promote_baseline,
+            replay_render_mode=getattr(args, "replay_render_mode", "headless"),
+        )
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+        return 1 if payload.get("should_block") else 0
+    if getattr(args, "template_migration", False):
+        payload = build_game_creation_template_migration(
+            project_root,
+            manifest_path=args.manifest_path,
+            from_template_id=getattr(args, "from_template_id", ""),
+            to_template_id=getattr(args, "to_template_id", "") or args.template_id,
+            write_report=args.write_report,
+            report_path=getattr(args, "migration_report_path", "data_tables/game_creation/template_migration_plan.json"),
+        )
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+        return 1 if payload.get("should_block") else 0
+
+    features = _parse_csv_values(args.feature)
+    target_platforms = _parse_csv_values(args.target_platform)
+    common_args = {
+        "title": args.title,
+        "genre": args.genre,
+        "template_id": args.template_id,
+        "features": features or None,
+        "target_platforms": target_platforms or None,
+        "notes": args.notes or "",
+    }
+    if args.apply:
+        payload = apply_game_creation_plan(project_root, overwrite=args.overwrite, **common_args)
+    else:
+        payload = build_game_creation_plan(project_root, **common_args)
+
+    if args.json:
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+    else:
+        mode = "写入" if args.apply else "计划"
+        print(f"游戏创建{mode}: {payload['status']} | title: {payload['title']} | template: {payload['template_id']}")
+        print(f"manifest: {payload.get('manifest_path') or '-'}")
+        if payload.get("blocking_checks"):
+            print(f"阻断检查: {', '.join(payload['blocking_checks'])}")
+        if payload.get("warning_checks"):
+            print(f"警告: {', '.join(payload['warning_checks'])}")
+        if args.apply:
+            print(f"生成文件: {len(payload.get('generated_files') or [])} | 跳过文件: {len(payload.get('skipped_files') or [])}")
+        else:
+            for path in (payload.get("artifact_paths") or [])[:10]:
+                print(f"- {path}")
+
+    return 1 if payload.get("should_block") else 0
+
+
 def main():
     setup_io()
     parser = argparse.ArgumentParser(description="Godot 多角色 Agent 系统")
@@ -358,6 +469,37 @@ def main():
     compat_parser.add_argument("--project-root", help="用于兼容检查的项目根目录；默认使用 --project 或当前目录")
     compat_parser.add_argument("--json", action="store_true", help="输出完整 JSON 结果")
 
+    roadmap_parser = subparsers.add_parser("roadmap", help="输出路线图完成状态")
+    roadmap_parser.add_argument("--project-root", help="用于读取路线图文档的项目根目录；默认使用 --project 或当前目录")
+    roadmap_parser.add_argument("--json", action="store_true", help="输出完整 JSON 结果")
+
+    game_create_parser = subparsers.add_parser("game-create", help="执行 P19 游戏创建向导")
+    game_create_parser.add_argument("--templates", action="store_true", help="只输出可用游戏创建模板")
+    game_create_parser.add_argument("--apply", action="store_true", help="按计划写入 Godot 项目脚手架；默认只预览计划")
+    game_create_parser.add_argument("--overwrite", action="store_true", help="写入时覆盖已有脚手架文件")
+    game_create_parser.add_argument("--title", default="Platformer Prototype", help="游戏标题")
+    game_create_parser.add_argument("--genre", default="platformer_2d", help="游戏类型")
+    game_create_parser.add_argument("--template-id", default="platformer_2d", help="模板 ID")
+    game_create_parser.add_argument("--feature", action="append", default=[], help="逗号分隔功能，例如 player_movement,jump,coin_collection")
+    game_create_parser.add_argument("--target-platform", action="append", default=[], help="逗号分隔目标平台，例如 desktop,web")
+    game_create_parser.add_argument("--notes", default="", help="计划备注")
+    game_create_parser.add_argument("--audit", action="store_true", help="审计 game_creation_profile 对应的场景树、节点、脚本与信号")
+    game_create_parser.add_argument("--review", action="store_true", help="生成 game_creation_review 验收摘要，汇总场景审计、模块状态和验收清单")
+    game_create_parser.add_argument("--replay", action="store_true", help="根据 input_replay.json 生成可执行回放脚本和 replay 报告")
+    game_create_parser.add_argument("--template-migration", action="store_true", help="规划 P19 模板迁移策略，不直接改写项目文件")
+    game_create_parser.add_argument("--from-template-id", default="", help="模板迁移源模板；为空时从 manifest 读取")
+    game_create_parser.add_argument("--to-template-id", default="", help="模板迁移目标模板；为空时使用 --template-id")
+    game_create_parser.add_argument("--migration-report-path", default="data_tables/game_creation/template_migration_plan.json", help="模板迁移策略报告路径")
+    game_create_parser.add_argument("--manifest-path", default="data_tables/game_creation/game_creation_profile.json", help="审计使用的 game_creation_profile manifest")
+    game_create_parser.add_argument("--input-replay-path", default="data_tables/game_creation/input_replay.json", help="输入回放计划路径")
+    game_create_parser.add_argument("--no-replay-script", action="store_true", help="只校验 input_replay.json，不写入 headless replay 脚本")
+    game_create_parser.add_argument("--execute-replay", action="store_true", help="生成 replay 脚本后调用 Godot headless 实际执行")
+    game_create_parser.add_argument("--replay-render-mode", choices=["headless", "viewport"], default="headless", help="执行 replay 时使用 headless 或可渲染 viewport runner")
+    game_create_parser.add_argument("--promote-baseline", action="store_true", help="将 replay runtime screenshot 登记为 golden screenshot baseline")
+    game_create_parser.add_argument("--write-report", action="store_true", help="审计或评审时写入 data_tables/game_creation/*.json 报告")
+    game_create_parser.add_argument("--project-root", help="用于写入脚手架的项目根目录；默认使用 --project 或当前目录")
+    game_create_parser.add_argument("--json", action="store_true", help="输出完整 JSON 结果")
+
     args = parser.parse_args()
 
     if not args.command:
@@ -366,7 +508,7 @@ def main():
 
     # 初始化路由器 (针对非 doctor 命令)
     router = None
-    if args.command not in {"doctor", "wait-event", "governance", "production", "agent-compat"}:
+    if args.command not in {"doctor", "wait-event", "governance", "production", "agent-compat", "roadmap", "game-create"}:
         try:
             router = GodotAgentRouter(config_path=args.config, godot_project_path=args.project)
         except Exception as e:
@@ -400,6 +542,14 @@ def main():
             raise SystemExit(code)
     elif args.command == "agent-compat":
         code = cmd_agent_compat(args)
+        if code:
+            raise SystemExit(code)
+    elif args.command == "roadmap":
+        code = cmd_roadmap(args)
+        if code:
+            raise SystemExit(code)
+    elif args.command == "game-create":
+        code = cmd_game_create(args)
         if code:
             raise SystemExit(code)
     elif args.command == "plan":

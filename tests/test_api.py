@@ -241,6 +241,7 @@ class TestAPI(unittest.TestCase):
         manager.command_queues.clear()
         manager.last_screenshots.clear()
         manager.last_editor_events.clear()
+        manager.last_scene_snapshots.clear()
         manager.editor_event_counters.clear()
         manager.last_editor_launches.clear()
         manager.command_counters.clear()
@@ -1031,6 +1032,32 @@ class TestAPI(unittest.TestCase):
         self.assertIn("Build / Run Matrix", response.text)
         self.assertIn("build-run-matrix-manifest-input", response.text)
         self.assertIn("/build-run/matrix", response.text)
+
+    def test_portal_index_exposes_game_creation_wizard_panel(self):
+        client = TestClient(app)
+        response = client.get("/portal/index.html")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("游戏创建向导", response.text)
+        self.assertIn("game-creation-template-select", response.text)
+        self.assertIn("game-creation-title-input", response.text)
+        self.assertIn("game-creation-features-input", response.text)
+        self.assertIn("auditGameCreationSceneGraph", response.text)
+        self.assertIn("reviewGameCreation", response.text)
+        self.assertIn("/game-creation/templates", response.text)
+        self.assertIn("/game-creation/plan", response.text)
+        self.assertIn("/game-creation/apply", response.text)
+        self.assertIn("/game-creation/audit-scene-graph", response.text)
+        self.assertIn("/game-creation/review", response.text)
+        self.assertIn("planGameCreation", response.text)
+        self.assertIn("applyGameCreation", response.text)
+        self.assertIn("module_plan", response.text)
+        self.assertIn("skill_binding_plan", response.text)
+        self.assertIn("godot_response_map", response.text)
+        self.assertIn("Block Structure", response.text)
+        self.assertIn("constraints=", response.text)
+        self.assertIn("live_snapshot_used", response.text)
+        self.assertIn("live_nodes=", response.text)
 
     def test_portal_index_exposes_release_promotion_panel(self):
         client = TestClient(app)
@@ -2345,6 +2372,92 @@ class TestAPI(unittest.TestCase):
         self.assertTrue(any("package_version" in issue for issue in payload["context"]["last_skill_result"]["validation"]["issues"]))
         self.assertTrue(any("license_name" in issue for issue in payload["context"]["last_skill_result"]["validation"]["issues"]))
 
+    @patch("agent_system.router.GodotCLI", ApiDataTableGodotCLI)
+    def test_manage_art_asset_pipeline_endpoint_returns_atlas_plan(self):
+        from agent_system.router import GodotAgentRouter
+
+        temp_project = project_root / "tests" / ".tmp_api_art_asset_atlas"
+        shutil.rmtree(temp_project, ignore_errors=True)
+        try:
+            raw_dir = temp_project / "raw_assets"
+            raw_dir.mkdir(parents=True, exist_ok=True)
+            (raw_dir / "runner_sheet.png").write_bytes(b"fake-sheet")
+
+            router = GodotAgentRouter(godot_project_path=str(temp_project))
+            with patch("api_server.main.manager.get_router", return_value=router):
+                client = TestClient(app)
+                response = client.post(
+                    "/art-assets/manage",
+                    json={
+                        "project_path": str(temp_project),
+                        "action": "preview",
+                        "asset_type": "spritesheet",
+                        "asset_id": "runner_sheet",
+                        "source_path": "res://raw_assets/runner_sheet.png",
+                        "width": 512,
+                        "height": 256,
+                        "frame_width": 128,
+                        "frame_height": 128,
+                    },
+                )
+        finally:
+            shutil.rmtree(temp_project, ignore_errors=True)
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["status"], "success")
+        self.assertEqual(payload["art_asset_profile"]["atlas_plan"]["status"], "passed")
+        self.assertEqual(payload["art_asset_profile"]["atlas_frame_count"], 8)
+        self.assertEqual(payload["context"]["art_asset_atlas_frame_count"], 8)
+
+    @patch("agent_system.router.GodotCLI", ApiDataTableGodotCLI)
+    def test_manage_art_asset_pipeline_endpoint_returns_material_link_audit(self):
+        from agent_system.router import GodotAgentRouter
+
+        temp_project = project_root / "tests" / ".tmp_api_art_asset_material_links"
+        shutil.rmtree(temp_project, ignore_errors=True)
+        try:
+            raw_dir = temp_project / "raw_assets" / "materials"
+            raw_dir.mkdir(parents=True, exist_ok=True)
+            (raw_dir / "stone_wall.tres").write_bytes(b"fake-material")
+            (raw_dir / "stone_wall_albedo.png").write_bytes(b"fake-albedo")
+            (raw_dir / "stone_wall_normal.png").write_bytes(b"fake-normal")
+            (raw_dir / "stone_wall_orm.png").write_bytes(b"fake-orm")
+
+            router = GodotAgentRouter(godot_project_path=str(temp_project))
+            with patch("api_server.main.manager.get_router", return_value=router):
+                client = TestClient(app)
+                response = client.post(
+                    "/art-assets/manage",
+                    json={
+                        "project_path": str(temp_project),
+                        "action": "preview",
+                        "asset_type": "material",
+                        "asset_id": "stone_wall_material",
+                        "source_path": "res://raw_assets/materials/stone_wall.tres",
+                        "target_path": "res://assets/materials/stone_wall.tres",
+                        "source_dependency_paths": [
+                            "res://raw_assets/materials/stone_wall_albedo.png",
+                            "res://raw_assets/materials/stone_wall_normal.png",
+                            "res://raw_assets/materials/stone_wall_orm.png",
+                        ],
+                        "target_dependency_paths": [
+                            "res://assets/materials/stone_wall_albedo.png",
+                            "res://assets/materials/stone_wall_normal.png",
+                            "res://assets/materials/stone_wall_orm.png",
+                        ],
+                    },
+                )
+        finally:
+            shutil.rmtree(temp_project, ignore_errors=True)
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["status"], "success")
+        self.assertEqual(payload["art_asset_profile"]["material_link_status"], "passed")
+        self.assertEqual(payload["art_asset_profile"]["material_link_audit"]["linked_texture_count"], 3)
+        self.assertEqual(payload["context"]["art_asset_material_link_status"], "passed")
+
     def test_gameplay_templates_endpoint_returns_snapshots(self):
         client = TestClient(app)
         list_response = client.get("/gameplay/templates", params={"project_path": "default"})
@@ -3313,6 +3426,92 @@ class TestAPI(unittest.TestCase):
         self.assertIn("# Performance Analysis Report", payload["report_content"])
 
     @patch("agent_system.router.GodotCLI", ApiDataTableGodotCLI)
+    def test_performance_dashboard_endpoint_compares_screenshot_baseline(self):
+        screenshot_dir = project_root / "logs" / "test_artifacts" / "api_perf_screenshots"
+        screenshot_dir.mkdir(parents=True, exist_ok=True)
+        baseline_path = screenshot_dir / "baseline.png"
+        candidate_path = screenshot_dir / "candidate.png"
+        baseline_path.write_bytes(b"abcdef")
+        candidate_path.write_bytes(b"abcxef")
+        try:
+            client = TestClient(app)
+            response = client.get(
+                "/performance/dashboard",
+                params={
+                    "project_path": "default",
+                    "screenshot_baseline_path": "logs/test_artifacts/api_perf_screenshots/baseline.png",
+                    "screenshot_candidate_path": "logs/test_artifacts/api_perf_screenshots/candidate.png",
+                },
+            )
+        finally:
+            baseline_path.unlink(missing_ok=True)
+            candidate_path.unlink(missing_ok=True)
+            shutil.rmtree(screenshot_dir, ignore_errors=True)
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["summary"]["metrics"]["screenshot_diff_ratio"], 0.1667)
+        self.assertEqual(payload["summary"]["screenshot_compare"]["status"], "blocked")
+        self.assertIn("Screenshot Compare", payload["report_content"])
+
+    @patch("agent_system.router.GodotCLI", ApiDataTableGodotCLI)
+    def test_performance_dashboard_endpoint_reports_memory_regression(self):
+        artifact_dir = project_root / "logs" / "test_artifacts"
+        baseline_path = artifact_dir / "api_memory_regression_baseline.json"
+        profile_path = artifact_dir / "api_memory_regression_profile.json"
+        artifact_dir.mkdir(parents=True, exist_ok=True)
+        baseline_path.write_text(
+            json.dumps({
+                "schema_version": "1.1",
+                "metrics": {"fps": 60, "memory_peak_mb": 128},
+                "memory_trend": {
+                    "sample_count": 3,
+                    "min_mb": 120,
+                    "max_mb": 128,
+                    "avg_mb": 124,
+                    "growth_mb": 8,
+                    "trend_status": "stable",
+                },
+            }, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        profile_path.write_text(
+            json.dumps({
+                "schema_version": "1.1",
+                "metrics": {"fps": 60, "memory_peak_mb": 166},
+                "memory_trend": {
+                    "sample_count": 4,
+                    "min_mb": 126,
+                    "max_mb": 166,
+                    "avg_mb": 144,
+                    "growth_mb": 40,
+                    "trend_status": "growing",
+                },
+                "budgets": {"max_memory_growth_mb": 10},
+            }, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        try:
+            client = TestClient(app)
+            response = client.get(
+                "/performance/dashboard",
+                params={
+                    "project_path": "default",
+                    "baseline_path": "logs/test_artifacts/api_memory_regression_baseline.json",
+                    "profile_path": "logs/test_artifacts/api_memory_regression_profile.json",
+                },
+            )
+        finally:
+            baseline_path.unlink(missing_ok=True)
+            profile_path.unlink(missing_ok=True)
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["summary"]["memory_regression"]["status"], "blocked")
+        self.assertEqual(payload["summary"]["metrics"]["memory_growth_delta_mb"], 32.0)
+        self.assertIn("Memory Regression", payload["report_content"])
+
+    @patch("agent_system.router.GodotCLI", ApiDataTableGodotCLI)
     def test_manage_performance_endpoint_can_baseline_and_analyze(self):
         from agent_system.router import GodotAgentRouter
 
@@ -3513,9 +3712,17 @@ class TestAPI(unittest.TestCase):
         contract_names = {item["contract_name"] for item in payload["contracts"]}
         self.assertEqual(contract_names, {
             "balance_analysis",
+            "balance_version_compare",
             "build_run_matrix",
             "change_admission",
             "feature_context",
+            "game_creation_profile",
+            "game_creation_template_migration",
+            "scene_graph_audit",
+            "game_creation_review",
+            "game_creation_replay",
+            "scene_graph_snapshot",
+            "roadmap_status",
             "governance_enforcement",
             "governance_policy",
             "agent_provider_compatibility",
@@ -3557,6 +3764,231 @@ class TestAPI(unittest.TestCase):
         )
         self.assertEqual(artifact_manifest_contract["entrypoint"], "normalize_release_artifact_manifest")
         self.assertEqual(artifact_manifest_contract["normalization_strategy"], "normalize_on_read")
+
+    def test_roadmap_status_endpoint_returns_machine_readable_counts(self):
+        client = TestClient(app)
+        response = client.get("/roadmap/status", params={"project_path": "default"})
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["schema_version"], "1.0")
+        self.assertGreater(payload["total_count"], 0)
+        self.assertGreater(payload["done_count"], 0)
+        self.assertEqual(payload["remaining_count"], payload["partial_count"] + payload["pending_count"])
+        if payload["remaining_count"]:
+            self.assertTrue(payload["remaining_items"])
+            self.assertTrue(payload["next_recommended_actions"])
+        else:
+            self.assertEqual(payload["status"], "passed")
+            self.assertEqual(payload["remaining_items"], [])
+            self.assertEqual(payload["next_recommended_actions"], [])
+
+    def test_game_creation_endpoints_plan_apply_and_list_templates(self):
+        temp_project = project_root / "tests" / ".tmp_api_game_creation"
+        shutil.rmtree(temp_project, ignore_errors=True)
+        try:
+            client = TestClient(app)
+            templates_response = client.get(
+                "/game-creation/templates",
+                params={"project_path": str(temp_project)},
+            )
+            plan_response = client.post(
+                "/game-creation/plan",
+                json={
+                    "project_path": str(temp_project),
+                    "title": "Demo Runner",
+                    "features": ["jump", "coin_collection"],
+                    "target_platforms": ["web"],
+                },
+            )
+            apply_response = client.post(
+                "/game-creation/apply",
+                json={
+                    "project_path": str(temp_project),
+                    "title": "Demo Runner",
+                    "target_platforms": ["desktop"],
+                    "overwrite": True,
+                },
+            )
+            audit_response = client.post(
+                "/game-creation/audit-scene-graph",
+                json={
+                    "project_path": str(temp_project),
+                    "write_report": True,
+                    "promote_baseline": False,
+                },
+            )
+            review_response = client.post(
+                "/game-creation/review",
+                json={
+                    "project_path": str(temp_project),
+                    "write_reports": True,
+                },
+            )
+            replay_response = client.post(
+                "/game-creation/replay",
+                json={
+                    "project_path": str(temp_project),
+                    "write_report": True,
+                },
+            )
+            migration_response = client.post(
+                "/game-creation/template-migration",
+                json={
+                    "project_path": str(temp_project),
+                    "to_template_id": "arpg",
+                    "write_report": True,
+                },
+            )
+            manifest_exists = (
+                temp_project / "data_tables" / "game_creation" / "game_creation_profile.json"
+            ).exists()
+            main_scene_exists = (temp_project / "scenes" / "Main.tscn").exists()
+            audit_exists = (
+                temp_project / "data_tables" / "game_creation" / "scene_graph_audit.json"
+            ).exists()
+            review_exists = (
+                temp_project / "data_tables" / "game_creation" / "game_creation_review.json"
+            ).exists()
+            review_doc_exists = (temp_project / "docs" / "game_creation_review.md").exists()
+            replay_report_exists = (
+                temp_project / "data_tables" / "game_creation" / "input_replay_run.json"
+            ).exists()
+            migration_report_exists = (
+                temp_project / "data_tables" / "game_creation" / "template_migration_plan.json"
+            ).exists()
+        finally:
+            shutil.rmtree(temp_project, ignore_errors=True)
+
+        self.assertEqual(templates_response.status_code, 200)
+        templates_payload = templates_response.json()
+        self.assertEqual(templates_payload["default_template_id"], "platformer_2d")
+        self.assertTrue(any(item["template_id"] == "topdown_action_2d" for item in templates_payload["items"]))
+        self.assertTrue(any(item["template_id"] == "tower_defense_2d" for item in templates_payload["items"]))
+        self.assertTrue(any(item["template_id"] == "arpg_2d" for item in templates_payload["items"]))
+        self.assertTrue(any(item["template_id"] == "roguelike_2d" for item in templates_payload["items"]))
+        self.assertTrue(any(item["template_id"] == "visual_novel_2d" for item in templates_payload["items"]))
+        self.assertTrue(any(item["template_id"] == "survival_crafting_2d" for item in templates_payload["items"]))
+
+        self.assertEqual(plan_response.status_code, 200)
+        plan_payload = plan_response.json()
+        self.assertEqual(plan_payload["game_id"], "demo_runner")
+        self.assertEqual(plan_payload["target_platforms"], ["web"])
+        self.assertIn("skill_binding_plan", plan_payload)
+        self.assertTrue(any(item["skill_name"] == "generate_movement_script" for item in plan_payload["skill_binding_plan"]))
+        self.assertTrue(any(item["action"] == "capture_screenshot" for item in plan_payload["input_replay_plan"]))
+        self.assertEqual(plan_payload["golden_screenshot_plan"]["status"], "planned")
+        self.assertFalse(plan_payload["should_block"])
+
+        self.assertEqual(apply_response.status_code, 200)
+        apply_payload = apply_response.json()
+        self.assertEqual(apply_payload["status"], "passed")
+        self.assertTrue(manifest_exists)
+        self.assertTrue(main_scene_exists)
+        self.assertIn("scripts/player_controller.gd", apply_payload["generated_files"])
+
+        self.assertEqual(audit_response.status_code, 200)
+        audit_payload = audit_response.json()
+        self.assertEqual(audit_payload["status"], "passed")
+        self.assertTrue(audit_payload["manifest_exists"])
+        self.assertGreater(audit_payload["node_count"], 0)
+        self.assertTrue(audit_exists)
+
+        self.assertEqual(review_response.status_code, 200)
+        review_payload = review_response.json()
+        self.assertEqual(review_payload["status"], "passed")
+        self.assertTrue(review_payload["ready_for_acceptance"])
+        self.assertGreater(review_payload["acceptance_count"], 0)
+        self.assertEqual(review_payload["data_table_count"], 2)
+        self.assertEqual(review_payload["passed_data_table_count"], 2)
+        self.assertTrue(review_exists)
+        self.assertTrue(review_doc_exists)
+
+        self.assertEqual(replay_response.status_code, 200)
+        replay_payload = replay_response.json()
+        self.assertEqual(replay_payload["status"], "passed")
+        self.assertEqual(replay_payload["execution_status"], "script_generated")
+        self.assertTrue(replay_payload["script_path"].endswith(".gd"))
+        self.assertTrue(replay_report_exists)
+
+        self.assertEqual(migration_response.status_code, 200)
+        migration_payload = migration_response.json()
+        self.assertEqual(migration_payload["status"], "passed")
+        self.assertEqual(migration_payload["from_template_id"], "platformer_2d")
+        self.assertEqual(migration_payload["to_template_id"], "arpg_2d")
+        self.assertTrue(migration_report_exists)
+
+    def test_game_creation_replay_endpoint_passes_render_mode(self):
+        with TestClient(app) as client:
+            with patch(
+                "api_server.main.build_game_creation_input_replay",
+                return_value={"status": "passed", "should_block": False},
+            ) as replay_mock:
+                response = client.post(
+                    "/game-creation/replay",
+                    json={
+                        "project_path": "default",
+                        "execute_replay": True,
+                        "replay_render_mode": "viewport",
+                    },
+                )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(replay_mock.call_args.kwargs["replay_render_mode"], "viewport")
+
+    def test_plugin_scene_snapshot_is_available_to_health_and_review(self):
+        temp_project = project_root / "tests" / ".tmp_api_game_creation_snapshot"
+        shutil.rmtree(temp_project, ignore_errors=True)
+        try:
+            client = TestClient(app)
+            client.post(
+                "/game-creation/apply",
+                json={
+                    "project_path": str(temp_project),
+                    "title": "Demo Runner",
+                    "overwrite": True,
+                },
+            )
+            snapshot_response = client.post(
+                "/plugin/scene-snapshot",
+                json={
+                    "project_path": str(temp_project),
+                    "snapshot": {
+                        "scene_path": "res://scenes/Main.tscn",
+                        "root_node": "Main",
+                        "nodes": [
+                            {"name": "Main", "path": "Main", "type": "Node2D"},
+                            {"name": "Player", "path": "Player", "type": "CharacterBody2D", "script_path": "res://scripts/player_controller.gd"},
+                            {"name": "HUD", "path": "HUD", "type": "CanvasLayer", "script_path": "res://scripts/hud_controller.gd"},
+                        ],
+                    },
+                },
+            )
+            health_response = client.get("/health", params={"project_path": str(temp_project)})
+            review_response = client.post(
+                "/game-creation/review",
+                json={
+                    "project_path": str(temp_project),
+                    "use_live_snapshot": True,
+                },
+            )
+        finally:
+            shutil.rmtree(temp_project, ignore_errors=True)
+
+        self.assertEqual(snapshot_response.status_code, 200)
+        snapshot_payload = snapshot_response.json()["snapshot"]
+        self.assertEqual(snapshot_payload["node_count"], 3)
+        self.assertIn("CharacterBody2D", snapshot_payload["node_types"])
+
+        self.assertEqual(health_response.status_code, 200)
+        health_payload = health_response.json()
+        self.assertEqual(health_payload["last_scene_graph_snapshot"]["scene_path"], "res://scenes/Main.tscn")
+
+        self.assertEqual(review_response.status_code, 200)
+        review_payload = review_response.json()
+        self.assertIn("audit_summary", review_payload)
+        self.assertTrue(review_payload["audit_summary"]["live_snapshot_used"])
+        self.assertEqual(review_payload["audit_summary"]["live_snapshot_source"], "godot_plugin")
 
     def test_report_file_returns_markdown(self):
         report_path = project_root / "logs" / "reports" / "test_api_report.md"

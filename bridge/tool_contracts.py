@@ -77,6 +77,90 @@ MCP_TOOL_DEFINITIONS: List[Dict[str, Any]] = [
             },
         },
     },
+    {
+        "name": "godot_create_game_plan",
+        "description": "生成从零制作可玩 2D 游戏原型的结构化计划, 不写入文件。",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "title": {"type": "string", "default": "Platformer Prototype"},
+                "genre": {"type": "string", "default": "platformer_2d"},
+                "template_id": {"type": "string", "default": "platformer_2d"},
+                "features": {"type": "array", "items": {"type": "string"}},
+                "target_platforms": {"type": "array", "items": {"type": "string"}},
+                "notes": {"type": "string"},
+                "project_path": {"type": "string", "description": "可选: 覆盖当前 router project_path"},
+            },
+        },
+    },
+    {
+        "name": "godot_apply_game_plan",
+        "description": "按 2D 游戏原型计划写入 Godot 项目脚手架文件, 包括场景、脚本、输入映射和 manifest。",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "title": {"type": "string", "default": "Platformer Prototype"},
+                "genre": {"type": "string", "default": "platformer_2d"},
+                "template_id": {"type": "string", "default": "platformer_2d"},
+                "features": {"type": "array", "items": {"type": "string"}},
+                "target_platforms": {"type": "array", "items": {"type": "string"}},
+                "notes": {"type": "string"},
+                "overwrite": {"type": "boolean", "default": False},
+                "project_path": {"type": "string", "description": "可选: 覆盖当前 router project_path"},
+            },
+        },
+    },
+    {
+        "name": "godot_audit_game_scene_graph",
+        "description": "根据 game_creation_profile 审计 Godot 场景树、节点、脚本、信号与触发响应是否符合计划。",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "manifest_path": {
+                    "type": "string",
+                    "default": "data_tables/game_creation/game_creation_profile.json",
+                },
+                "write_report": {"type": "boolean", "default": False},
+                "project_path": {"type": "string", "description": "可选: 覆盖当前 router project_path"},
+            },
+        },
+    },
+    {
+        "name": "godot_review_game_creation",
+        "description": "生成游戏创建验收摘要, 汇总 acceptance checklist、模块状态、场景树审计和阻断项。",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "manifest_path": {
+                    "type": "string",
+                    "default": "data_tables/game_creation/game_creation_profile.json",
+                },
+                "write_reports": {"type": "boolean", "default": False},
+                "project_path": {"type": "string", "description": "可选: 覆盖当前 router project_path"},
+            },
+        },
+    },
+    {
+        "name": "godot_plan_game_template_migration",
+        "description": "规划 P19 游戏创建模板迁移策略, 输出兼容检查、文件操作、数据表迁移、验证计划和 rollback 计划；不直接改写项目。",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "manifest_path": {
+                    "type": "string",
+                    "default": "data_tables/game_creation/game_creation_profile.json",
+                },
+                "from_template_id": {"type": "string", "description": "源模板；为空时从 manifest 读取"},
+                "to_template_id": {"type": "string", "default": "platformer_2d"},
+                "write_report": {"type": "boolean", "default": False},
+                "report_path": {
+                    "type": "string",
+                    "default": "data_tables/game_creation/template_migration_plan.json",
+                },
+                "project_path": {"type": "string", "description": "可选: 覆盖当前 router project_path"},
+            },
+        },
+    },
 ]
 
 

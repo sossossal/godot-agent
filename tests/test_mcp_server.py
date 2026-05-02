@@ -155,3 +155,100 @@ async def test_godot_agent_compat_returns_structured_matrix(monkeypatch):
     assert result.structuredContent["schema_version"] == "1.0"
     assert result.structuredContent["providers"][0]["provider_id"] == "codex"
     assert result.structuredContent["passed"] is True
+
+
+@pytest.mark.asyncio
+async def test_godot_create_game_plan_returns_structured_plan(monkeypatch, tmp_path):
+    fake_router = SimpleNamespace(project_path=str(tmp_path))
+    monkeypatch.setattr(mcp_server, "router", fake_router)
+
+    result = await mcp_server.handle_call_tool(
+        "godot_create_game_plan",
+        {"title": "Demo Runner", "features": ["jump"], "target_platforms": ["web"]},
+    )
+
+    assert result.isError is False
+    assert result.structuredContent["schema_version"] == "1.0"
+    assert result.structuredContent["game_id"] == "demo_runner"
+    assert result.structuredContent["manifest_path"] == "data_tables/game_creation/game_creation_profile.json"
+    assert "scenes/Main.tscn" in result.structuredContent["artifact_paths"]
+
+
+@pytest.mark.asyncio
+async def test_godot_apply_game_plan_writes_scaffold(monkeypatch, tmp_path):
+    fake_router = SimpleNamespace(project_path=str(tmp_path))
+    monkeypatch.setattr(mcp_server, "router", fake_router)
+
+    result = await mcp_server.handle_call_tool(
+        "godot_apply_game_plan",
+        {"title": "Demo Runner", "target_platforms": ["desktop"], "overwrite": True},
+    )
+
+    assert result.isError is False
+    assert result.structuredContent["ready"] is True
+    assert (tmp_path / "scenes" / "Main.tscn").exists()
+    assert (tmp_path / "scripts" / "player_controller.gd").exists()
+    assert (tmp_path / "data_tables" / "game_creation" / "game_creation_profile.json").exists()
+
+
+@pytest.mark.asyncio
+async def test_godot_audit_game_scene_graph_reports_generated_scaffold(monkeypatch, tmp_path):
+    fake_router = SimpleNamespace(project_path=str(tmp_path))
+    monkeypatch.setattr(mcp_server, "router", fake_router)
+    await mcp_server.handle_call_tool(
+        "godot_apply_game_plan",
+        {"title": "Demo Runner", "target_platforms": ["desktop"], "overwrite": True},
+    )
+
+    result = await mcp_server.handle_call_tool(
+        "godot_audit_game_scene_graph",
+        {"write_report": True},
+    )
+
+    assert result.isError is False
+    assert result.structuredContent["status"] == "passed"
+    assert result.structuredContent["node_count"] > 0
+    assert (tmp_path / "data_tables" / "game_creation" / "scene_graph_audit.json").exists()
+
+
+@pytest.mark.asyncio
+async def test_godot_review_game_creation_reports_acceptance(monkeypatch, tmp_path):
+    fake_router = SimpleNamespace(project_path=str(tmp_path))
+    monkeypatch.setattr(mcp_server, "router", fake_router)
+    await mcp_server.handle_call_tool(
+        "godot_apply_game_plan",
+        {"title": "Demo Runner", "target_platforms": ["desktop"], "overwrite": True},
+    )
+
+    result = await mcp_server.handle_call_tool(
+        "godot_review_game_creation",
+        {"write_reports": True},
+    )
+
+    assert result.isError is False
+    assert result.structuredContent["status"] == "passed"
+    assert result.structuredContent["ready_for_acceptance"] is True
+    assert (tmp_path / "data_tables" / "game_creation" / "game_creation_review.json").exists()
+    assert (tmp_path / "docs" / "game_creation_review.md").exists()
+
+
+@pytest.mark.asyncio
+async def test_godot_plan_game_template_migration_reports_strategy(monkeypatch, tmp_path):
+    fake_router = SimpleNamespace(project_path=str(tmp_path))
+    monkeypatch.setattr(mcp_server, "router", fake_router)
+    await mcp_server.handle_call_tool(
+        "godot_apply_game_plan",
+        {"title": "Demo Runner", "template_id": "platformer_2d", "overwrite": True},
+    )
+
+    result = await mcp_server.handle_call_tool(
+        "godot_plan_game_template_migration",
+        {"to_template_id": "arpg", "write_report": True},
+    )
+
+    assert result.isError is False
+    assert result.structuredContent["status"] == "passed"
+    assert result.structuredContent["from_template_id"] == "platformer_2d"
+    assert result.structuredContent["to_template_id"] == "arpg_2d"
+    assert result.structuredContent["validation_plan"]
+    assert (tmp_path / "data_tables" / "game_creation" / "template_migration_plan.json").exists()

@@ -35,6 +35,7 @@ from agent_system.contracts import (
     normalize_feature_external_links,
     normalize_release_live_event_stream,
     normalize_review_history,
+    normalize_scene_graph_snapshot,
     normalize_feature_lifecycle_events,
     record_skill_result_on_task,
 )
@@ -56,6 +57,15 @@ from agent_system.tools.build_run_matrix import (
     DEFAULT_PLATFORM_DELIVERY_MANIFEST_PATH,
     build_build_run_matrix,
 )
+from agent_system.tools.game_creation_wizard import (
+    build_game_creation_plan,
+    apply_game_creation_plan,
+    build_game_creation_review,
+    build_game_creation_input_replay,
+    build_game_creation_template_migration,
+    build_scene_graph_audit,
+    list_game_creation_templates,
+)
 from agent_system.tools.outsource_delivery import (
     DEFAULT_OUTSOURCE_MANIFEST_PATH,
     DEFAULT_OUTSOURCE_PACKAGE_ROOT,
@@ -64,6 +74,7 @@ from agent_system.tools.outsource_delivery import (
 from agent_system.tools.performance_analysis import build_performance_report
 from agent_system.tools.production_scale import build_production_readiness, list_production_scenarios
 from agent_system.tools.quality_dashboard import build_quality_dashboard
+from agent_system.tools.roadmap_status import build_roadmap_status
 from agent_system.tools.release_candidate import build_release_candidate_checklist
 from agent_system.tools.release_capability_registry import (
     DEFAULT_RELEASE_CAPABILITY_REGISTRY_PATH,
@@ -383,6 +394,7 @@ class SessionManager:
         self.command_queues: Dict[str, List] = {}
         self.last_screenshots: Dict[str, str] = {} # project_path -> base64_image
         self.last_editor_events: Dict[str, Dict[str, Any]] = {}
+        self.last_scene_snapshots: Dict[str, Dict[str, Any]] = {}
         self.editor_event_counters: Dict[str, int] = {}
         self.last_editor_launches: Dict[str, Dict[str, Any]] = {}
         self.command_counters: Dict[str, int] = {}
@@ -1060,6 +1072,21 @@ def _get_editor_state_for_project(project_path: str) -> Dict[str, Any]:
     return enriched_state
 
 
+def _store_scene_graph_snapshot(project_path: str, snapshot: Dict[str, Any]) -> Dict[str, Any]:
+    normalized_project_path = _normalize_project_key(project_path)
+    normalized_snapshot = normalize_scene_graph_snapshot({
+        **dict(snapshot or {}),
+        "project_path": normalized_project_path,
+        "captured_at": str((snapshot or {}).get("captured_at") or datetime.now(timezone.utc).isoformat()),
+    })
+    manager.last_scene_snapshots[normalized_project_path] = normalized_snapshot
+    return normalized_snapshot
+
+
+def _get_scene_graph_snapshot(project_path: str) -> Dict[str, Any]:
+    return _lookup_project_mapping(manager.last_scene_snapshots, project_path, {}) or {}
+
+
 def _build_open_resource_command(project_root: Path, normalized_path: str, resolved_path: Path, line: Optional[int], column: int) -> Dict[str, Any]:
     effective_path = resolved_path
     effective_line = line
@@ -1284,6 +1311,15 @@ def _compact_editor_state(state: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         "inspector_node_name": source.get("inspector_node_name"),
         "inspector_node_path": source.get("inspector_node_path"),
     }
+    scene_graph_snapshot = source.get("scene_graph_snapshot") or {}
+    if isinstance(scene_graph_snapshot, dict):
+        compact_state["scene_graph_snapshot"] = {
+            "scene_path": scene_graph_snapshot.get("scene_path"),
+            "root_node": scene_graph_snapshot.get("root_node"),
+            "node_count": scene_graph_snapshot.get("node_count") or len(scene_graph_snapshot.get("nodes") or []),
+            "captured_at": scene_graph_snapshot.get("captured_at"),
+            "source": scene_graph_snapshot.get("source"),
+        }
     return {key: value for key, value in compact_state.items() if value not in (None, "", [], {})}
 
 
@@ -1673,6 +1709,8 @@ class PerformanceManageRequest(BaseModel):
     scene_path: Optional[str] = None
     baseline_path: Optional[str] = None
     profile_path: Optional[str] = None
+    screenshot_baseline_path: Optional[str] = None
+    screenshot_candidate_path: Optional[str] = None
     baseline_metrics: Dict[str, Any] = {}
     profile_metrics: Dict[str, Any] = {}
     budget_overrides: Dict[str, Any] = {}
@@ -1687,6 +1725,59 @@ class PlatformDeliveryManageRequest(BaseModel):
     services: Dict[str, Any] = {}
     multiplayer: Dict[str, Any] = {}
     project_path: str = "default"
+
+
+class GameCreationPlanRequest(BaseModel):
+    title: str = "Platformer Prototype"
+    genre: str = "platformer_2d"
+    template_id: str = "platformer_2d"
+    features: List[str] = []
+    target_platforms: List[str] = []
+    notes: str = ""
+    project_path: str = "default"
+
+
+class GameCreationApplyRequest(GameCreationPlanRequest):
+    overwrite: bool = False
+
+
+class SceneGraphAuditRequest(BaseModel):
+    project_path: str = "default"
+    manifest_path: str = "data_tables/game_creation/game_creation_profile.json"
+    write_report: bool = False
+    use_live_snapshot: bool = True
+
+
+class GameCreationReviewRequest(BaseModel):
+    project_path: str = "default"
+    manifest_path: str = "data_tables/game_creation/game_creation_profile.json"
+    write_reports: bool = False
+    use_live_snapshot: bool = True
+
+
+class GameCreationReplayRequest(BaseModel):
+    project_path: str = "default"
+    manifest_path: str = "data_tables/game_creation/game_creation_profile.json"
+    input_replay_path: str = "data_tables/game_creation/input_replay.json"
+    write_report: bool = False
+    write_script: bool = True
+    execute_replay: bool = False
+    promote_baseline: bool = False
+    replay_render_mode: str = "headless"
+
+
+class GameCreationTemplateMigrationRequest(BaseModel):
+    project_path: str = "default"
+    manifest_path: str = "data_tables/game_creation/game_creation_profile.json"
+    from_template_id: str = ""
+    to_template_id: str = "platformer_2d"
+    write_report: bool = False
+    report_path: str = "data_tables/game_creation/template_migration_plan.json"
+
+
+class SceneGraphSnapshotRequest(BaseModel):
+    project_path: str
+    snapshot: Dict[str, Any]
 
 
 class MigrationApplyRequest(BaseModel):
@@ -3267,6 +3358,8 @@ def _build_performance_snapshot(
     scene_path: Optional[str] = None,
     baseline_path: Optional[str] = None,
     profile_path: Optional[str] = None,
+    screenshot_baseline_path: Optional[str] = None,
+    screenshot_candidate_path: Optional[str] = None,
     baseline_metrics: Optional[Dict[str, Any]] = None,
     profile_metrics: Optional[Dict[str, Any]] = None,
     budget_overrides: Optional[Dict[str, Any]] = None,
@@ -3276,6 +3369,8 @@ def _build_performance_snapshot(
         scene_path=scene_path,
         baseline_path=baseline_path,
         profile_path=profile_path,
+        screenshot_baseline_path=screenshot_baseline_path,
+        screenshot_candidate_path=screenshot_candidate_path,
         baseline_metrics=baseline_metrics,
         profile_metrics=profile_metrics,
         budget_overrides=budget_overrides,
@@ -3308,6 +3403,8 @@ def _build_performance_dashboard_export(
     scene_path: Optional[str] = None,
     baseline_path: Optional[str] = None,
     profile_path: Optional[str] = None,
+    screenshot_baseline_path: Optional[str] = None,
+    screenshot_candidate_path: Optional[str] = None,
     baseline_metrics: Optional[Dict[str, Any]] = None,
     profile_metrics: Optional[Dict[str, Any]] = None,
     budget_overrides: Optional[Dict[str, Any]] = None,
@@ -3317,6 +3414,8 @@ def _build_performance_dashboard_export(
         scene_path=scene_path,
         baseline_path=baseline_path,
         profile_path=profile_path,
+        screenshot_baseline_path=screenshot_baseline_path,
+        screenshot_candidate_path=screenshot_candidate_path,
         baseline_metrics=baseline_metrics,
         profile_metrics=profile_metrics,
         budget_overrides=budget_overrides,
@@ -3445,6 +3544,8 @@ def _build_performance_command(action: str) -> str:
     normalized_action = str(action or "analyze").strip().lower()
     if normalized_action == "baseline":
         return "保存性能基线"
+    if normalized_action == "capture":
+        return "采集性能画像"
     if normalized_action == "validate":
         return "校验性能预算"
     return "分析性能画像"
@@ -3763,6 +3864,48 @@ async def list_gameplay_templates(project_path: str = "default", template_id: st
     }
 
 
+@app.get("/game-creation/templates")
+async def get_game_creation_templates(project_path: str = "default"):
+    project_path = _normalize_project_key(project_path)
+    payload = list_game_creation_templates()
+    payload["project_path"] = project_path
+    payload["project_root"] = str(_resolve_project_root(project_path))
+    return payload
+
+
+@app.post("/game-creation/plan")
+async def plan_game_creation(req: GameCreationPlanRequest):
+    project_path = _normalize_project_key(req.project_path)
+    payload = build_game_creation_plan(
+        _resolve_project_root(project_path),
+        title=req.title,
+        genre=req.genre,
+        template_id=req.template_id,
+        features=req.features,
+        target_platforms=req.target_platforms,
+        notes=req.notes,
+    )
+    payload["project_path"] = project_path
+    return payload
+
+
+@app.post("/game-creation/apply")
+async def apply_game_creation(req: GameCreationApplyRequest):
+    project_path = _normalize_project_key(req.project_path)
+    payload = apply_game_creation_plan(
+        _resolve_project_root(project_path),
+        title=req.title,
+        genre=req.genre,
+        template_id=req.template_id,
+        features=req.features,
+        target_platforms=req.target_platforms,
+        notes=req.notes,
+        overwrite=req.overwrite,
+    )
+    payload["project_path"] = project_path
+    return payload
+
+
 @app.get("/presentation/profiles")
 async def list_presentation_profiles(
     project_path: str = "default",
@@ -3858,11 +4001,80 @@ async def apply_migrations(req: Optional[MigrationApplyRequest] = None):
     return payload
 
 
+@app.post("/game-creation/audit-scene-graph")
+async def audit_game_creation_scene_graph(req: SceneGraphAuditRequest):
+    project_path = _normalize_project_key(req.project_path)
+    scene_graph_snapshot = _get_scene_graph_snapshot(project_path) if req.use_live_snapshot else None
+    payload = build_scene_graph_audit(
+        _resolve_project_root(project_path),
+        manifest_path=req.manifest_path,
+        scene_graph_snapshot=scene_graph_snapshot,
+        write_report=req.write_report,
+    )
+    payload["project_path"] = project_path
+    return payload
+
+
+@app.post("/game-creation/review")
+async def review_game_creation(req: GameCreationReviewRequest):
+    project_path = _normalize_project_key(req.project_path)
+    scene_graph_snapshot = _get_scene_graph_snapshot(project_path) if req.use_live_snapshot else None
+    payload = build_game_creation_review(
+        _resolve_project_root(project_path),
+        manifest_path=req.manifest_path,
+        scene_graph_snapshot=scene_graph_snapshot,
+        write_reports=req.write_reports,
+    )
+    payload["project_path"] = project_path
+    return payload
+
+
+@app.post("/game-creation/replay")
+async def replay_game_creation(req: GameCreationReplayRequest):
+    project_path = _normalize_project_key(req.project_path)
+    payload = build_game_creation_input_replay(
+        _resolve_project_root(project_path),
+        manifest_path=req.manifest_path,
+        input_replay_path=req.input_replay_path,
+        write_report=req.write_report,
+        write_script=req.write_script,
+        execute_replay=req.execute_replay,
+        promote_baseline=req.promote_baseline,
+        replay_render_mode=req.replay_render_mode,
+    )
+    payload["project_path"] = project_path
+    return payload
+
+
+@app.post("/game-creation/template-migration")
+async def plan_game_creation_template_migration(req: GameCreationTemplateMigrationRequest):
+    project_path = _normalize_project_key(req.project_path)
+    payload = build_game_creation_template_migration(
+        _resolve_project_root(project_path),
+        manifest_path=req.manifest_path,
+        from_template_id=req.from_template_id,
+        to_template_id=req.to_template_id,
+        write_report=req.write_report,
+        report_path=req.report_path,
+    )
+    payload["project_path"] = project_path
+    return payload
+
+
 @app.get("/quality/dashboard")
 async def get_quality_dashboard(project_path: str = "default"):
     project_path = _normalize_project_key(project_path)
     project_root = _resolve_project_root(project_path)
     payload = build_quality_dashboard(project_root, runtime_root=REPO_ROOT)
+    payload["project_path"] = project_path
+    return payload
+
+
+@app.get("/roadmap/status")
+async def get_roadmap_status(project_path: str = "default"):
+    project_path = _normalize_project_key(project_path)
+    project_root = _resolve_project_root(project_path)
+    payload = build_roadmap_status(project_root)
     payload["project_path"] = project_path
     return payload
 
@@ -5470,6 +5682,8 @@ async def get_performance_profile(
     scene_path: str = "",
     baseline_path: str = "",
     profile_path: str = "",
+    screenshot_baseline_path: str = "",
+    screenshot_candidate_path: str = "",
 ):
     project_path = _normalize_project_key(project_path)
     return _build_performance_snapshot(
@@ -5477,6 +5691,8 @@ async def get_performance_profile(
         scene_path=scene_path or None,
         baseline_path=baseline_path or None,
         profile_path=profile_path or None,
+        screenshot_baseline_path=screenshot_baseline_path or None,
+        screenshot_candidate_path=screenshot_candidate_path or None,
     )
 
 
@@ -5486,6 +5702,8 @@ async def get_performance_dashboard(
     scene_path: str = "",
     baseline_path: str = "",
     profile_path: str = "",
+    screenshot_baseline_path: str = "",
+    screenshot_candidate_path: str = "",
 ):
     project_path = _normalize_project_key(project_path)
     return _build_performance_dashboard_export(
@@ -5493,6 +5711,8 @@ async def get_performance_dashboard(
         scene_path=scene_path or None,
         baseline_path=baseline_path or None,
         profile_path=profile_path or None,
+        screenshot_baseline_path=screenshot_baseline_path or None,
+        screenshot_candidate_path=screenshot_candidate_path or None,
     )
 
 
@@ -5509,6 +5729,10 @@ async def manage_performance(req: PerformanceManageRequest):
         context["performance_baseline_path"] = req.baseline_path
     if req.profile_path:
         context["performance_profile_path"] = req.profile_path
+    if req.screenshot_baseline_path:
+        context["performance_screenshot_baseline_path"] = req.screenshot_baseline_path
+    if req.screenshot_candidate_path:
+        context["performance_screenshot_candidate_path"] = req.screenshot_candidate_path
     if req.baseline_metrics:
         context["performance_baseline_metrics"] = req.baseline_metrics
     if req.profile_metrics:
@@ -5523,6 +5747,8 @@ async def manage_performance(req: PerformanceManageRequest):
         scene_path=req.scene_path,
         baseline_path=req.baseline_path,
         profile_path=req.profile_path,
+        screenshot_baseline_path=req.screenshot_baseline_path,
+        screenshot_candidate_path=req.screenshot_candidate_path,
         baseline_metrics=req.baseline_metrics if req.baseline_metrics else None,
         profile_metrics=req.profile_metrics if req.profile_metrics else None,
         budget_overrides=req.budget_overrides if req.budget_overrides else None,
@@ -6091,6 +6317,8 @@ async def poll(req: PollRequest):
     incoming_state = dict(req.state or {})
     incoming_events = incoming_state.pop("events", [])
     manager.editor_states[project_path] = _enrich_editor_state(project_path, incoming_state)
+    if isinstance(incoming_state.get("scene_graph_snapshot"), dict):
+        _store_scene_graph_snapshot(project_path, incoming_state["scene_graph_snapshot"])
     # 提取截图并缓存
     if "screenshot" in incoming_state:
         manager.last_screenshots[project_path] = incoming_state["screenshot"]
@@ -6104,6 +6332,22 @@ async def poll(req: PollRequest):
     commands = list(queue)
     queue.clear()
     return {"commands": commands}
+
+
+@app.post("/plugin/scene-snapshot")
+async def plugin_scene_snapshot(req: SceneGraphSnapshotRequest):
+    snapshot = _store_scene_graph_snapshot(req.project_path, req.snapshot)
+    await manager.broadcast_health_update(req.project_path)
+    return {"ok": True, "snapshot": snapshot}
+
+
+@app.get("/plugin/scene-snapshot")
+async def get_plugin_scene_snapshot(project_path: str = "default"):
+    project_path = _normalize_project_key(project_path)
+    snapshot = _get_scene_graph_snapshot(project_path)
+    if not snapshot:
+        raise HTTPException(status_code=404, detail="No scene graph snapshot available")
+    return snapshot
 
 
 @app.post("/plugin/event")
@@ -6160,6 +6404,7 @@ def _build_health_payload(project_path: str = "default") -> Dict[str, Any]:
         "godot_runtime": _build_godot_runtime_info(requested_project),
         "last_editor_launch": manager.last_editor_launches.get(requested_project),
         "last_editor_event": manager.get_last_editor_event(requested_project),
+        "last_scene_graph_snapshot": _get_scene_graph_snapshot(requested_project),
         "editor_state": _compact_editor_state(editor_state),
     }
     return payload

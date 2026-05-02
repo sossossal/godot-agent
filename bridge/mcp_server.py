@@ -22,6 +22,13 @@ from agent_system.router import GodotAgentRouter
 from agent_system.models import Task, TaskStatus
 from agent_system.skills.registry import SkillRegistry
 from agent_system.tools.agent_compatibility import build_agent_compatibility_matrix
+from agent_system.tools.game_creation_wizard import (
+    apply_game_creation_plan,
+    build_game_creation_plan,
+    build_game_creation_review,
+    build_game_creation_template_migration,
+    build_scene_graph_audit,
+)
 from agent_system.tools.production_scale import build_production_readiness
 from bridge.tool_contracts import list_tool_definitions
 
@@ -172,6 +179,63 @@ def execute_mcp_tool(current_router: GodotAgentRouter, name: str, arguments: Opt
         providers = [str(item) for item in raw_providers] if isinstance(raw_providers, list) else None
         payload = build_agent_compatibility_matrix(project_path, runtime_root=Path.cwd(), providers=providers)
         return _structured_json_result("P6 Agent Compatibility", payload, is_error=not bool(payload.get("passed")))
+
+    if name == "godot_create_game_plan":
+        project_path = arguments.get("project_path") or getattr(current_router, "project_path", None) or Path.cwd()
+        payload = build_game_creation_plan(
+            project_path,
+            title=str(arguments.get("title") or "Platformer Prototype"),
+            genre=str(arguments.get("genre") or "platformer_2d"),
+            template_id=str(arguments.get("template_id") or "platformer_2d"),
+            features=[str(item) for item in arguments.get("features", [])] if isinstance(arguments.get("features"), list) else None,
+            target_platforms=[str(item) for item in arguments.get("target_platforms", [])] if isinstance(arguments.get("target_platforms"), list) else None,
+            notes=str(arguments.get("notes") or ""),
+        )
+        return _structured_json_result("Game Creation Plan", payload, is_error=bool(payload.get("should_block")))
+
+    if name == "godot_apply_game_plan":
+        project_path = arguments.get("project_path") or getattr(current_router, "project_path", None) or Path.cwd()
+        payload = apply_game_creation_plan(
+            project_path,
+            title=str(arguments.get("title") or "Platformer Prototype"),
+            genre=str(arguments.get("genre") or "platformer_2d"),
+            template_id=str(arguments.get("template_id") or "platformer_2d"),
+            features=[str(item) for item in arguments.get("features", [])] if isinstance(arguments.get("features"), list) else None,
+            target_platforms=[str(item) for item in arguments.get("target_platforms", [])] if isinstance(arguments.get("target_platforms"), list) else None,
+            notes=str(arguments.get("notes") or ""),
+            overwrite=bool(arguments.get("overwrite")),
+        )
+        return _structured_json_result("Game Creation Apply", payload, is_error=bool(payload.get("should_block")))
+
+    if name == "godot_audit_game_scene_graph":
+        project_path = arguments.get("project_path") or getattr(current_router, "project_path", None) or Path.cwd()
+        payload = build_scene_graph_audit(
+            project_path,
+            manifest_path=str(arguments.get("manifest_path") or "data_tables/game_creation/game_creation_profile.json"),
+            write_report=bool(arguments.get("write_report")),
+        )
+        return _structured_json_result("Game Creation Scene Graph Audit", payload, is_error=bool(payload.get("should_block")))
+
+    if name == "godot_review_game_creation":
+        project_path = arguments.get("project_path") or getattr(current_router, "project_path", None) or Path.cwd()
+        payload = build_game_creation_review(
+            project_path,
+            manifest_path=str(arguments.get("manifest_path") or "data_tables/game_creation/game_creation_profile.json"),
+            write_reports=bool(arguments.get("write_reports")),
+        )
+        return _structured_json_result("Game Creation Review", payload, is_error=bool(payload.get("should_block")))
+
+    if name == "godot_plan_game_template_migration":
+        project_path = arguments.get("project_path") or getattr(current_router, "project_path", None) or Path.cwd()
+        payload = build_game_creation_template_migration(
+            project_path,
+            manifest_path=str(arguments.get("manifest_path") or "data_tables/game_creation/game_creation_profile.json"),
+            from_template_id=str(arguments.get("from_template_id") or ""),
+            to_template_id=str(arguments.get("to_template_id") or arguments.get("template_id") or "platformer_2d"),
+            write_report=bool(arguments.get("write_report")),
+            report_path=str(arguments.get("report_path") or "data_tables/game_creation/template_migration_plan.json"),
+        )
+        return _structured_json_result("Game Creation Template Migration", payload, is_error=bool(payload.get("should_block")))
 
     return _error_result(f"Unknown tool: {name}")
 

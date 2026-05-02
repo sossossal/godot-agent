@@ -2,7 +2,15 @@ import unittest
 
 from agent_system.contracts import (
     BALANCE_ANALYSIS_SCHEMA_VERSION,
+    BALANCE_VERSION_COMPARE_SCHEMA_VERSION,
     FEATURE_CONTEXT_SCHEMA_VERSION,
+    GAME_CREATION_PROFILE_SCHEMA_VERSION,
+    SCENE_GRAPH_AUDIT_SCHEMA_VERSION,
+    GAME_CREATION_REVIEW_SCHEMA_VERSION,
+    GAME_CREATION_REPLAY_SCHEMA_VERSION,
+    GAME_CREATION_TEMPLATE_MIGRATION_SCHEMA_VERSION,
+    SCENE_GRAPH_SNAPSHOT_SCHEMA_VERSION,
+    ROADMAP_STATUS_SCHEMA_VERSION,
     LIVEOPS_PROFILE_SCHEMA_VERSION,
     ASSET_REVIEW_WORKFLOW_SCHEMA_VERSION,
     OUTSOURCE_DELIVERY_GATE_SCHEMA_VERSION,
@@ -27,6 +35,14 @@ from agent_system.contracts import (
     SCENE_OWNERSHIP_BOARD_SCHEMA_VERSION,
     TELEMETRY_SUMMARY_SCHEMA_VERSION,
     normalize_balance_analysis,
+    normalize_balance_version_compare,
+    normalize_game_creation_profile,
+    normalize_scene_graph_audit,
+    normalize_game_creation_review,
+    normalize_game_creation_replay,
+    normalize_game_creation_template_migration,
+    normalize_scene_graph_snapshot,
+    normalize_roadmap_status,
     normalize_liveops_profile,
     normalize_asset_review_workflow,
     normalize_build_run_matrix,
@@ -220,6 +236,36 @@ class ContractsTestCase(unittest.TestCase):
         self.assertEqual(analysis["warning_count"], 1)
         self.assertEqual(analysis["checks"][0]["status"], "skipped")
 
+    def test_balance_version_compare_normalizes_metric_deltas(self):
+        compare = normalize_balance_version_compare({
+            "passed": False,
+            "baseline_score": "95",
+            "candidate_score": "80",
+            "score_delta": "-15",
+            "issue_delta": "1",
+            "warning_delta": "2",
+            "table_types": ["enemy", "unknown"],
+            "metric_deltas": {
+                "avg_enemy_hp": {
+                    "baseline": 50,
+                    "candidate": 125,
+                    "delta": 75,
+                    "delta_percent": 150,
+                    "status": "blocked",
+                }
+            },
+            "checks": [{"name": "metric_drift", "status": "bad", "message": "drift"}],
+            "issues": ["score drop"],
+        })
+
+        self.assertEqual(compare["schema_version"], BALANCE_VERSION_COMPARE_SCHEMA_VERSION)
+        self.assertEqual(compare["score_delta"], -15.0)
+        self.assertEqual(compare["issue_delta"], 1)
+        self.assertEqual(compare["warning_delta"], 2)
+        self.assertEqual(compare["table_types"], ["enemy"])
+        self.assertEqual(compare["metric_deltas"]["avg_enemy_hp"]["status"], "blocked")
+        self.assertEqual(compare["checks"][0]["status"], "skipped")
+
     def test_telemetry_summary_normalizes_catalog_and_counts(self):
         summary = normalize_telemetry_summary({
             "passed": True,
@@ -325,6 +371,8 @@ class ContractsTestCase(unittest.TestCase):
             "budgets": {"max_draw_call_count": 300},
             "frame_breakdown": [{"stage": "cpu", "ms": "5.5", "budget_ms": "8.0"}],
             "memory_trend": {"sample_count": "4", "min_mb": "100", "max_mb": "140", "avg_mb": "120", "growth_mb": "40", "trend_status": "growing"},
+            "memory_regression": {"status": "blocked", "growth_delta_mb": 20.0},
+            "screenshot_compare": {"status": "passed", "diff_ratio": 0.01, "max_diff_ratio": 0.035},
         })
 
         self.assertEqual(summary["schema_version"], PERFORMANCE_SUMMARY_SCHEMA_VERSION)
@@ -333,6 +381,8 @@ class ContractsTestCase(unittest.TestCase):
         self.assertEqual(summary["checks"][0]["status"], "skipped")
         self.assertEqual(summary["frame_breakdown"][0]["stage"], "cpu")
         self.assertEqual(summary["memory_trend"]["growth_mb"], 40.0)
+        self.assertEqual(summary["memory_regression"]["status"], "blocked")
+        self.assertEqual(summary["screenshot_compare"]["status"], "passed")
         self.assertEqual(summary["issues"], ["draw call 超标"])
 
     def test_liveops_profile_normalizes_entries_and_counts(self):
@@ -363,6 +413,199 @@ class ContractsTestCase(unittest.TestCase):
         self.assertEqual(profile["entries"][0]["status"], "running")
         self.assertEqual(profile["entries"][0]["variants"][0]["weight"], 50.0)
         self.assertEqual(profile["issues"], ["missing owner"])
+
+    def test_game_creation_profile_normalizes_plan_and_status(self):
+        profile = normalize_game_creation_profile({
+            "title": "Demo Runner",
+            "genre": "platformer_2d",
+            "features": ["jump", "jump", "coins"],
+            "generated_files": ["scenes/Main.tscn"],
+            "module_plan": [{"module_id": "player_controller", "script_path": "scripts/player_controller.gd"}],
+            "skill_binding_plan": [{"module_id": "player_controller", "skill_name": "generate_movement_script"}],
+            "layout_checks": [{"path": "scripts/player_controller.gd", "status": "passed"}],
+            "governance_enforcement": {
+                "passed": True,
+                "admission": {"change_type": "game_creation", "provided_evidence": ["contract"]},
+            },
+            "block_diagram": "flowchart LR\nInput --> Player",
+            "godot_response_map": [{"trigger": "jump input", "node_path": "Main/Player"}],
+            "input_replay_plan": [{"step_id": "jump", "action": "tap", "input": "jump"}],
+            "golden_screenshot_plan": {"baseline_path": "tests/baselines/screenshots/game_creation/platformer_2d_main.png"},
+            "warnings": ["needs art pass"],
+            "manifest_path": "data_tables/game_creation/game_creation_profile.json",
+        })
+
+        self.assertEqual(profile["schema_version"], GAME_CREATION_PROFILE_SCHEMA_VERSION)
+        self.assertEqual(profile["title"], "Demo Runner")
+        self.assertEqual(profile["template_id"], "platformer_2d")
+        self.assertEqual(profile["features"], ["jump", "coins"])
+        self.assertEqual(profile["artifact_paths"], ["scenes/Main.tscn"])
+        self.assertEqual(profile["module_plan"][0]["module_id"], "player_controller")
+        self.assertTrue(profile["layout_passed"])
+        self.assertEqual(profile["layout_check_count"], 1)
+        self.assertTrue(profile["governance_passed"])
+        self.assertEqual(profile["governance_admission"]["change_type"], "game_creation")
+        self.assertEqual(profile["skill_binding_plan"][0]["skill_name"], "generate_movement_script")
+        self.assertIn("Input --> Player", profile["block_diagram"])
+        self.assertEqual(profile["godot_response_map"][0]["trigger"], "jump input")
+        self.assertEqual(profile["input_replay_plan"][0]["step_id"], "jump")
+        self.assertIn("platformer_2d_main.png", profile["golden_screenshot_plan"]["baseline_path"])
+        self.assertEqual(profile["status"], "warning")
+        self.assertFalse(profile["should_block"])
+
+    def test_scene_graph_audit_normalizes_missing_items_and_status(self):
+        audit = normalize_scene_graph_audit({
+            "project_root": "D:/repo",
+            "manifest_path": "data_tables/game_creation/game_creation_profile.json",
+            "manifest_exists": True,
+            "scene_graph": [{"scene_path": "scenes/Main.tscn", "nodes": [{"name": "Main"}]}],
+            "live_snapshot": {
+                "scene_path": "scenes/Main.tscn",
+                "source": "godot_plugin",
+                "node_count": 4,
+            },
+            "module_checks": [{"module_id": "player_controller", "status": "blocked"}],
+            "missing_scripts": ["scripts/player_controller.gd"],
+            "warnings": ["response target not found"],
+        })
+
+        self.assertEqual(audit["schema_version"], SCENE_GRAPH_AUDIT_SCHEMA_VERSION)
+        self.assertEqual(audit["contract_versions"]["scene_graph_audit"], SCENE_GRAPH_AUDIT_SCHEMA_VERSION)
+        self.assertEqual(audit["status"], "warning")
+        self.assertEqual(audit["scene_count"], 1)
+        self.assertTrue(audit["live_snapshot_used"])
+        self.assertEqual(audit["live_snapshot_source"], "godot_plugin")
+        self.assertEqual(audit["live_snapshot_scene_path"], "scenes/Main.tscn")
+        self.assertEqual(audit["live_snapshot_node_count"], 4)
+        self.assertEqual(audit["expected_module_count"], 1)
+        self.assertEqual(audit["missing_scripts"], ["scripts/player_controller.gd"])
+        self.assertFalse(audit["should_block"])
+
+    def test_game_creation_review_normalizes_acceptance_summary(self):
+        review = normalize_game_creation_review({
+            "game_id": "demo_runner",
+            "title": "Demo Runner",
+            "template_id": "platformer_2d",
+            "acceptance_checklist": [{"label": "scene opens", "status": "ready"}],
+            "module_review": [{"module_id": "player_controller", "status": "passed"}],
+            "data_table_review": [{"path": "data_tables/game_creation/gameplay.json", "status": "passed"}],
+            "audit_summary": {"status": "passed", "node_count": 12},
+        })
+
+        self.assertEqual(review["schema_version"], GAME_CREATION_REVIEW_SCHEMA_VERSION)
+        self.assertEqual(review["contract_versions"]["game_creation_review"], GAME_CREATION_REVIEW_SCHEMA_VERSION)
+        self.assertEqual(review["status"], "passed")
+        self.assertTrue(review["ready_for_acceptance"])
+        self.assertEqual(review["acceptance_count"], 1)
+        self.assertEqual(review["ready_acceptance_count"], 1)
+        self.assertEqual(review["module_count"], 1)
+        self.assertEqual(review["passed_module_count"], 1)
+        self.assertEqual(review["data_table_count"], 1)
+        self.assertEqual(review["passed_data_table_count"], 1)
+
+    def test_game_creation_replay_normalizes_runner_report(self):
+        replay = normalize_game_creation_replay({
+            "template_id": "tower_defense_2d",
+            "scene_path": "res://scenes/Main.tscn",
+            "input_replay_path": "data_tables/game_creation/input_replay.json",
+            "script_path": "logs/test_artifacts/game_creation/input_replay_tower_defense_2d.gd",
+            "replay_steps": [{"step_id": "place_tower", "action": "tap", "input": "place_tower"}],
+            "action_checks": [{"input": "place_tower", "status": "passed"}],
+            "node_checks": [{"node": "HUD", "status": "passed"}],
+            "execution_mode": "viewport_script",
+            "replay_render_mode": "viewport",
+            "execution_status": "script_generated",
+            "executed": True,
+            "execution_message": "OK",
+            "screenshot_exists": True,
+            "screenshot_capture_mode": "fallback_headless",
+            "viewport_baseline_status": "warning",
+            "viewport_baseline_ready": False,
+            "viewport_baseline_message": "headless fallback screenshot",
+            "baseline_source_path": "logs/test_artifacts/game_creation/tower_defense_runtime.png",
+            "baseline_path": "tests/baselines/screenshots/game_creation/tower_defense_2d_main.png",
+            "baseline_exists": True,
+            "baseline_promoted": True,
+            "baseline_promoted_at": "2026-04-29T00:00:00+00:00",
+        })
+
+        self.assertEqual(replay["schema_version"], GAME_CREATION_REPLAY_SCHEMA_VERSION)
+        self.assertEqual(replay["contract_versions"]["game_creation_replay"], GAME_CREATION_REPLAY_SCHEMA_VERSION)
+        self.assertEqual(replay["replay_step_count"], 1)
+        self.assertEqual(replay["passed_action_count"], 1)
+        self.assertEqual(replay["passed_node_count"], 1)
+        self.assertTrue(replay["executed"])
+        self.assertEqual(replay["execution_mode"], "viewport_script")
+        self.assertEqual(replay["replay_render_mode"], "viewport")
+        self.assertTrue(replay["screenshot_exists"])
+        self.assertEqual(replay["screenshot_capture_mode"], "fallback_headless")
+        self.assertEqual(replay["viewport_baseline_status"], "warning")
+        self.assertFalse(replay["viewport_baseline_ready"])
+        self.assertIn("headless fallback", replay["viewport_baseline_message"])
+        self.assertTrue(replay["baseline_promoted"])
+        self.assertTrue(replay["baseline_exists"])
+        self.assertIn("tower_defense_2d_main.png", replay["baseline_path"])
+        self.assertEqual(replay["execution_message"], "OK")
+        self.assertEqual(replay["status"], "passed")
+
+    def test_game_creation_template_migration_normalizes_strategy(self):
+        payload = normalize_game_creation_template_migration({
+            "from_template_id": "platformer_2d",
+            "to_template_id": "arpg_2d",
+            "compatibility_checks": [{"check_id": "input_actions", "status": "passed"}],
+            "migration_steps": [{"step_id": "plan_target"}],
+            "file_operations": [{"path": "project.godot", "operation": "overwrite"}],
+            "data_migrations": [{"path": "data_tables/game_creation/gameplay.json"}],
+            "validation_plan": [{"step_id": "review_acceptance"}],
+            "rollback_plan": [{"step_id": "restore_source_template"}],
+        })
+
+        self.assertEqual(payload["schema_version"], GAME_CREATION_TEMPLATE_MIGRATION_SCHEMA_VERSION)
+        self.assertEqual(payload["from_template_id"], "platformer_2d")
+        self.assertEqual(payload["to_template_id"], "arpg_2d")
+        self.assertFalse(payload["should_block"])
+        self.assertEqual(
+            payload["contract_versions"]["game_creation_template_migration"],
+            GAME_CREATION_TEMPLATE_MIGRATION_SCHEMA_VERSION,
+        )
+
+    def test_scene_graph_snapshot_normalizes_live_plugin_nodes(self):
+        snapshot = normalize_scene_graph_snapshot({
+            "project_path": "D:/repo",
+            "current_scene": "res://scenes/Main.tscn",
+            "edited_scene_root_name": "Main",
+            "nodes": [
+                {"name": "Main", "path": "Main", "type": "Node2D"},
+                {"name": "Player", "path": "Player", "type": "CharacterBody2D", "script_path": "res://scripts/player_controller.gd"},
+            ],
+        })
+
+        self.assertEqual(snapshot["schema_version"], SCENE_GRAPH_SNAPSHOT_SCHEMA_VERSION)
+        self.assertEqual(snapshot["contract_versions"]["scene_graph_snapshot"], SCENE_GRAPH_SNAPSHOT_SCHEMA_VERSION)
+        self.assertEqual(snapshot["scene_path"], "res://scenes/Main.tscn")
+        self.assertEqual(snapshot["root_node"], "Main")
+        self.assertEqual(snapshot["node_count"], 2)
+        self.assertIn("CharacterBody2D", snapshot["node_types"])
+        self.assertIn("scripts/player_controller.gd", snapshot["script_paths"])
+
+    def test_roadmap_status_normalizes_counts_and_remaining_items(self):
+        status = normalize_roadmap_status({
+            "items": [
+                {"item_id": "p1", "phase": "P1", "title": "Done", "status": "done"},
+                {"item_id": "p2", "phase": "P2", "title": "Partial", "status": "partial", "next_action": "finish it"},
+                {"item_id": "p3", "phase": "P3", "title": "Pending", "status": "pending"},
+            ],
+            "next_recommended_actions": ["finish it"],
+        })
+
+        self.assertEqual(status["schema_version"], ROADMAP_STATUS_SCHEMA_VERSION)
+        self.assertEqual(status["total_count"], 3)
+        self.assertEqual(status["done_count"], 1)
+        self.assertEqual(status["partial_count"], 1)
+        self.assertEqual(status["pending_count"], 1)
+        self.assertEqual(status["remaining_count"], 2)
+        self.assertEqual(status["remaining_items"][0]["item_id"], "p2")
+        self.assertEqual(status["completion_percent"], 33.33)
 
     def test_platform_delivery_profile_normalizes_counts_and_defaults(self):
         profile = normalize_platform_delivery_profile({
@@ -443,12 +686,24 @@ class ContractsTestCase(unittest.TestCase):
                 "review_status": "unknown",
                 "source_manifest_path": "assets/manifests/outsource_assets.json",
                 "target_path": "res://assets/packages/outsource/npc_vendor_delivery.zip",
+                "source_dependency_paths": ["res://raw/vendor_terms.pdf", "res://raw/vendor_terms.pdf"],
+                "target_dependency_paths": ["res://assets/packages/outsource/vendor_terms.pdf"],
                 "reviewer": "",
                 "review_note": "needs polish",
                 "reviewed_at": "",
                 "tags": ["vendor", "vendor"],
                 "warnings": ["missing_reviewer", "missing_reviewer"],
             }],
+            "provenance_summary": {
+                "asset_count": "1",
+                "issue_count": "1",
+                "missing_license_assets": ["npc_vendor_delivery"],
+                "license_coverage_ratio": "0",
+                "source_tool_coverage_ratio": "1",
+                "dependency_coverage_ratio": "1",
+                "source_dependency_count": "2",
+                "target_dependency_count": "1",
+            },
         })
 
         self.assertEqual(workflow["schema_version"], ASSET_REVIEW_WORKFLOW_SCHEMA_VERSION)
@@ -456,6 +711,10 @@ class ContractsTestCase(unittest.TestCase):
         self.assertEqual(workflow["review_entries"][0]["asset_id"], "unnamed_asset")
         self.assertEqual(workflow["review_entries"][0]["review_status"], "pending_review")
         self.assertEqual(workflow["review_entries"][0]["tags"], ["vendor"])
+        self.assertEqual(workflow["review_entries"][0]["source_dependency_paths"], ["res://raw/vendor_terms.pdf"])
+        self.assertEqual(workflow["provenance_issue_count"], 1)
+        self.assertEqual(workflow["license_coverage_ratio"], 0.0)
+        self.assertEqual(workflow["provenance_summary"]["source_dependency_count"], 2)
         self.assertEqual(workflow["pending_review_count"], 1)
         self.assertEqual(workflow["warning_checks"], ["pending_review"])
 

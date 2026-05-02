@@ -22,10 +22,18 @@ QUALITY_GATE_SCHEMA_VERSION = "1.0"
 RELEASE_SUMMARY_SCHEMA_VERSION = "1.0"
 RELEASE_QA_EVIDENCE_SCHEMA_VERSION = "1.0"
 BALANCE_ANALYSIS_SCHEMA_VERSION = "1.0"
+BALANCE_VERSION_COMPARE_SCHEMA_VERSION = "1.0"
 TELEMETRY_SUMMARY_SCHEMA_VERSION = "1.4"
 PERFORMANCE_SUMMARY_SCHEMA_VERSION = "1.1"
 PRESENTATION_PROFILE_SCHEMA_VERSION = "1.0"
 LIVEOPS_PROFILE_SCHEMA_VERSION = "1.0"
+GAME_CREATION_PROFILE_SCHEMA_VERSION = "1.0"
+SCENE_GRAPH_AUDIT_SCHEMA_VERSION = "1.0"
+GAME_CREATION_REVIEW_SCHEMA_VERSION = "1.0"
+GAME_CREATION_REPLAY_SCHEMA_VERSION = "1.0"
+GAME_CREATION_TEMPLATE_MIGRATION_SCHEMA_VERSION = "1.0"
+SCENE_GRAPH_SNAPSHOT_SCHEMA_VERSION = "1.0"
+ROADMAP_STATUS_SCHEMA_VERSION = "1.0"
 GOVERNANCE_POLICY_SCHEMA_VERSION = "1.0"
 CHANGE_ADMISSION_SCHEMA_VERSION = "1.0"
 GOVERNANCE_ENFORCEMENT_SCHEMA_VERSION = "1.0"
@@ -752,6 +760,64 @@ def normalize_balance_analysis(analysis: Dict[str, Any] | None) -> Dict[str, Any
     }
 
 
+def normalize_balance_version_compare(compare: Dict[str, Any] | None) -> Dict[str, Any]:
+    source = dict(compare or {})
+    issues = _clean_text_list(source.get("issues"))
+    warnings = _clean_text_list(source.get("warnings"))
+    summary = _clean_text_list(source.get("summary"))
+
+    table_types: List[str] = []
+    for item in list(source.get("table_types") or []):
+        normalized = str(item or "").strip().lower()
+        if normalized and normalized in BALANCE_ANALYSIS_TABLE_TYPES and normalized not in table_types:
+            table_types.append(normalized)
+
+    checks: List[Dict[str, Any]] = []
+    for item in list(source.get("checks") or []):
+        raw = _as_dict(item)
+        checks.append({
+            **raw,
+            "name": str(raw.get("name") or "").strip() or "unnamed_check",
+            "status": _normalize_choice(raw.get("status"), QUALITY_GATE_CHECK_STATUSES, "skipped"),
+            "message": str(raw.get("message") or "").strip(),
+        })
+
+    metric_deltas: Dict[str, Dict[str, Any]] = {}
+    for key, value in dict(_as_dict(source.get("metric_deltas"))).items():
+        raw = _as_dict(value)
+        delta = raw.get("delta")
+        delta_percent = raw.get("delta_percent")
+        metric_deltas[str(key)] = {
+            "baseline": raw.get("baseline"),
+            "candidate": raw.get("candidate"),
+            "delta": round(float(delta), 4) if isinstance(delta, (int, float)) else None,
+            "delta_percent": round(float(delta_percent), 4) if isinstance(delta_percent, (int, float)) else None,
+            "status": _normalize_choice(raw.get("status"), QUALITY_GATE_CHECK_STATUSES, "skipped"),
+        }
+
+    score_delta = float(source.get("score_delta") or 0.0)
+    return {
+        "schema_version": BALANCE_VERSION_COMPARE_SCHEMA_VERSION,
+        "passed": bool(source.get("passed")),
+        "baseline_score": round(float(source.get("baseline_score") or 0.0), 2),
+        "candidate_score": round(float(source.get("candidate_score") or 0.0), 2),
+        "score_delta": round(score_delta, 2),
+        "baseline_issue_count": int(source.get("baseline_issue_count") or 0),
+        "candidate_issue_count": int(source.get("candidate_issue_count") or 0),
+        "issue_delta": int(source.get("issue_delta") or 0),
+        "baseline_warning_count": int(source.get("baseline_warning_count") or 0),
+        "candidate_warning_count": int(source.get("candidate_warning_count") or 0),
+        "warning_delta": int(source.get("warning_delta") or 0),
+        "table_types": table_types,
+        "changed_metric_count": int(source.get("changed_metric_count") or len(metric_deltas)),
+        "metric_deltas": metric_deltas,
+        "checks": checks,
+        "issues": issues,
+        "warnings": warnings,
+        "summary": summary,
+    }
+
+
 def normalize_telemetry_summary(summary: Dict[str, Any] | None) -> Dict[str, Any]:
     source = dict(summary or {})
     issues = _clean_text_list(source.get("issues"))
@@ -1299,6 +1365,8 @@ def normalize_asset_review_workflow(summary: Dict[str, Any] | None) -> Dict[str,
             "source_tool": str(raw.get("source_tool") or "").strip(),
             "package_version": str(raw.get("package_version") or "").strip(),
             "license_name": str(raw.get("license_name") or "").strip(),
+            "source_dependency_paths": _clean_text_list(raw.get("source_dependency_paths")),
+            "target_dependency_paths": _clean_text_list(raw.get("target_dependency_paths")),
             "reviewer": str(raw.get("reviewer") or "").strip(),
             "review_note": str(raw.get("review_note") or "").strip(),
             "reviewed_at": str(raw.get("reviewed_at") or "").strip(),
@@ -1320,6 +1388,21 @@ def normalize_asset_review_workflow(summary: Dict[str, Any] | None) -> Dict[str,
     pending_review_count = sum(1 for item in review_entries if item["review_status"] == "pending_review")
     approved_count = sum(1 for item in review_entries if item["review_status"] == "approved")
     returned_count = sum(1 for item in review_entries if item["review_status"] == "returned")
+    provenance_raw = _as_dict(source.get("provenance_summary"))
+    provenance_summary = {
+        "asset_count": int(provenance_raw.get("asset_count") or len(review_entries)),
+        "issue_count": int(provenance_raw.get("issue_count") or 0),
+        "issue_assets": _clean_text_list(provenance_raw.get("issue_assets")),
+        "missing_source_assets": _clean_text_list(provenance_raw.get("missing_source_assets")),
+        "missing_target_assets": _clean_text_list(provenance_raw.get("missing_target_assets")),
+        "missing_tool_assets": _clean_text_list(provenance_raw.get("missing_tool_assets")),
+        "missing_license_assets": _clean_text_list(provenance_raw.get("missing_license_assets")),
+        "license_coverage_ratio": round(float(provenance_raw.get("license_coverage_ratio") or 0.0), 4),
+        "source_tool_coverage_ratio": round(float(provenance_raw.get("source_tool_coverage_ratio") or 0.0), 4),
+        "dependency_coverage_ratio": round(float(provenance_raw.get("dependency_coverage_ratio") or 0.0), 4),
+        "source_dependency_count": int(provenance_raw.get("source_dependency_count") or 0),
+        "target_dependency_count": int(provenance_raw.get("target_dependency_count") or 0),
+    }
 
     contract_versions = dict(_as_dict(source.get("contract_versions")))
     contract_versions["asset_review_workflow"] = ASSET_REVIEW_WORKFLOW_SCHEMA_VERSION
@@ -1349,6 +1432,9 @@ def normalize_asset_review_workflow(summary: Dict[str, Any] | None) -> Dict[str,
         "returned_count": int(source.get("returned_count") or returned_count),
         "updated_count": int(source.get("updated_count") or 0),
         "orphan_review_count": int(source.get("orphan_review_count") or 0),
+        "provenance_summary": provenance_summary,
+        "provenance_issue_count": provenance_summary["issue_count"],
+        "license_coverage_ratio": provenance_summary["license_coverage_ratio"],
         "item_count": len(checklist),
         "warning_count": len(warning_checks),
         "blocked_count": len(blocked_checks),
@@ -4347,6 +4433,8 @@ def normalize_performance_summary(summary: Dict[str, Any] | None) -> Dict[str, A
         "growth_mb": round(float(memory_trend_raw.get("growth_mb") or 0.0), 4),
         "trend_status": str(memory_trend_raw.get("trend_status") or "").strip() or "stable",
     }
+    memory_regression = dict(_as_dict(source.get("memory_regression")))
+    screenshot_compare = dict(_as_dict(source.get("screenshot_compare")))
 
     return {
         "schema_version": PERFORMANCE_SUMMARY_SCHEMA_VERSION,
@@ -4362,6 +4450,8 @@ def normalize_performance_summary(summary: Dict[str, Any] | None) -> Dict[str, A
         "budgets": budgets,
         "frame_breakdown": frame_breakdown,
         "memory_trend": memory_trend,
+        "memory_regression": memory_regression,
+        "screenshot_compare": screenshot_compare,
         "baselines": baselines,
     }
 
@@ -4472,6 +4562,386 @@ def normalize_liveops_profile(summary: Dict[str, Any] | None) -> Dict[str, Any]:
         "issues": issues,
         "warnings": warnings,
         "notes": notes,
+    }
+
+
+def normalize_game_creation_profile(summary: Dict[str, Any] | None) -> Dict[str, Any]:
+    source = dict(summary or {})
+    blocking_checks = _clean_text_list(source.get("blocking_checks") or source.get("issues"))
+    warning_checks = _clean_text_list(source.get("warning_checks") or source.get("warnings"))
+    status = _normalize_choice(source.get("status"), QUALITY_GATE_CHECK_STATUSES, "")
+    if not status:
+        status = "blocked" if blocking_checks else "warning" if warning_checks else "passed"
+
+    contract_versions = dict(_as_dict(source.get("contract_versions")))
+    contract_versions["game_creation_profile"] = GAME_CREATION_PROFILE_SCHEMA_VERSION
+
+    generated_files = _clean_text_list(source.get("generated_files"))
+    skipped_files = _clean_text_list(source.get("skipped_files"))
+    layout_checks = list(source.get("layout_checks") or [])
+    layout_blocking_checks = _clean_text_list(source.get("layout_blocking_checks"))
+    governance_enforcement = dict(_as_dict(source.get("governance_enforcement")))
+    governance_admission = dict(_as_dict(source.get("governance_admission") or governance_enforcement.get("admission")))
+    governance_blocking_checks = _clean_text_list(
+        source.get("governance_blocking_checks")
+        or governance_enforcement.get("blocking_checks")
+        or governance_admission.get("blocked_checks")
+    )
+    artifact_paths = _clean_text_list(source.get("artifact_paths")) or generated_files
+    title = str(source.get("title") or "").strip() or "Untitled Game"
+    template_id = str(source.get("template_id") or source.get("genre") or "platformer_2d").strip().lower()
+
+    return {
+        "schema_version": GAME_CREATION_PROFILE_SCHEMA_VERSION,
+        "contract_versions": contract_versions,
+        "game_id": str(source.get("game_id") or "").strip(),
+        "title": title,
+        "genre": str(source.get("genre") or template_id).strip().lower() or "platformer_2d",
+        "template_id": template_id or "platformer_2d",
+        "target_platforms": _clean_text_list(source.get("target_platforms")) or ["desktop"],
+        "features": _clean_text_list(source.get("features")),
+        "scene_plan": list(source.get("scene_plan") or []),
+        "input_map": dict(_as_dict(source.get("input_map"))),
+        "asset_plan": list(source.get("asset_plan") or []),
+        "module_plan": list(source.get("module_plan") or []),
+        "skill_binding_plan": list(source.get("skill_binding_plan") or []),
+        "block_diagram": str(source.get("block_diagram") or "").strip(),
+        "godot_response_map": list(source.get("godot_response_map") or []),
+        "data_tables": list(source.get("data_tables") or []),
+        "playtest_plan": _clean_text_list(source.get("playtest_plan")),
+        "input_replay_plan": list(source.get("input_replay_plan") or []),
+        "golden_screenshot_plan": dict(_as_dict(source.get("golden_screenshot_plan"))),
+        "template_migration_plan": dict(_as_dict(source.get("template_migration_plan"))),
+        "export_plan": dict(_as_dict(source.get("export_plan"))),
+        "acceptance_criteria": _clean_text_list(source.get("acceptance_criteria")),
+        "artifact_paths": artifact_paths,
+        "generated_files": generated_files,
+        "skipped_files": skipped_files,
+        "layout_checks": layout_checks,
+        "layout_check_count": int(source.get("layout_check_count") or len(layout_checks)),
+        "layout_passed": bool(source.get("layout_passed", not layout_blocking_checks)),
+        "layout_blocking_checks": layout_blocking_checks,
+        "governance_enforcement": governance_enforcement,
+        "governance_admission": governance_admission,
+        "governance_passed": bool(source.get("governance_passed", not governance_blocking_checks)),
+        "governance_blocking_checks": governance_blocking_checks,
+        "blocking_checks": blocking_checks,
+        "warning_checks": warning_checks,
+        "status": status,
+        "ready": status == "passed",
+        "should_block": status == "blocked",
+        "message": str(source.get("message") or "").strip(),
+        "manifest_path": str(source.get("manifest_path") or "").strip(),
+        "project_root": str(source.get("project_root") or "").strip(),
+    }
+
+
+def normalize_game_creation_template_migration(summary: Dict[str, Any] | None) -> Dict[str, Any]:
+    source = dict(summary or {})
+    blocking_checks = _clean_text_list(source.get("blocking_checks") or source.get("issues"))
+    warning_checks = _clean_text_list(source.get("warning_checks") or source.get("warnings"))
+    status = _normalize_choice(source.get("status"), QUALITY_GATE_CHECK_STATUSES, "")
+    if not status:
+        status = "blocked" if blocking_checks else "warning" if warning_checks else "passed"
+
+    contract_versions = dict(_as_dict(source.get("contract_versions")))
+    contract_versions["game_creation_template_migration"] = GAME_CREATION_TEMPLATE_MIGRATION_SCHEMA_VERSION
+
+    return {
+        "schema_version": GAME_CREATION_TEMPLATE_MIGRATION_SCHEMA_VERSION,
+        "contract_versions": contract_versions,
+        "project_root": str(source.get("project_root") or "").strip(),
+        "manifest_path": str(source.get("manifest_path") or "").strip(),
+        "manifest_exists": bool(source.get("manifest_exists")),
+        "report_path": str(source.get("report_path") or "").strip(),
+        "from_template_id": str(source.get("from_template_id") or "").strip().lower(),
+        "to_template_id": str(source.get("to_template_id") or "").strip().lower(),
+        "strategy": str(source.get("strategy") or "plan_only").strip() or "plan_only",
+        "compatibility_checks": list(source.get("compatibility_checks") or []),
+        "migration_steps": list(source.get("migration_steps") or []),
+        "file_operations": list(source.get("file_operations") or []),
+        "data_migrations": list(source.get("data_migrations") or []),
+        "validation_plan": list(source.get("validation_plan") or []),
+        "rollback_plan": list(source.get("rollback_plan") or []),
+        "skill_constraints": list(source.get("skill_constraints") or []),
+        "blocking_checks": blocking_checks,
+        "warning_checks": warning_checks,
+        "status": status,
+        "ready": status == "passed",
+        "should_block": status == "blocked",
+        "message": str(source.get("message") or "").strip(),
+        "generated_at": str(source.get("generated_at") or "").strip(),
+    }
+
+
+def normalize_scene_graph_audit(summary: Dict[str, Any] | None) -> Dict[str, Any]:
+    source = dict(summary or {})
+    blocking_checks = _clean_text_list(source.get("blocking_checks") or source.get("issues"))
+    warning_checks = _clean_text_list(source.get("warning_checks") or source.get("warnings"))
+    status = _normalize_choice(source.get("status"), QUALITY_GATE_CHECK_STATUSES, "")
+    if not status:
+        status = "blocked" if blocking_checks else "warning" if warning_checks else "passed"
+
+    contract_versions = dict(_as_dict(source.get("contract_versions")))
+    contract_versions["scene_graph_audit"] = SCENE_GRAPH_AUDIT_SCHEMA_VERSION
+
+    scene_graph = list(source.get("scene_graph") or [])
+    module_checks = list(source.get("module_checks") or [])
+    response_checks = list(source.get("response_checks") or [])
+    live_snapshot = dict(_as_dict(source.get("live_snapshot")))
+
+    return {
+        "schema_version": SCENE_GRAPH_AUDIT_SCHEMA_VERSION,
+        "contract_versions": contract_versions,
+        "project_root": str(source.get("project_root") or "").strip(),
+        "manifest_path": str(source.get("manifest_path") or "").strip(),
+        "manifest_exists": bool(source.get("manifest_exists")),
+        "generated_at": str(source.get("generated_at") or "").strip(),
+        "scene_graph": scene_graph,
+        "scene_count": int(source.get("scene_count") or len(scene_graph)),
+        "node_count": int(source.get("node_count") or 0),
+        "live_snapshot_used": bool(source.get("live_snapshot_used") or live_snapshot),
+        "live_snapshot": live_snapshot,
+        "live_snapshot_source": str(source.get("live_snapshot_source") or live_snapshot.get("source") or "").strip(),
+        "live_snapshot_scene_path": str(source.get("live_snapshot_scene_path") or live_snapshot.get("scene_path") or "").strip(),
+        "live_snapshot_node_count": int(source.get("live_snapshot_node_count") or live_snapshot.get("node_count") or 0),
+        "expected_module_count": int(source.get("expected_module_count") or len(module_checks)),
+        "module_checks": module_checks,
+        "response_checks": response_checks,
+        "missing_scenes": _clean_text_list(source.get("missing_scenes")),
+        "missing_scripts": _clean_text_list(source.get("missing_scripts")),
+        "missing_nodes": _clean_text_list(source.get("missing_nodes")),
+        "missing_signals": _clean_text_list(source.get("missing_signals")),
+        "blocking_checks": blocking_checks,
+        "warning_checks": warning_checks,
+        "status": status,
+        "passed": status == "passed",
+        "ready": status == "passed",
+        "should_block": status == "blocked",
+        "message": str(source.get("message") or "").strip(),
+    }
+
+
+def normalize_scene_graph_snapshot(summary: Dict[str, Any] | None) -> Dict[str, Any]:
+    source = dict(summary or {})
+    nodes = list(source.get("nodes") or [])
+    contract_versions = dict(_as_dict(source.get("contract_versions")))
+    contract_versions["scene_graph_snapshot"] = SCENE_GRAPH_SNAPSHOT_SCHEMA_VERSION
+    return {
+        "schema_version": SCENE_GRAPH_SNAPSHOT_SCHEMA_VERSION,
+        "contract_versions": contract_versions,
+        "project_path": str(source.get("project_path") or "").strip(),
+        "scene_path": str(source.get("scene_path") or source.get("current_scene") or "").strip(),
+        "root_node": str(source.get("root_node") or source.get("edited_scene_root_name") or "").strip(),
+        "captured_at": str(source.get("captured_at") or "").strip(),
+        "source": str(source.get("source") or "godot_plugin").strip(),
+        "nodes": nodes,
+        "node_count": int(source.get("node_count") or len(nodes)),
+        "node_types": _clean_text_list(source.get("node_types")) or sorted({
+            str(item.get("type") or "").strip()
+            for item in nodes
+            if isinstance(item, dict) and str(item.get("type") or "").strip()
+        }),
+        "node_names": _clean_text_list(source.get("node_names")) or sorted({
+            str(item.get("name") or "").strip()
+            for item in nodes
+            if isinstance(item, dict) and str(item.get("name") or "").strip()
+        }),
+        "script_paths": _clean_text_list(source.get("script_paths")) or sorted({
+            str(item.get("script_path") or "").strip().removeprefix("res://")
+            for item in nodes
+            if isinstance(item, dict) and str(item.get("script_path") or "").strip()
+        }),
+        "instance_paths": _clean_text_list(source.get("instance_paths")) or sorted({
+            str(item.get("instance_path") or "").strip().removeprefix("res://")
+            for item in nodes
+            if isinstance(item, dict) and str(item.get("instance_path") or "").strip()
+        }),
+    }
+
+
+def normalize_game_creation_review(summary: Dict[str, Any] | None) -> Dict[str, Any]:
+    source = dict(summary or {})
+    blocking_checks = _clean_text_list(source.get("blocking_checks") or source.get("issues"))
+    warning_checks = _clean_text_list(source.get("warning_checks") or source.get("warnings"))
+    status = _normalize_choice(source.get("status"), QUALITY_GATE_CHECK_STATUSES, "")
+    if not status:
+        status = "blocked" if blocking_checks else "warning" if warning_checks else "passed"
+
+    contract_versions = dict(_as_dict(source.get("contract_versions")))
+    contract_versions["game_creation_review"] = GAME_CREATION_REVIEW_SCHEMA_VERSION
+
+    acceptance_checklist = list(source.get("acceptance_checklist") or [])
+    module_review = list(source.get("module_review") or [])
+    data_table_review = list(source.get("data_table_review") or [])
+    audit_summary = dict(_as_dict(source.get("audit_summary")))
+    ready_for_acceptance = status == "passed" and all(
+        str(item.get("status") or "").strip().lower() == "ready"
+        for item in acceptance_checklist
+    )
+
+    return {
+        "schema_version": GAME_CREATION_REVIEW_SCHEMA_VERSION,
+        "contract_versions": contract_versions,
+        "project_root": str(source.get("project_root") or "").strip(),
+        "manifest_path": str(source.get("manifest_path") or "").strip(),
+        "generated_at": str(source.get("generated_at") or "").strip(),
+        "game_id": str(source.get("game_id") or "").strip(),
+        "title": str(source.get("title") or "").strip(),
+        "template_id": str(source.get("template_id") or "").strip(),
+        "review_round": str(source.get("review_round") or "").strip() or "generated_playable_review",
+        "acceptance_checklist": acceptance_checklist,
+        "acceptance_count": int(source.get("acceptance_count") or len(acceptance_checklist)),
+        "ready_acceptance_count": int(
+            source.get("ready_acceptance_count")
+            or sum(1 for item in acceptance_checklist if str(item.get("status") or "") == "ready")
+        ),
+        "module_review": module_review,
+        "module_count": int(source.get("module_count") or len(module_review)),
+        "passed_module_count": int(
+            source.get("passed_module_count")
+            or sum(1 for item in module_review if str(item.get("status") or "") == "passed")
+        ),
+        "data_table_review": data_table_review,
+        "data_table_count": int(source.get("data_table_count") or len(data_table_review)),
+        "passed_data_table_count": int(
+            source.get("passed_data_table_count")
+            or sum(1 for item in data_table_review if str(item.get("status") or "") == "passed")
+        ),
+        "audit_summary": audit_summary,
+        "artifact_paths": _clean_text_list(source.get("artifact_paths")),
+        "blocking_checks": blocking_checks,
+        "warning_checks": warning_checks,
+        "status": status,
+        "ready_for_acceptance": ready_for_acceptance,
+        "passed": ready_for_acceptance,
+        "should_block": status == "blocked",
+        "message": str(source.get("message") or "").strip(),
+    }
+
+
+def normalize_game_creation_replay(summary: Dict[str, Any] | None) -> Dict[str, Any]:
+    source = dict(summary or {})
+    blocking_checks = _clean_text_list(source.get("blocking_checks") or source.get("issues"))
+    warning_checks = _clean_text_list(source.get("warning_checks") or source.get("warnings"))
+    status = _normalize_choice(source.get("status"), QUALITY_GATE_CHECK_STATUSES, "")
+    if not status:
+        status = "blocked" if blocking_checks else "warning" if warning_checks else "passed"
+
+    contract_versions = dict(_as_dict(source.get("contract_versions")))
+    contract_versions["game_creation_replay"] = GAME_CREATION_REPLAY_SCHEMA_VERSION
+    replay_steps = list(source.get("replay_steps") or [])
+    action_checks = list(source.get("action_checks") or [])
+    node_checks = list(source.get("node_checks") or [])
+    screenshot_capture_mode = str(source.get("screenshot_capture_mode") or "").strip()
+    viewport_baseline_status = str(source.get("viewport_baseline_status") or "").strip()
+    if not viewport_baseline_status:
+        if bool(source.get("viewport_baseline_ready")):
+            viewport_baseline_status = "passed"
+        elif source.get("runtime_capture_path"):
+            viewport_baseline_status = "unknown"
+        else:
+            viewport_baseline_status = "not_applicable"
+
+    return {
+        "schema_version": GAME_CREATION_REPLAY_SCHEMA_VERSION,
+        "contract_versions": contract_versions,
+        "project_root": str(source.get("project_root") or "").strip(),
+        "manifest_path": str(source.get("manifest_path") or "").strip(),
+        "input_replay_path": str(source.get("input_replay_path") or "").strip(),
+        "report_path": str(source.get("report_path") or "").strip(),
+        "script_path": str(source.get("script_path") or "").strip(),
+        "generated_at": str(source.get("generated_at") or "").strip(),
+        "template_id": str(source.get("template_id") or "").strip(),
+        "scene_path": str(source.get("scene_path") or "").strip(),
+        "runtime_capture_path": str(source.get("runtime_capture_path") or "").strip(),
+        "baseline_path": str(source.get("baseline_path") or "").strip(),
+        "baseline_source_path": str(source.get("baseline_source_path") or "").strip(),
+        "baseline_exists": bool(source.get("baseline_exists")),
+        "baseline_promoted": bool(source.get("baseline_promoted")),
+        "baseline_promoted_at": str(source.get("baseline_promoted_at") or "").strip(),
+        "max_diff_ratio": float(source.get("max_diff_ratio") or 0.0),
+        "replay_steps": replay_steps,
+        "replay_step_count": int(source.get("replay_step_count") or len(replay_steps)),
+        "action_checks": action_checks,
+        "passed_action_count": int(
+            source.get("passed_action_count")
+            or sum(1 for item in action_checks if str(item.get("status") or "") == "passed")
+        ),
+        "node_checks": node_checks,
+        "passed_node_count": int(
+            source.get("passed_node_count")
+            or sum(1 for item in node_checks if str(item.get("status") or "") == "passed")
+        ),
+        "execution_mode": str(source.get("execution_mode") or "headless_script").strip(),
+        "replay_render_mode": str(source.get("replay_render_mode") or "").strip() or "headless",
+        "execution_status": str(source.get("execution_status") or "").strip(),
+        "executed": bool(source.get("executed")),
+        "execution_message": str(source.get("execution_message") or "").strip(),
+        "execution_error": str(source.get("execution_error") or "").strip(),
+        "stdout": str(source.get("stdout") or "").strip(),
+        "stderr": str(source.get("stderr") or "").strip(),
+        "screenshot_exists": bool(source.get("screenshot_exists")),
+        "screenshot_capture_mode": screenshot_capture_mode,
+        "viewport_baseline_status": viewport_baseline_status,
+        "viewport_baseline_ready": bool(source.get("viewport_baseline_ready")),
+        "viewport_baseline_message": str(source.get("viewport_baseline_message") or "").strip(),
+        "blocking_checks": blocking_checks,
+        "warning_checks": warning_checks,
+        "status": status,
+        "passed": status == "passed",
+        "ready": status == "passed",
+        "should_block": status == "blocked",
+        "message": str(source.get("message") or "").strip(),
+    }
+
+
+def normalize_roadmap_status(summary: Dict[str, Any] | None) -> Dict[str, Any]:
+    source = dict(summary or {})
+    items = list(source.get("items") or [])
+    status_counts = {"done": 0, "partial": 0, "pending": 0}
+    normalized_items: List[Dict[str, Any]] = []
+    for item in items:
+        raw = _as_dict(item)
+        status = str(raw.get("status") or "pending").strip().lower()
+        if status not in status_counts:
+            status = "pending"
+        status_counts[status] += 1
+        normalized_items.append({
+            "item_id": str(raw.get("item_id") or "").strip(),
+            "phase": str(raw.get("phase") or "").strip(),
+            "title": str(raw.get("title") or "").strip(),
+            "status": status,
+            "summary": str(raw.get("summary") or "").strip(),
+            "remaining_work": _clean_text_list(raw.get("remaining_work")),
+            "next_action": str(raw.get("next_action") or "").strip(),
+            "evidence": _clean_text_list(raw.get("evidence")),
+            "risk": str(raw.get("risk") or "").strip(),
+        })
+
+    total_count = int(source.get("total_count") or len(normalized_items))
+    remaining_items = [item for item in normalized_items if item["status"] != "done"]
+    done_count = int(source.get("done_count") or status_counts["done"])
+    remaining_count = int(source.get("remaining_count") or len(remaining_items))
+    completion_percent = float(source.get("completion_percent") or 0.0)
+    if total_count:
+        completion_percent = round(done_count / total_count * 100, 2)
+
+    return {
+        "schema_version": ROADMAP_STATUS_SCHEMA_VERSION,
+        "source_doc": str(source.get("source_doc") or "docs/游戏开发标准化增强路线图.md").strip(),
+        "generated_at": str(source.get("generated_at") or "").strip(),
+        "total_count": total_count,
+        "done_count": done_count,
+        "partial_count": int(source.get("partial_count") or status_counts["partial"]),
+        "pending_count": int(source.get("pending_count") or status_counts["pending"]),
+        "remaining_count": remaining_count,
+        "completion_percent": completion_percent,
+        "items": normalized_items,
+        "remaining_items": remaining_items,
+        "next_recommended_actions": _clean_text_list(source.get("next_recommended_actions")),
+        "status": "passed" if remaining_count == 0 else "warning",
+        "message": str(source.get("message") or "").strip(),
     }
 
 
