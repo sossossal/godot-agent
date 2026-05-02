@@ -276,6 +276,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertTrue(readiness_path.exists())
             readiness_payload = json.loads(readiness_path.read_text(encoding="utf-8-sig"))
             self.assertEqual(readiness_payload["status"], "blocked")
+            self.assertEqual(readiness_payload["readiness_level"], "blocked")
             self.assertIn("customer_gate", readiness_payload["blocked_steps"])
             self.assertEqual(readiness_payload["command_count"], 2)
             evidence_paths = [item["relative_path"] for item in payload["evidence_files"]]

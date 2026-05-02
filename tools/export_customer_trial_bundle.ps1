@@ -276,9 +276,17 @@ try {
         )
     }
     $recommendedActions = @($recommendedActions | Select-Object -Unique)
+    $readinessLevel = if (-not $overallOk) {
+        "blocked"
+    } elseif (@($recommendedActions).Count -gt 0) {
+        "needs_attention"
+    } else {
+        "ready"
+    }
     $readinessSummary = [ordered]@{
         schema_version = "1.0"
         status = if ($overallOk) { "passed" } else { "blocked" }
+        readiness_level = $readinessLevel
         ok = $overallOk
         gate_mode = $GateMode
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
@@ -312,6 +320,7 @@ try {
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
         recommended_actions = $recommendedActions
+        readiness_level = $readinessLevel
         readiness_summary = $readinessSummary
         command_records = $commandRecords
         evidence_files = $evidenceFiles
@@ -323,6 +332,7 @@ try {
         "# Customer Trial Bundle",
         "",
         "- Status: $($payload.status)",
+        "- Readiness: $readinessLevel",
         "- Gate mode: $GateMode",
         "- Prepare release fixture: $([bool]$PrepareReleaseFixture)",
         "- Restore prepared fixture: $([bool]$RestorePreparedFixture)",
