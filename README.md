@@ -100,6 +100,10 @@ python -m agent_system.cli roadmap --json
 # 8.1 本地 release-live gate 预检，不执行 live 步骤也能提前发现环境缺口
 .\tools\run_release_live_gates_locally.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -Preflight
 
+# 8.2 PR / merge / release / customer gate 总控入口
+.\tools\run_pr_release_gate.ps1 -Stage pr -PythonCommand D:\actions-tools\Python312\python.exe
+.\tools\run_pr_release_gate.ps1 -Stage release -PythonCommand D:\actions-tools\Python312\python.exe -ContinueOnFailure
+
 # 9. 启动 Godot 编辑器
 python -m agent_system.cli launch
 python -m agent_system.cli launch --scene res://scenes/Main.tscn

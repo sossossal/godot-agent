@@ -1153,6 +1153,8 @@ foreach ($root in @($runtimeRoot, $projectRoot)) {
         self.assertTrue(payload["preflight"])
         self.assertEqual(payload["preflight_status"], "blocked")
         self.assertIn("release_manifest", payload["preflight_checks"]["blocking_checks"])
+        self.assertTrue(Path(payload["preflight_report_path"]).exists())
+        self.assertTrue(Path(payload["preflight_markdown_path"]).exists())
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
     def test_run_release_live_gates_locally_executes_release_replay_and_writes_step_summary(self):

@@ -14,6 +14,8 @@ param(
     [string]$ConfigPath = "config.yaml",
     [string]$LiveValidationScriptPath = "tools/run_full_live_validation.ps1",
     [string]$StepSummaryPath = "",
+    [string]$PreflightReportPath = "logs/reports/release_live_ci_local_preflight.json",
+    [string]$PreflightMarkdownPath = "logs/reports/release_live_ci_local_preflight.md",
     [string]$WorkflowName = "release-live-gates(local)",
     [string]$JobName = "live-release-gates-local",
     [string]$InvocationSource = "local_replay",
@@ -162,6 +164,8 @@ $resolvedRuntimeRoot = if ([string]::IsNullOrWhiteSpace($RuntimeRoot)) {
 }
 $resolvedArtifactDir = Resolve-OptionalPath -BasePath $resolvedRuntimeRoot -RawPath $ArtifactDir
 $resolvedLiveValidationScriptPath = Resolve-OptionalPath -BasePath $resolvedProjectRoot -RawPath $LiveValidationScriptPath
+$resolvedPreflightReportPath = Resolve-OptionalPath -BasePath $resolvedRuntimeRoot -RawPath $PreflightReportPath
+$resolvedPreflightMarkdownPath = Resolve-OptionalPath -BasePath $resolvedRuntimeRoot -RawPath $PreflightMarkdownPath
 $resolvedStepSummaryPath = if ([string]::IsNullOrWhiteSpace($StepSummaryPath)) {
     Join-Path $resolvedArtifactDir "release_live_ci_step_summary.md"
 } else {
@@ -352,10 +356,35 @@ $preflightChecks += if ($missingRunnerLabels.Count -eq 0) {
 }
 $preflightStatus = Get-PreflightStatus -Checks $preflightChecks
 $preflightPayload = [ordered]@{
+    schema_version = "1.0"
     status = $preflightStatus
+    generated_at = (Get-Date).ToUniversalTime().ToString("o")
+    project_root = $resolvedProjectRoot
+    runtime_root = $resolvedRuntimeRoot
     blocking_checks = @($preflightChecks | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
     warning_checks = @($preflightChecks | Where-Object { $_.status -eq "warning" } | ForEach-Object { $_.id })
     checks = $preflightChecks
+}
+
+if ($Preflight) {
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $resolvedPreflightReportPath) | Out-Null
+    $preflightPayload | ConvertTo-Json -Depth 8 | Set-Content -Path $resolvedPreflightReportPath -Encoding utf8
+
+    $preflightLines = @(
+        "# Release Live Local Preflight",
+        "",
+        "- Status: $($preflightPayload.status)",
+        "- Blocking: $((@($preflightPayload.blocking_checks) -join ', '))",
+        "- Warning: $((@($preflightPayload.warning_checks) -join ', '))",
+        "",
+        "| Check | Status | Message |",
+        "| --- | --- | --- |"
+    )
+    foreach ($check in $preflightChecks) {
+        $preflightLines += "| $($check.id) | $($check.status) | $($check.message) |"
+    }
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $resolvedPreflightMarkdownPath) | Out-Null
+    $preflightLines | Set-Content -Path $resolvedPreflightMarkdownPath -Encoding utf8
 }
 
 if ($Preview -or $Preflight) {
@@ -369,6 +398,8 @@ if ($Preview -or $Preflight) {
         runtime_root = $resolvedRuntimeRoot
         artifact_dir = $resolvedArtifactDir
         step_summary_path = $resolvedStepSummaryPath
+        preflight_report_path = $resolvedPreflightReportPath
+        preflight_markdown_path = $resolvedPreflightMarkdownPath
         workflow_step_results_path = $resolvedWorkflowStepResultsPath
         invocation_source = $InvocationSource
         workflow_name = $WorkflowName
