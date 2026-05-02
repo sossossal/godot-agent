@@ -209,6 +209,9 @@ function Get-LaneArtifactPaths {
         "godot_live_sandbox" {
             $candidatePaths += @(
                 "logs/live_sandbox_state.json",
+                "sandbox_project/data_tables/game_creation/input_replay_run.json",
+                "sandbox_project/logs/test_artifacts/game_creation/input_replay_tower_defense_2d.gd",
+                "sandbox_project/logs/test_artifacts/game_creation/tower_defense_runtime.png",
                 ("logs/api_server_{0}.out" -f $ApiPort),
                 ("logs/api_server_{0}.err" -f $ApiPort)
             )
@@ -395,6 +398,24 @@ function Invoke-LiveValidationStep {
         if ($flowStatuses.Count -gt 0) {
             $details["flow_statuses"] = $flowStatuses
         }
+    }
+
+    if ($Id -eq "godot_live_sandbox") {
+        $details["expected_live_tests"] = @(
+            "tests/test_live_sandbox.py::test_8_p19_scene_graph_snapshot_reaches_health_monitor",
+            "tests/test_live_sandbox.py::test_9_p19_runtime_playability_smoke_generated_tower_defense",
+            "tests/test_live_sandbox.py::test_10_p19_execute_replay_generates_runtime_screenshot"
+        )
+        $details["p19_replay_evidence"] = [ordered]@{
+            replay_report_path = "sandbox_project/data_tables/game_creation/input_replay_run.json"
+            replay_script_path = "sandbox_project/logs/test_artifacts/game_creation/input_replay_tower_defense_2d.gd"
+            runtime_screenshot_path = "sandbox_project/logs/test_artifacts/game_creation/tower_defense_runtime.png"
+            live_test = "tests/test_live_sandbox.py::test_10_p19_execute_replay_generates_runtime_screenshot"
+        }
+        if (-not $details.Contains("flow_statuses")) {
+            $details["flow_statuses"] = [ordered]@{}
+        }
+        $details["flow_statuses"]["p19_execute_replay_flow"] = $status
     }
 
     if ($outputLines.Count -gt 0) {

@@ -10,6 +10,7 @@ param(
     [string]$Providers = "codex,openai_api",
     [string]$ArtifactDir = "logs/reports/release_live_ci_local",
     [string]$BrowserPath = "",
+    [string]$PythonCommand = "",
     [string]$ConfigPath = "config.yaml",
     [string]$LiveValidationScriptPath = "tools/run_full_live_validation.ps1",
     [string]$StepSummaryPath = "",
@@ -124,6 +125,13 @@ $resolvedStepSummaryPath = if ([string]::IsNullOrWhiteSpace($StepSummaryPath)) {
     Resolve-OptionalPath -BasePath $resolvedRuntimeRoot -RawPath $StepSummaryPath
 }
 $resolvedWorkflowStepResultsPath = Join-Path $resolvedRuntimeRoot "logs\reports\release_live_ci_workflow_steps.json"
+$resolvedPythonCommand = if (-not [string]::IsNullOrWhiteSpace($PythonCommand)) {
+    $PythonCommand
+} elseif (-not [string]::IsNullOrWhiteSpace($env:PYTHON)) {
+    $env:PYTHON
+} else {
+    "python"
+}
 $normalizedRunnerLabels = $RunnerLabels
 if (-not [string]::IsNullOrWhiteSpace($RunnerLabels)) {
     try {
@@ -224,13 +232,13 @@ if (-not [string]::IsNullOrWhiteSpace($BrowserPath)) {
 }
 
 $steps = @(
-    (Get-StepDefinition -Id "export_runner_baseline" -Label "Export release-live runner baseline" -Command "python" -Arguments $baselineArgs),
-    (Get-StepDefinition -Id "build_distribution_handoff" -Label "Build verified release distribution handoff" -Command "python" -Arguments $handoffArgs),
-    (Get-StepDefinition -Id "build_distribution_signing_handoff" -Label "Build external signing handoff package" -Command "python" -Arguments $signingHandoffArgs),
-    (Get-StepDefinition -Id "build_distribution_publish_handoff" -Label "Build external publish handoff package" -Command "python" -Arguments $publishHandoffArgs),
-    (Get-StepDefinition -Id "build_request_auth_identity_handoff" -Label "Build release request-auth identity handoff" -Command "python" -Arguments $identityHandoffArgs),
+    (Get-StepDefinition -Id "export_runner_baseline" -Label "Export release-live runner baseline" -Command $resolvedPythonCommand -Arguments $baselineArgs),
+    (Get-StepDefinition -Id "build_distribution_handoff" -Label "Build verified release distribution handoff" -Command $resolvedPythonCommand -Arguments $handoffArgs),
+    (Get-StepDefinition -Id "build_distribution_signing_handoff" -Label "Build external signing handoff package" -Command $resolvedPythonCommand -Arguments $signingHandoffArgs),
+    (Get-StepDefinition -Id "build_distribution_publish_handoff" -Label "Build external publish handoff package" -Command $resolvedPythonCommand -Arguments $publishHandoffArgs),
+    (Get-StepDefinition -Id "build_request_auth_identity_handoff" -Label "Build release request-auth identity handoff" -Command $resolvedPythonCommand -Arguments $identityHandoffArgs),
     (Get-StepDefinition -Id "run_full_live_validation" -Label "Run full live validation" -Command "powershell" -Arguments $liveValidationArgs),
-    (Get-StepDefinition -Id "export_live_ci_artifacts" -Label "Export live release CI artifacts" -Command "python" -Arguments $liveCiArgs -AlwaysRun $true)
+    (Get-StepDefinition -Id "export_live_ci_artifacts" -Label "Export live release CI artifacts" -Command $resolvedPythonCommand -Arguments $liveCiArgs -AlwaysRun $true)
 )
 
 if ($Preview) {

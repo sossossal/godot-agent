@@ -851,6 +851,126 @@ class ReleasePromotionPlanTestCase(unittest.TestCase):
             triggered_by="release_manager",
         )
 
+    def _api_history_record(self, request_auth: dict | None = None) -> dict:
+        readiness_actions = [{"action_id": "publish_receipts_review"}]
+        return {
+            "record_id": "promotion_api_001",
+            "decision": "approved",
+            "executed_by": "producer_a",
+            "target_channel": "staging",
+            "target_environment": "staging",
+            "authorization": {"status": "passed"},
+            "request_auth": request_auth or {
+                "status": "passed",
+                "mode": "local_only",
+                "scheme": "local",
+            },
+            "release_live_ci_status": "passed",
+            "release_live_dispatch_status": "warning",
+            "release_live_ci_workflow_steps": [{"step_id": "export_runner_baseline"}],
+            "release_live_ci_failed_workflow_steps": [],
+            "release_delivery_readiness_status": "warning",
+            "release_delivery_readiness_next_actions": readiness_actions,
+            "release_delivery_readiness_next_action_count": len(readiness_actions),
+            "plan_snapshot": {"schema_version": "1.1"},
+        }
+
+    def _api_history_payload(self, request_auth: dict | None = None) -> dict:
+        record = self._api_history_record(request_auth)
+        return {
+            "schema_version": "1.0",
+            "project_path": f"{self.project_dir.resolve().as_posix()}/",
+            "decision_filter": str(record["decision"]),
+            "target_channel_filter": str(record["target_channel"]),
+            "executed_by_filter": str(record["executed_by"]),
+            "live_ci_status_filter": str(record["release_live_ci_status"]),
+            "delivery_readiness_status_filter": str(record["release_delivery_readiness_status"]),
+            "readiness_action_filter": "publish_receipts_review",
+            "dispatch_status_filter": "warning",
+            "dispatch_follow_up_filter": "clear",
+            "dispatch_run_status_filter": "completed",
+            "dispatch_run_conclusion_filter": "success",
+            "failed_workflow_step_filter": "",
+            "matched_count": 1,
+            "visible_count": 1,
+            "items": [record],
+            "latest_record": record,
+        }
+
+    def _api_record_payload(self, request_auth: dict | None = None) -> dict:
+        history = self._api_history_payload(request_auth)
+        return {
+            "project_path": f"{self.project_dir.resolve().as_posix()}/",
+            "record": history["latest_record"],
+            "history": history,
+        }
+
+    def _api_history_report_payload(self) -> dict:
+        history = self._api_history_payload()
+        return {
+            "project_path": history["project_path"],
+            "history": history,
+            "report_name": "release_promotion_history.md",
+            "report_content": "\n".join([
+                "# Release Promotion History",
+                "live_ci_status=passed",
+                "dispatch_status=warning",
+                "dispatch_follow_up=clear",
+                "dispatch_run_status=completed",
+                "dispatch_run_conclusion=success",
+                "## Latest Record",
+                "## Distribution",
+                "## Latest Live CI",
+                "## Live CI Runtime Assembly",
+                "Route: local_replay / route_id=local_replay:staging:staging",
+                "Release Live CI: passed / summary=ci_gate=passed / lanes=4 / signoffs=passed",
+            ]),
+        }
+
+    def _distribution_bundle_payload(
+        self,
+        *,
+        status: str = "passed",
+        install_smoke_status: str = "passed",
+        archive_status: str = "passed",
+        channel_index_status: str = "passed",
+        publish_receipts_status: str = "skipped",
+    ) -> dict:
+        return {
+            "schema_version": "1.0",
+            "status": status,
+            "summary": (
+                f"source=ready / bundle=ready / install_smoke={install_smoke_status} / "
+                f"archive={archive_status} / channel_index={channel_index_status}"
+            ),
+            "target_channel": "release",
+            "target_environment": "production",
+            "build_id": "web-release-001",
+            "version": "0.1.0-release+1",
+            "release_channel": "release",
+            "report_path": "logs/reports/release_distribution_bundle_release.json",
+            "report_exists": True,
+            "bundle_exists": True,
+            "payload_exists": True,
+            "distribution_manifest_exists": True,
+            "install_smoke_status": install_smoke_status,
+            "install_smoke_report_exists": install_smoke_status == "passed",
+            "archive_status": archive_status,
+            "archive_file_exists": archive_status == "passed",
+            "archive_sha256_exists": archive_status == "passed",
+            "channel_index_status": channel_index_status,
+            "channel_index_latest_exists": channel_index_status == "passed",
+            "channel_index_release_count": 1 if channel_index_status == "passed" else 0,
+            "publish_handoff_status": "skipped",
+            "publish_receipts_status": publish_receipts_status,
+            "publish_receipts_target_count": 0,
+            "publish_receipts_completed_targets": [],
+            "publish_receipts_missing_targets": [],
+            "publish_receipts_failed_targets": [],
+            "source_missing_items": [],
+            "bundle_missing_items": [],
+        }
+
     def test_repository_sample_builds_release_promotion_plan(self):
         payload = build_release_promotion_plan(
             project_root,
@@ -891,23 +1011,67 @@ class ReleasePromotionPlanTestCase(unittest.TestCase):
         self.assertIn("signoff_record", payload["evidence_bundle"]["missing_artifacts"])
 
     def test_release_promotion_api_shape(self):
-        self._prepare_runtime(channel="staging")
-
         client = TestClient(app)
-        response = client.post(
-            "/release-promotion/plan",
-            json={
-                "project_path": str(self.project_dir),
-                "target_channel": "staging",
-                "target_environment": "staging",
-                "approvers": ["qa_lead", "tech_lead", "producer"],
-                "providers": ["codex"],
-                "mode": "advisory",
+        plan_payload = {
+            "schema_version": "1.1",
+            "project_path": f"{self.project_dir.resolve().as_posix()}/",
+            "target_channel": "staging",
+            "mode": "advisory",
+            "agent_compatibility_summary": {"provider_count": 1},
+            "release_live_ci_summary": {
+                "status": "passed",
+                "details": {
+                    "workflow_steps": [{"step_id": "export_runner_baseline"}],
+                    "runtime_assembly": {
+                        "identity_boundary": {"profile_id": "staging_identity_boundary"},
+                        "capabilities": [
+                            {
+                                "capability_id": "release_live_ci_summary_read",
+                                "artifact_contracts": ["release_artifact_manifest"],
+                            }
+                        ],
+                    },
+                    "event_stream": {"path": "release_live_ci_events.json", "latest_event_type": "run_finished"},
+                    "dispatch_audit": {"path": "logs/reports/release_live_ci/release_live_dispatch.json"},
+                },
             },
-        )
+            "request_auth_posture": {"status": "passed"},
+            "release_delivery_readiness": {"status": "passed", "component_count": 3},
+            "checklist": [{"item_id": "release_candidate_gate"}],
+            "evidence_bundle": {},
+            "review_bundle": {},
+            "deployment_rehearsal": {},
+            "rollback_rehearsal": {},
+            "runtime_assembly_snapshot": {
+                "route_kind": "local_replay",
+                "runner_profile": {"profile_id": "release_windows_runner"},
+                "capabilities": [
+                    {
+                        "capability_id": "release_live_ci_summary_read",
+                        "artifact_contracts": ["release_artifact_manifest"],
+                        "entrypoints": ["/release-artifact-manifest"],
+                    }
+                ],
+            },
+        }
+        with patch("api_server.main._build_release_promotion_plan_snapshot", return_value=plan_payload) as plan_mock:
+            response = client.post(
+                "/release-promotion/plan",
+                json={
+                    "project_path": str(self.project_dir),
+                    "target_channel": "staging",
+                    "target_environment": "staging",
+                    "approvers": ["qa_lead", "tech_lead", "producer"],
+                    "providers": ["codex"],
+                    "mode": "advisory",
+                },
+            )
 
         self.assertEqual(response.status_code, 200)
         payload = response.json()
+        self.assertEqual(plan_mock.call_args.kwargs["approvers"], ["qa_lead", "tech_lead", "producer"])
+        self.assertEqual(plan_mock.call_args.kwargs["providers"], ["codex"])
+        self.assertEqual(plan_mock.call_args.kwargs["target_environment"], "staging")
         self.assertEqual(payload["schema_version"], "1.1")
         self.assertEqual(payload["project_path"], f"{self.project_dir.resolve().as_posix()}/")
         self.assertEqual(payload["target_channel"], "staging")
@@ -1216,23 +1380,19 @@ class ReleasePromotionPlanTestCase(unittest.TestCase):
             actions=["promotion_record", "release_execution"],
             issued_at=self._fresh_issued_at(),
         )
-        export_release_distribution_bundle(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            target_environment="production",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-
-        payload = build_release_promotion_plan(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            approvers=["qa_lead", "tech_lead", "producer", "ops"],
-            providers=["codex"],
-            mode="advisory",
-            fail_on_warnings=False,
-        )
+        with patch(
+            "agent_system.tools.release_promotion.build_release_distribution_bundle",
+            return_value=self._distribution_bundle_payload(status="warning", install_smoke_status="warning"),
+        ):
+            payload = build_release_promotion_plan(
+                self.project_dir,
+                runtime_root=self.runtime_dir,
+                target_channel="release",
+                approvers=["qa_lead", "tech_lead", "producer", "ops"],
+                providers=["codex"],
+                mode="advisory",
+                fail_on_warnings=False,
+            )
 
         self.assertEqual(payload["request_auth_posture"]["status"], "passed")
         self.assertEqual(payload["request_auth_rotation_audit"]["status"], "passed")
@@ -1249,30 +1409,19 @@ class ReleasePromotionPlanTestCase(unittest.TestCase):
             actions=["promotion_record", "release_execution"],
             issued_at=self._fresh_issued_at(),
         )
-        export_release_distribution_bundle(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            target_environment="production",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-        export_release_distribution_install_smoke(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            target_environment="production",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-
-        payload = build_release_promotion_plan(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            approvers=["qa_lead", "tech_lead", "producer", "ops"],
-            providers=["codex"],
-            mode="advisory",
-            fail_on_warnings=False,
-        )
+        with patch(
+            "agent_system.tools.release_promotion.build_release_distribution_bundle",
+            return_value=self._distribution_bundle_payload(status="warning", archive_status="warning"),
+        ):
+            payload = build_release_promotion_plan(
+                self.project_dir,
+                runtime_root=self.runtime_dir,
+                target_channel="release",
+                approvers=["qa_lead", "tech_lead", "producer", "ops"],
+                providers=["codex"],
+                mode="advisory",
+                fail_on_warnings=False,
+            )
 
         self.assertEqual(payload["release_distribution_bundle"]["status"], "warning")
         self.assertEqual(payload["release_distribution_bundle"]["archive_status"], "warning")
@@ -1287,37 +1436,19 @@ class ReleasePromotionPlanTestCase(unittest.TestCase):
             actions=["promotion_record", "release_execution"],
             issued_at=self._fresh_issued_at(),
         )
-        export_release_distribution_bundle(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            target_environment="production",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-        export_release_distribution_install_smoke(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            target_environment="production",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-        export_release_distribution_archive(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            target_environment="production",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-
-        payload = build_release_promotion_plan(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            approvers=["qa_lead", "tech_lead", "producer", "ops"],
-            providers=["codex"],
-            mode="advisory",
-            fail_on_warnings=False,
-        )
+        with patch(
+            "agent_system.tools.release_promotion.build_release_distribution_bundle",
+            return_value=self._distribution_bundle_payload(status="warning", channel_index_status="warning"),
+        ):
+            payload = build_release_promotion_plan(
+                self.project_dir,
+                runtime_root=self.runtime_dir,
+                target_channel="release",
+                approvers=["qa_lead", "tech_lead", "producer", "ops"],
+                providers=["codex"],
+                mode="advisory",
+                fail_on_warnings=False,
+            )
 
         self.assertEqual(payload["release_distribution_bundle"]["status"], "warning")
         self.assertEqual(payload["release_distribution_bundle"]["install_smoke_status"], "passed")
@@ -1333,44 +1464,19 @@ class ReleasePromotionPlanTestCase(unittest.TestCase):
             actions=["promotion_record", "release_execution"],
             issued_at=self._fresh_issued_at(),
         )
-        export_release_distribution_bundle(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            target_environment="production",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-        export_release_distribution_install_smoke(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            target_environment="production",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-        export_release_distribution_archive(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            target_environment="production",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-        export_release_distribution_channel_index(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            target_environment="production",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-
-        payload = build_release_promotion_plan(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            approvers=["qa_lead", "tech_lead", "producer", "ops"],
-            providers=["codex"],
-            mode="advisory",
-            fail_on_warnings=False,
-        )
+        with patch(
+            "agent_system.tools.release_promotion.build_release_distribution_bundle",
+            return_value=self._distribution_bundle_payload(),
+        ):
+            payload = build_release_promotion_plan(
+                self.project_dir,
+                runtime_root=self.runtime_dir,
+                target_channel="release",
+                approvers=["qa_lead", "tech_lead", "producer", "ops"],
+                providers=["codex"],
+                mode="advisory",
+                fail_on_warnings=False,
+            )
 
         request_auth_artifact = next(
             item
@@ -1701,44 +1807,19 @@ class ReleasePromotionPlanTestCase(unittest.TestCase):
             actions=["promotion_record", "release_execution"],
             issued_at=self._fresh_issued_at(),
         )
-        export_release_distribution_bundle(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            target_environment="production",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-        export_release_distribution_install_smoke(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            target_environment="production",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-        export_release_distribution_archive(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            target_environment="production",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-        export_release_distribution_channel_index(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            target_environment="production",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-
-        payload = build_release_promotion_plan(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            approvers=["qa_lead", "tech_lead", "producer", "ops"],
-            providers=["codex"],
-            mode="advisory",
-            fail_on_warnings=False,
-        )
+        with patch(
+            "agent_system.tools.release_promotion.build_release_distribution_bundle",
+            return_value=self._distribution_bundle_payload(),
+        ):
+            payload = build_release_promotion_plan(
+                self.project_dir,
+                runtime_root=self.runtime_dir,
+                target_channel="release",
+                approvers=["qa_lead", "tech_lead", "producer", "ops"],
+                providers=["codex"],
+                mode="advisory",
+                fail_on_warnings=False,
+            )
 
         self.assertEqual(payload["status"], "blocked")
         self.assertEqual(payload["release_live_runner_baseline"]["status"], "blocked")
@@ -1872,58 +1953,50 @@ class ReleasePromotionPlanTestCase(unittest.TestCase):
         self.assertEqual(distribution_artifact["artifact_id"], "release_distribution_bundle")
 
     def test_release_promotion_export_endpoints_return_reports(self):
-        self._prepare_runtime(channel="staging")
-
         client = TestClient(app)
-        evidence_response = client.get(
-            "/release-promotion/evidence-report",
-            params={
+        common_payload = {
+            "project_path": str(self.project_dir),
+            "plan": {"schema_version": "1.1"},
+        }
+        with patch("api_server.main._build_release_promotion_evidence_export", return_value={
+            **common_payload,
+            "report_name": "release_promotion_evidence_bundle.md",
+            "report_content": "# Release Promotion Evidence Bundle",
+        }) as evidence_mock, patch("api_server.main._build_release_promotion_deployment_export", return_value={
+            **common_payload,
+            "report_name": "release_promotion_deployment_rehearsal.md",
+            "report_content": "# Release Promotion Deployment Rehearsal",
+        }) as deployment_mock, patch("api_server.main._build_release_promotion_review_bundle_export", return_value={
+            **common_payload,
+            "report_name": "release_review_bundle.md",
+            "report_content": "# Release Review Bundle",
+        }) as review_mock, patch("api_server.main._build_release_promotion_rollback_export", return_value={
+            **common_payload,
+            "report_name": "release_promotion_rollback_rehearsal.md",
+            "report_content": "# Release Promotion Rollback Rehearsal",
+        }) as rollback_mock:
+            params = {
                 "project_path": str(self.project_dir),
                 "target_channel": "staging",
                 "target_environment": "staging",
                 "approvers": "qa_lead,tech_lead,producer",
                 "providers": "codex",
                 "mode": "advisory",
-            },
-        )
-        deployment_response = client.get(
-            "/release-promotion/deployment-rehearsal",
-            params={
-                "project_path": str(self.project_dir),
-                "target_channel": "staging",
-                "target_environment": "staging",
-                "approvers": "qa_lead,tech_lead,producer",
-                "providers": "codex",
-                "mode": "advisory",
-            },
-        )
-        review_bundle_response = client.get(
-            "/release-promotion/review-bundle",
-            params={
-                "project_path": str(self.project_dir),
-                "target_channel": "staging",
-                "target_environment": "staging",
-                "approvers": "qa_lead,tech_lead,producer",
-                "providers": "codex",
-                "mode": "advisory",
-            },
-        )
-        rollback_response = client.get(
-            "/release-promotion/rollback-rehearsal",
-            params={
-                "project_path": str(self.project_dir),
-                "target_channel": "staging",
-                "target_environment": "staging",
-                "approvers": "qa_lead,tech_lead,producer",
-                "providers": "codex",
-                "mode": "advisory",
-            },
-        )
+            }
+            evidence_response = client.get("/release-promotion/evidence-report", params=params)
+            deployment_response = client.get("/release-promotion/deployment-rehearsal", params=params)
+            review_bundle_response = client.get("/release-promotion/review-bundle", params=params)
+            rollback_response = client.get("/release-promotion/rollback-rehearsal", params=params)
 
         self.assertEqual(evidence_response.status_code, 200)
         self.assertEqual(deployment_response.status_code, 200)
         self.assertEqual(review_bundle_response.status_code, 200)
         self.assertEqual(rollback_response.status_code, 200)
+        for mock in [evidence_mock, deployment_mock, review_mock, rollback_mock]:
+            self.assertEqual(mock.call_args.kwargs["approvers"], ["qa_lead", "tech_lead", "producer"])
+            self.assertEqual(mock.call_args.kwargs["providers"], ["codex"])
+            self.assertEqual(mock.call_args.kwargs["target_environment"], "staging")
+            self.assertEqual(mock.call_args.kwargs["mode"], "advisory")
         self.assertEqual(evidence_response.json()["report_name"], "release_promotion_evidence_bundle.md")
         self.assertIn("# Release Promotion Evidence Bundle", evidence_response.json()["report_content"])
         self.assertEqual(deployment_response.json()["report_name"], "release_promotion_deployment_rehearsal.md")
@@ -2190,121 +2263,75 @@ class ReleasePromotionPlanTestCase(unittest.TestCase):
         self.assertIsNone(payload["next_offset"])
 
     def test_release_promotion_history_report_includes_distribution_publish_receipts(self):
-        self._prepare_runtime(channel="staging")
-        self._write_delivery_manifest(channel="staging", environment="staging")
-        export_release_distribution_bundle(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="staging",
-            target_environment="staging",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-        export_release_distribution_install_smoke(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="staging",
-            target_environment="staging",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-        export_release_distribution_archive(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="staging",
-            target_environment="staging",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-        export_release_distribution_channel_index(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="staging",
-            target_environment="staging",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-        publish_handoff = export_release_distribution_publish_handoff(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="staging",
-            target_environment="staging",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-        record_release_distribution_publish_receipt(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="staging",
-            target_environment="staging",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-            target_id=str(publish_handoff["delivery_publish_targets"][0]),
-            status="published",
-            external_reference="staging-artifact-2026-04-18",
-            artifact_url="artifact://release-validation/staging/web-staging-001",
-            operator="producer_a",
-            published_at="2026-04-18T11:10:00Z",
-            notes=["history report fixture"],
-        )
-        record_release_promotion_event(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="staging",
-            target_environment="staging",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-            approvers=["qa_lead", "tech_lead", "producer"],
-            providers=["codex"],
-            mode="advisory",
-            decision="approved",
-            executed_by="producer_a",
-            note="history report ready",
-            signoff_source="portal_manual",
-        )
-        write_release_live_dispatch_audit(
-            self.project_dir,
-            artifact_dir="logs/reports/release_live_ci",
-            preflight={
-                "schema_version": "1.0",
-                "status": "passed",
-                "ready": True,
-                "workflow": "release-live-gates.yml",
-                "repo": "sossossal/cim-comm-soc",
-                "ref": "main",
-                "dispatch_inputs": {
+        history = {
+            "schema_version": "1.0",
+            "filters": {
+                "decision": "approved",
+                "target_channel": "staging",
+                "executed_by": "producer_a",
+            },
+            "items": [
+                {
+                    "record_id": "promotion_history_report_001",
+                    "decision": "approved",
                     "target_channel": "staging",
                     "target_environment": "staging",
-                    "artifact_dir": "logs/reports/release_live_ci",
-                },
-            },
-            dispatch_result={
-                "schema_version": "1.0",
-                "ok": True,
+                    "executed_by": "producer_a",
+                    "release_build_id": "web-staging-001",
+                    "distribution_status": "passed",
+                    "distribution_publish_receipts_status": "passed",
+                    "distribution_publish_receipts_target_count": 1,
+                    "distribution_publish_receipts_completed_targets": ["staging_artifact"],
+                    "distribution_publish_receipts_missing_targets": [],
+                    "distribution_publish_receipts_failed_targets": [],
+                    "distribution_publish_receipts_follow_up_required": False,
+                    "release_delivery_readiness_status": "warning",
+                    "release_delivery_readiness_next_action_count": 1,
+                    "release_delivery_readiness_next_actions": [
+                        {"action_id": "publish_receipts_review"}
+                    ],
+                    "release_live_ci_status": "passed",
+                    "release_live_ci_summary": "ci_gate=passed / lanes=4 / signoffs=passed",
+                    "release_live_ci_event_stream_status": "passed",
+                    "release_live_ci_event_stream": {
+                        "path": "release_live_ci_events.json",
+                        "source": "local_replay",
+                        "latest_event_type": "run_finished",
+                        "events": [
+                            {
+                                "event_type": "lane_reported",
+                                "status": "passed",
+                                "scope": "runtime_lane",
+                                "lane_id": "portal_click_smoke",
+                            }
+                        ],
+                    },
+                    "release_live_ci_runtime_assembly": {
+                        "route_kind": "local_replay",
+                        "route_id": "local_replay:staging:staging",
+                    },
+                    "release_live_ci_workflow_step_results_path": "logs/reports/release_live_ci/release_live_ci_workflow_steps.json",
+                    "release_live_ci_workflow_steps": [
+                        {
+                            "step_id": "run_full_live_validation",
+                            "status": "passed",
+                            "outcome": "success",
+                        }
+                    ],
+                    "release_live_ci_failed_workflow_steps": [],
+                    "release_live_dispatch_status": "warning",
+                    "release_live_dispatch_summary": "workflow_dispatch accepted for sossossal/cim-comm-soc@main",
+                    "release_live_dispatch_path": "logs/reports/release_live_ci/release_live_dispatch.json",
+                }
+            ],
+            "latest_record": {},
+            "latest_dispatch_audit": {
+                "path": "logs/reports/release_live_ci/release_live_dispatch.json",
                 "status": "warning",
                 "summary": "workflow_dispatch accepted for sossossal/cim-comm-soc@main",
-                "repo": "sossossal/cim-comm-soc",
-                "workflow": "release-live-gates.yml",
-                "ref": "main",
-                "wait": True,
-                "token_source": "GH_TOKEN",
-                "run": {
-                    "id": 9001,
-                    "number": 42,
-                    "status": "completed",
-                    "conclusion": "success",
-                    "html_url": "https://github.com/sossossal/cim-comm-soc/actions/runs/9001",
-                },
             },
-            request_auth={
-                "status": "passed",
-                "actor_id": "release_manager",
-                "token_id": "token-001",
-                "reason": "accepted",
-            },
-            triggered_by="release_manager",
-        )
-
-        history = build_release_promotion_history(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            decision="approved",
-            target_channel="staging",
-            executed_by="producer_a",
-        )
+        }
+        history["latest_record"] = history["items"][0]
         report = build_release_promotion_history_report(history)
 
         self.assertIn("# Release Promotion History", report)
@@ -2435,46 +2462,56 @@ class ReleasePromotionPlanTestCase(unittest.TestCase):
             )
 
     def test_release_promotion_history_api_shape(self):
-        self._prepare_runtime(channel="staging")
-
         client = TestClient(app)
-        record_response = client.post(
-            "/release-promotion/record",
-            json={
-                "project_path": str(self.project_dir),
-                "target_channel": "staging",
-                "target_environment": "staging",
-                "release_manifest_path": "api_server/static/dist/release_manifest.json",
-                "approvers": ["qa_lead", "tech_lead", "producer"],
-                "providers": ["codex"],
-                "mode": "advisory",
-                "decision": "approved",
-                "executed_by": "producer_a",
-                "note": "api record",
-                "signoff_source": "portal_manual",
-            },
-        )
+        record_payload = self._api_record_payload()
+        history_payload = self._api_history_payload()
+        with (
+            patch("api_server.main.record_release_promotion_event", return_value=record_payload) as record_mock,
+            patch("api_server.main._build_release_promotion_history_snapshot", return_value=history_payload) as history_mock,
+        ):
+            record_response = client.post(
+                "/release-promotion/record",
+                json={
+                    "project_path": str(self.project_dir),
+                    "target_channel": "staging",
+                    "target_environment": "staging",
+                    "release_manifest_path": "api_server/static/dist/release_manifest.json",
+                    "approvers": ["qa_lead", "tech_lead", "producer"],
+                    "providers": ["codex"],
+                    "mode": "advisory",
+                    "decision": "approved",
+                    "executed_by": "producer_a",
+                    "note": "api record",
+                    "signoff_source": "portal_manual",
+                },
+            )
+            self.assertEqual(record_response.status_code, 200)
+            record_payload = record_response.json()
+            readiness_status = record_payload["record"]["release_delivery_readiness_status"]
+            readiness_action = record_payload["record"]["release_delivery_readiness_next_actions"][0]["action_id"]
+            history_response = client.get(
+                "/release-promotion/history",
+                params={
+                    "project_path": str(self.project_dir),
+                    "decision": "approved",
+                    "target_channel": "staging",
+                    "executed_by": "producer_a",
+                    "live_ci_status": "passed",
+                    "delivery_readiness_status": readiness_status,
+                    "readiness_action": readiness_action,
+                    "dispatch_status": "warning",
+                    "dispatch_follow_up": "clear",
+                    "dispatch_run_status": "completed",
+                    "dispatch_run_conclusion": "success",
+                    "limit": 5,
+                },
+            )
+
+        record_mock.assert_called_once()
+        self.assertEqual(record_mock.call_args.kwargs["decision"], "approved")
+        self.assertEqual(record_mock.call_args.kwargs["request_auth"]["status"], "passed")
+        history_mock.assert_called_once()
         self.assertEqual(record_response.status_code, 200)
-        record_payload = record_response.json()
-        readiness_status = record_payload["record"]["release_delivery_readiness_status"]
-        readiness_action = record_payload["record"]["release_delivery_readiness_next_actions"][0]["action_id"]
-        history_response = client.get(
-            "/release-promotion/history",
-            params={
-                "project_path": str(self.project_dir),
-                "decision": "approved",
-                "target_channel": "staging",
-                "executed_by": "producer_a",
-                "live_ci_status": "passed",
-                "delivery_readiness_status": readiness_status,
-                "readiness_action": readiness_action,
-                "dispatch_status": "warning",
-                "dispatch_follow_up": "clear",
-                "dispatch_run_status": "completed",
-                "dispatch_run_conclusion": "success",
-                "limit": 5,
-            },
-        )
 
         self.assertEqual(record_payload["record"]["decision"], "approved")
         self.assertEqual(record_payload["history"]["latest_record"]["executed_by"], "producer_a")
@@ -2513,54 +2550,43 @@ class ReleasePromotionPlanTestCase(unittest.TestCase):
         self.assertEqual(history_payload["items"][0]["release_live_ci_failed_workflow_steps"], [])
 
     def test_release_promotion_history_api_supports_failed_workflow_step_filter(self):
-        self._prepare_runtime(channel="staging")
-        release_live_ci_summary_path = self.runtime_dir / "logs" / "reports" / "release_live_ci" / "release_live_ci_summary.json"
-        project_release_live_ci_summary_path = self.project_dir / "logs" / "reports" / "release_live_ci" / "release_live_ci_summary.json"
-        for summary_path in [release_live_ci_summary_path, project_release_live_ci_summary_path]:
-            summary_payload = json.loads(summary_path.read_text(encoding="utf-8"))
-            summary_payload["status"] = "warning"
-            summary_payload["summary"] = "ci_gate=warning / lanes=4 / signoffs=passed"
-            summary_payload["ci_gate"]["status"] = "warning"
-            summary_payload["workflow_steps"][1]["status"] = "warning"
-            summary_payload["workflow_steps"][1]["outcome"] = "failure"
-            summary_payload["workflow_steps"][1]["message"] = "portal click smoke failed"
-            summary_path.write_text(json.dumps(summary_payload, ensure_ascii=False, indent=2), encoding="utf-8")
-
-        record_release_promotion_event(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="release",
-            target_environment="production",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-            approvers=["qa_lead", "tech_lead", "producer", "ops"],
-            providers=["codex"],
-            mode="advisory",
-            decision="blocked",
-            executed_by="ops_a",
-            note="api failed workflow step filter",
-            signoff_source="ops_review",
-        )
-
         client = TestClient(app)
-        response = client.get(
-            "/release-promotion/history",
-            params={
-                "project_path": str(self.project_dir),
-                "decision": "blocked",
-                "target_channel": "release",
-                "executed_by": "ops_a",
-                "live_ci_status": "warning",
-                "dispatch_status": "warning",
-                "dispatch_follow_up": "clear",
-                "dispatch_run_status": "completed",
-                "dispatch_run_conclusion": "success",
-                "failed_workflow_step": "run_full_live_validation",
-                "limit": 5,
-            },
-        )
+        history_payload = self._api_history_payload()
+        history_payload.update({
+            "decision_filter": "blocked",
+            "target_channel_filter": "release",
+            "executed_by_filter": "ops_a",
+            "live_ci_status_filter": "warning",
+            "failed_workflow_step_filter": "run_full_live_validation",
+        })
+        history_payload["items"][0].update({
+            "decision": "blocked",
+            "target_channel": "release",
+            "executed_by": "ops_a",
+            "release_live_ci_status": "warning",
+            "release_live_ci_failed_workflow_steps": ["run_full_live_validation"],
+        })
+        with patch("api_server.main._build_release_promotion_history_snapshot", return_value=history_payload) as history_mock:
+            response = client.get(
+                "/release-promotion/history",
+                params={
+                    "project_path": str(self.project_dir),
+                    "decision": "blocked",
+                    "target_channel": "release",
+                    "executed_by": "ops_a",
+                    "live_ci_status": "warning",
+                    "dispatch_status": "warning",
+                    "dispatch_follow_up": "clear",
+                    "dispatch_run_status": "completed",
+                    "dispatch_run_conclusion": "success",
+                    "failed_workflow_step": "run_full_live_validation",
+                    "limit": 5,
+                },
+            )
 
         self.assertEqual(response.status_code, 200)
         payload = response.json()
+        history_mock.assert_called_once()
         self.assertEqual(payload["matched_count"], 1)
         self.assertEqual(payload["live_ci_status_filter"], "warning")
         self.assertEqual(payload["dispatch_status_filter"], "warning")
@@ -2571,43 +2597,28 @@ class ReleasePromotionPlanTestCase(unittest.TestCase):
         self.assertEqual(payload["items"][0]["release_live_ci_failed_workflow_steps"], ["run_full_live_validation"])
 
     def test_release_promotion_history_report_endpoint_returns_markdown(self):
-        self._prepare_runtime(channel="staging")
         client = TestClient(app)
-        client.post(
-            "/release-promotion/record",
-            json={
-                "project_path": str(self.project_dir),
-                "target_channel": "staging",
-                "target_environment": "staging",
-                "release_manifest_path": "api_server/static/dist/release_manifest.json",
-                "approvers": ["qa_lead", "tech_lead", "producer"],
-                "providers": ["codex"],
-                "mode": "advisory",
-                "decision": "approved",
-                "executed_by": "producer_a",
-                "note": "api history report",
-                "signoff_source": "portal_manual",
-            },
-        )
-
-        response = client.get(
-            "/release-promotion/history-report",
-            params={
-                "project_path": str(self.project_dir),
-                "decision": "approved",
-                "target_channel": "staging",
-                "executed_by": "producer_a",
-                "live_ci_status": "passed",
-                "dispatch_status": "warning",
-                "dispatch_follow_up": "clear",
-                "dispatch_run_status": "completed",
-                "dispatch_run_conclusion": "success",
-                "failed_workflow_step": "",
-            },
-        )
+        report_payload = self._api_history_report_payload()
+        with patch("api_server.main._build_release_promotion_history_export", return_value=report_payload) as report_mock:
+            response = client.get(
+                "/release-promotion/history-report",
+                params={
+                    "project_path": str(self.project_dir),
+                    "decision": "approved",
+                    "target_channel": "staging",
+                    "executed_by": "producer_a",
+                    "live_ci_status": "passed",
+                    "dispatch_status": "warning",
+                    "dispatch_follow_up": "clear",
+                    "dispatch_run_status": "completed",
+                    "dispatch_run_conclusion": "success",
+                    "failed_workflow_step": "",
+                },
+            )
 
         self.assertEqual(response.status_code, 200)
         payload = response.json()
+        report_mock.assert_called_once()
         self.assertEqual(payload["report_name"], "release_promotion_history.md")
         self.assertIn("# Release Promotion History", payload["report_content"])
         self.assertIn("live_ci_status=passed", payload["report_content"])
@@ -2625,32 +2636,33 @@ class ReleasePromotionPlanTestCase(unittest.TestCase):
         self.assertEqual(payload["history"]["items"][0]["decision"], "approved")
 
     def test_release_promotion_history_api_rejects_unauthorized_actor(self):
-        self._prepare_runtime(channel="staging")
-
         client = TestClient(app)
-        response = client.post(
-            "/release-promotion/record",
-            json={
-                "project_path": str(self.project_dir),
-                "target_channel": "staging",
-                "target_environment": "staging",
-                "release_manifest_path": "api_server/static/dist/release_manifest.json",
-                "approvers": ["qa_lead", "tech_lead", "producer"],
-                "providers": ["codex"],
-                "mode": "advisory",
-                "decision": "approved",
-                "executed_by": "intruder",
-                "note": "api auth fail",
-                "signoff_source": "portal_manual",
-            },
-        )
+        with patch(
+            "api_server.main.record_release_promotion_event",
+            side_effect=ValueError("release promotion authorization failed: actor intruder is not allowed"),
+        ) as record_mock:
+            response = client.post(
+                "/release-promotion/record",
+                json={
+                    "project_path": str(self.project_dir),
+                    "target_channel": "staging",
+                    "target_environment": "staging",
+                    "release_manifest_path": "api_server/static/dist/release_manifest.json",
+                    "approvers": ["qa_lead", "tech_lead", "producer"],
+                    "providers": ["codex"],
+                    "mode": "advisory",
+                    "decision": "approved",
+                    "executed_by": "intruder",
+                    "note": "api auth fail",
+                    "signoff_source": "portal_manual",
+                },
+            )
 
         self.assertEqual(response.status_code, 400)
         self.assertIn("release promotion authorization failed", response.json()["detail"])
+        record_mock.assert_called_once()
 
     def test_release_promotion_history_api_requires_release_write_token_when_configured(self):
-        self._prepare_runtime(channel="staging")
-
         client = TestClient(app)
         payload = {
             "project_path": str(self.project_dir),
@@ -2666,7 +2678,13 @@ class ReleasePromotionPlanTestCase(unittest.TestCase):
             "signoff_source": "portal_manual",
         }
 
-        with patch.dict(os.environ, {"GODOT_AGENT_RELEASE_WRITE_TOKEN": "release-secret"}, clear=False):
+        def _fake_record_release_promotion_event(*args, **kwargs):
+            return self._api_record_payload(kwargs.get("request_auth"))
+
+        with (
+            patch.dict(os.environ, {"GODOT_AGENT_RELEASE_WRITE_TOKEN": "release-secret"}, clear=False),
+            patch("api_server.main.record_release_promotion_event", side_effect=_fake_record_release_promotion_event) as record_mock,
+        ):
             blocked_response = client.post("/release-promotion/record", json=payload)
             allowed_response = client.post(
                 "/release-promotion/record",
@@ -2686,6 +2704,7 @@ class ReleasePromotionPlanTestCase(unittest.TestCase):
         self.assertTrue(allowed_payload["record"]["request_auth"]["token_configured"])
         self.assertTrue(allowed_payload["record"]["request_auth"]["token_present"])
         self.assertFalse(allowed_payload["record"]["request_auth"]["session_tracked"])
+        record_mock.assert_called_once()
 
 
 if __name__ == "__main__":

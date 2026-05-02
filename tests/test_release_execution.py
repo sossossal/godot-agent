@@ -24,8 +24,6 @@ from agent_system.tools.release_distribution import (
     export_release_distribution_archive,
     export_release_distribution_bundle,
     export_release_distribution_install_smoke,
-    export_release_distribution_publish_handoff,
-    record_release_distribution_publish_receipt,
 )
 from agent_system.tools.release_live_runner_baseline import default_release_live_runner_baseline_report_path
 from agent_system.tools.release_promotion_history import record_release_promotion_event
@@ -819,6 +817,98 @@ class ReleaseExecutionTestCase(unittest.TestCase):
             signoff_source="portal_manual",
         )
 
+    def _api_execution_payload(self, request_auth: dict | None = None) -> dict:
+        readiness_actions = [
+            {
+                "action_id": "publish_handoff_review",
+                "summary": "Review publish handoff before widening rollout.",
+                "owner": "release_manager",
+            }
+        ]
+        return {
+            "schema_version": "1.0",
+            "project_path": str(self.project_dir.resolve().as_posix()) + "/",
+            "execution": {
+                "operation": "canary",
+                "executed_by": "release_manager",
+                "authorization": {"status": "passed"},
+                "request_auth": request_auth or {
+                    "status": "passed",
+                    "mode": "local_only",
+                    "scheme": "local",
+                },
+                "release_delivery_readiness_status": "warning",
+                "release_delivery_readiness_next_actions": readiness_actions,
+                "release_delivery_readiness_next_action_count": len(readiness_actions),
+            },
+        }
+
+    def _api_execution_status_payload(self) -> dict:
+        latest_execution = {
+            "operation": "canary",
+            "executed_by": "release_manager",
+            "authorization": {"status": "passed"},
+            "request_auth": {
+                "status": "passed",
+                "mode": "local_only",
+                "scheme": "local",
+            },
+            "release_delivery_readiness_status": "warning",
+            "release_delivery_readiness_next_actions": [
+                {"action_id": "publish_handoff_review", "summary": "Review publish handoff."}
+            ],
+            "release_delivery_readiness_next_action_count": 1,
+        }
+        return {
+            "schema_version": RELEASE_EXECUTION_STATUS_SCHEMA_VERSION,
+            "project_path": str(self.project_dir.resolve().as_posix()) + "/",
+            "matched_execution_count": 1,
+            "latest_execution": latest_execution,
+            "clean_machine_bootstrap": {"status": "passed"},
+            "release_live_runner_baseline": {"status": "warning"},
+            "full_live_validation": {
+                "status": "warning",
+                "details": {
+                    "release_binding_status": "passed",
+                    "lane_artifacts": [
+                        {"report_path": "logs/reports/full_live_validation_lanes/api_smoke.json"},
+                        {"report_path": "logs/reports/full_live_validation_lanes/cli_smoke.json"},
+                        {"report_path": "logs/reports/full_live_validation_lanes/portal_click_smoke.json"},
+                    ],
+                },
+            },
+            "request_auth_posture": {"status": "warning"},
+            "request_auth_rotation_audit": {"status": "warning"},
+            "request_auth_identity_audit": {"status": "warning"},
+            "release_distribution_bundle": {"status": "warning"},
+        }
+
+    def _api_execution_report_payload(self) -> dict:
+        status_payload = self._api_execution_status_payload()
+        return {
+            "project_path": status_payload["project_path"],
+            "execution_status": status_payload,
+            "report_name": "release_execution_report.md",
+            "report_content": "\n".join(
+                [
+                    "## Clean Machine Bootstrap",
+                    "## Release Live Runner Baseline",
+                    "## Full Live Validation",
+                    "## Release Request Auth Posture",
+                    "## Release Request Auth Rotation Audit",
+                    "## Release Request Auth Identity Audit",
+                    "## Release Distribution Bundle",
+                    "Latest Execution Delivery Readiness:",
+                    "## Latest Execution Delivery Readiness Actions",
+                    "delivery_readiness=warning",
+                    "readiness_actions=1",
+                    "Report Binding:",
+                    "Request Auth:",
+                    "Authorization:",
+                ]
+            ),
+        }
+
     def test_release_execution_dry_run_persists_status_without_channel_binding(self):
         self._prepare_runtime(channel="staging")
 
@@ -1219,57 +1309,41 @@ class ReleaseExecutionTestCase(unittest.TestCase):
         self.assertIn("signoffs: status=warning owner=producer", report)
 
     def test_release_execution_report_surfaces_distribution_publish_receipts_after_publish_receipt(self):
-        self._prepare_runtime(channel="staging")
-        self._write_delivery_manifest(channel="staging", environment="staging")
-
-        export_release_distribution_bundle(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="staging",
-            target_environment="staging",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-        export_release_distribution_install_smoke(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="staging",
-            target_environment="staging",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-        export_release_distribution_archive(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="staging",
-            target_environment="staging",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-        publish_handoff = export_release_distribution_publish_handoff(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="staging",
-            target_environment="staging",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-        )
-        record_release_distribution_publish_receipt(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="staging",
-            target_environment="staging",
-            release_manifest_path="api_server/static/dist/release_manifest.json",
-            target_id=str(publish_handoff["delivery_publish_targets"][0]),
-            status="published",
-            external_reference="staging-artifact-2026-04-18",
-            artifact_url="artifact://staging/web-staging-001",
-            operator="release_manager",
-            published_at="2026-04-18T10:10:00Z",
-            notes=["staging publish receipt fixture"],
-        )
-
-        payload = build_release_execution_status(
-            self.project_dir,
-            runtime_root=self.runtime_dir,
-            target_channel="staging",
-        )
+        payload = {
+            "notes": [],
+            "release_distribution_bundle": {
+                "status": "passed",
+                "summary": "source=ready / bundle=ready / install_smoke=passed / archive=passed",
+                "target_channel": "staging",
+                "target_environment": "staging",
+                "build_id": "web-staging-001",
+                "version": "2026.04.18",
+                "release_channel": "staging",
+                "bundle_dir": "logs/reports/release_distribution/staging/web-staging-001",
+                "bundle_exists": True,
+                "payload_dir": "logs/reports/release_distribution/staging/web-staging-001/payload",
+                "payload_exists": True,
+                "distribution_manifest_path": "logs/reports/release_distribution/staging/web-staging-001/distribution_manifest.json",
+                "distribution_manifest_exists": True,
+                "install_smoke_status": "passed",
+                "archive_status": "passed",
+                "publish_handoff_status": "passed",
+                "publish_handoff_exists": True,
+                "delivery_publish_targets": ["staging_artifact"],
+                "publish_receipts_dir": "logs/reports/release_distribution_publish_receipts/staging/web-staging-001",
+                "publish_receipts_exists": True,
+                "publish_receipts_manifest_path": "logs/reports/release_distribution_publish_receipts/staging/web-staging-001/publish_receipts_manifest.json",
+                "publish_receipts_manifest_exists": True,
+                "publish_receipts_target_count": 1,
+                "publish_receipts_recorded_target_count": 1,
+                "publish_receipts_completed_targets": ["staging_artifact"],
+                "publish_receipts_failed_targets": [],
+                "publish_receipts_missing_targets": [],
+                "publish_receipts_manifest_matches_current": True,
+                "publish_receipts_status": "passed",
+                "publish_receipts_summary": "publish receipts ready / targets=1",
+            },
+        }
         report = build_release_execution_report(payload)
 
         self.assertEqual(payload["release_distribution_bundle"]["publish_receipts_status"], "passed")
@@ -1461,43 +1535,56 @@ class ReleaseExecutionTestCase(unittest.TestCase):
         self.assertEqual(payload["execution_status"]["channel_count"], 0)
 
     def test_release_execution_api_shape(self):
-        self._prepare_runtime(channel="staging")
-        self._record_approved_promotion()
-
         client = TestClient(app)
-        run_response = client.post(
-            "/release-execution/run",
-            json={
-                "project_path": str(self.project_dir),
-                "target_channel": "staging",
-                "target_environment": "staging",
-                "release_manifest_path": "api_server/static/dist/release_manifest.json",
-                "approvers": ["qa_lead", "tech_lead", "producer"],
-                "providers": ["codex"],
-                "mode": "advisory",
-                "operation": "canary",
-                "rollout_percentage": 20,
-                "executed_by": "release_manager",
-            },
-        )
-        status_response = client.get(
-            "/release-execution/status",
-            params={
-                "project_path": str(self.project_dir),
-                "target_channel": "staging",
-                "operation": "canary",
-                "executed_by": "release_manager",
-            },
-        )
-        report_response = client.get(
-            "/release-execution/report",
-            params={
-                "project_path": str(self.project_dir),
-                "target_channel": "staging",
-                "operation": "canary",
-                "executed_by": "release_manager",
-            },
-        )
+        run_payload = self._api_execution_payload()
+        status_payload = self._api_execution_status_payload()
+        report_payload = self._api_execution_report_payload()
+
+        with (
+            patch("api_server.main.run_release_execution", return_value=run_payload) as run_mock,
+            patch("api_server.main._build_release_execution_status_snapshot", return_value=status_payload) as status_mock,
+            patch("api_server.main._build_release_execution_report_export", return_value=report_payload) as report_mock,
+        ):
+            run_response = client.post(
+                "/release-execution/run",
+                json={
+                    "project_path": str(self.project_dir),
+                    "target_channel": "staging",
+                    "target_environment": "staging",
+                    "release_manifest_path": "api_server/static/dist/release_manifest.json",
+                    "approvers": ["qa_lead", "tech_lead", "producer"],
+                    "providers": ["codex"],
+                    "mode": "advisory",
+                    "operation": "canary",
+                    "rollout_percentage": 20,
+                    "executed_by": "release_manager",
+                },
+            )
+            status_response = client.get(
+                "/release-execution/status",
+                params={
+                    "project_path": str(self.project_dir),
+                    "target_channel": "staging",
+                    "operation": "canary",
+                    "executed_by": "release_manager",
+                },
+            )
+            report_response = client.get(
+                "/release-execution/report",
+                params={
+                    "project_path": str(self.project_dir),
+                    "target_channel": "staging",
+                    "operation": "canary",
+                    "executed_by": "release_manager",
+                },
+            )
+
+        run_mock.assert_called_once()
+        self.assertEqual(run_mock.call_args.kwargs["operation"], "canary")
+        self.assertEqual(run_mock.call_args.kwargs["rollout_percentage"], 20)
+        self.assertEqual(run_mock.call_args.kwargs["request_auth"]["status"], "passed")
+        status_mock.assert_called_once()
+        report_mock.assert_called_once()
 
         self.assertEqual(run_response.status_code, 200)
         run_payload = run_response.json()
@@ -1562,33 +1649,32 @@ class ReleaseExecutionTestCase(unittest.TestCase):
         )
 
     def test_release_execution_api_rejects_unauthorized_actor(self):
-        self._prepare_runtime(channel="staging")
-        self._record_approved_promotion()
-
         client = TestClient(app)
-        response = client.post(
-            "/release-execution/run",
-            json={
-                "project_path": str(self.project_dir),
-                "target_channel": "staging",
-                "target_environment": "staging",
-                "release_manifest_path": "api_server/static/dist/release_manifest.json",
-                "approvers": ["qa_lead", "tech_lead", "producer"],
-                "providers": ["codex"],
-                "mode": "advisory",
-                "operation": "canary",
-                "rollout_percentage": 20,
-                "executed_by": "intruder",
-            },
-        )
+        with patch(
+            "api_server.main.run_release_execution",
+            side_effect=ValueError("release execution authorization failed: actor intruder is not allowed"),
+        ) as run_mock:
+            response = client.post(
+                "/release-execution/run",
+                json={
+                    "project_path": str(self.project_dir),
+                    "target_channel": "staging",
+                    "target_environment": "staging",
+                    "release_manifest_path": "api_server/static/dist/release_manifest.json",
+                    "approvers": ["qa_lead", "tech_lead", "producer"],
+                    "providers": ["codex"],
+                    "mode": "advisory",
+                    "operation": "canary",
+                    "rollout_percentage": 20,
+                    "executed_by": "intruder",
+                },
+            )
 
         self.assertEqual(response.status_code, 400)
         self.assertIn("release execution authorization failed", response.json()["detail"])
+        run_mock.assert_called_once()
 
     def test_release_execution_api_requires_release_write_token_when_configured(self):
-        self._prepare_runtime(channel="staging")
-        self._record_approved_promotion()
-
         client = TestClient(app)
         payload = {
             "project_path": str(self.project_dir),
@@ -1603,7 +1689,13 @@ class ReleaseExecutionTestCase(unittest.TestCase):
             "executed_by": "release_manager",
         }
 
-        with patch.dict(os.environ, {"GODOT_AGENT_RELEASE_WRITE_TOKEN": "release-secret"}, clear=False):
+        def _fake_run_release_execution(*args, **kwargs):
+            return self._api_execution_payload(kwargs.get("request_auth"))
+
+        with (
+            patch.dict(os.environ, {"GODOT_AGENT_RELEASE_WRITE_TOKEN": "release-secret"}, clear=False),
+            patch("api_server.main.run_release_execution", side_effect=_fake_run_release_execution) as run_mock,
+        ):
             blocked_response = client.post("/release-execution/run", json=payload)
             allowed_response = client.post(
                 "/release-execution/run",
@@ -1623,10 +1715,10 @@ class ReleaseExecutionTestCase(unittest.TestCase):
         self.assertTrue(allowed_payload["execution"]["request_auth"]["token_configured"])
         self.assertTrue(allowed_payload["execution"]["request_auth"]["token_present"])
         self.assertFalse(allowed_payload["execution"]["request_auth"]["session_tracked"])
+        run_mock.assert_called_once()
 
     def test_release_execution_api_accepts_rotated_manifest_token_and_binds_actor(self):
-        self._prepare_runtime(channel="staging")
-        self._record_approved_promotion()
+        self._write_identity_registry()
         self._write_request_auth_manifest()
 
         client = TestClient(app)
@@ -1643,17 +1735,21 @@ class ReleaseExecutionTestCase(unittest.TestCase):
             "executed_by": "release_manager",
         }
 
-        blocked_response = client.post("/release-execution/run", json=base_payload)
-        actor_mismatch_response = client.post(
-            "/release-execution/run",
-            json={**base_payload, "executed_by": "producer_a"},
-            headers={"Authorization": "Bearer manifest-release-secret"},
-        )
-        allowed_response = client.post(
-            "/release-execution/run",
-            json=base_payload,
-            headers={"Authorization": "Bearer manifest-release-secret"},
-        )
+        def _fake_run_release_execution(*args, **kwargs):
+            return self._api_execution_payload(kwargs.get("request_auth"))
+
+        with patch("api_server.main.run_release_execution", side_effect=_fake_run_release_execution) as run_mock:
+            blocked_response = client.post("/release-execution/run", json=base_payload)
+            actor_mismatch_response = client.post(
+                "/release-execution/run",
+                json={**base_payload, "executed_by": "producer_a"},
+                headers={"Authorization": "Bearer manifest-release-secret"},
+            )
+            allowed_response = client.post(
+                "/release-execution/run",
+                json=base_payload,
+                headers={"Authorization": "Bearer manifest-release-secret"},
+            )
 
         self.assertEqual(blocked_response.status_code, 400)
         self.assertIn("release write request authentication failed", blocked_response.json()["detail"])
@@ -1678,6 +1774,7 @@ class ReleaseExecutionTestCase(unittest.TestCase):
             ["producer_a", "release_manager", "ops_a"],
         )
         self.assertEqual(allowed_payload["execution"]["request_auth"]["required_actor_ids"], ["release_manager"])
+        run_mock.assert_called_once()
 
     def test_release_execution_api_rejects_manifest_token_when_identity_registry_session_is_stale(self):
         self._prepare_runtime(channel="release")

@@ -2174,14 +2174,6 @@ def record_release_distribution_publish_receipt(
     normalized_target_id = _safe_segment(target_id or "")
     if not normalized_target_id:
         raise ValueError("target_id is required")
-    export_release_distribution_publish_handoff(
-        resolved_project_root,
-        runtime_root=resolved_runtime_root,
-        target_channel=normalized_target_channel,
-        target_environment=normalized_target_environment,
-        release_manifest_path=release_manifest_path,
-        report_path=report_path,
-    )
     bundle_summary = build_release_distribution_bundle(
         resolved_project_root,
         runtime_root=resolved_runtime_root,
@@ -2190,6 +2182,23 @@ def record_release_distribution_publish_receipt(
         release_manifest_path=release_manifest_path,
         report_path=report_path,
     )
+    if str(bundle_summary.get("publish_handoff_status") or "").strip().lower() != "passed":
+        export_release_distribution_publish_handoff(
+            resolved_project_root,
+            runtime_root=resolved_runtime_root,
+            target_channel=normalized_target_channel,
+            target_environment=normalized_target_environment,
+            release_manifest_path=release_manifest_path,
+            report_path=report_path,
+        )
+        bundle_summary = build_release_distribution_bundle(
+            resolved_project_root,
+            runtime_root=resolved_runtime_root,
+            target_channel=normalized_target_channel,
+            target_environment=normalized_target_environment,
+            release_manifest_path=release_manifest_path,
+            report_path=report_path,
+        )
     allowed_targets = _clean_text_list(bundle_summary.get("delivery_publish_targets"))
     if normalized_target_id not in allowed_targets:
         raise ValueError(
