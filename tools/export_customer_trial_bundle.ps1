@@ -28,10 +28,10 @@ function ConvertTo-ProcessArgument {
     param([string]$Value)
 
     $text = [string]$Value
-    if ($text -notmatch '[\s"]') {
+    if ($text -notmatch "[\s']") {
         return $text
     }
-    return '"' + ($text -replace '"', '\"') + '"'
+    return "'" + ($text -replace "'", "''") + "'"
 }
 
 function Invoke-BundleStep {
@@ -104,6 +104,7 @@ $resolvedPython = if (-not [string]::IsNullOrWhiteSpace($PythonCommand)) {
 $gateArtifactDir = Join-Path $resolvedOutputDir "gate"
 $manifestPath = Join-Path $resolvedOutputDir "customer_trial_bundle_manifest.json"
 $markdownPath = Join-Path $resolvedOutputDir "customer_trial_bundle.md"
+$rerunScriptPath = Join-Path $resolvedOutputDir "rerun_customer_trial.ps1"
 $steps = @()
 if ($SyncPluginBeforeDoctor) {
     $steps += [ordered]@{
@@ -158,6 +159,7 @@ if ($Preview) {
         output_dir = $resolvedOutputDir
         manifest_path = $manifestPath
         markdown_path = $markdownPath
+        rerun_script_path = $rerunScriptPath
         gate_mode = $GateMode
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         restore_prepared_fixture = [bool]$RestorePreparedFixture
@@ -195,6 +197,30 @@ try {
         Copy-EvidenceFile -SourcePath (Join-Path $gateArtifactDir "non_live_validation_shards.json") -RelativeDestination "gate\non_live_validation_shards.json"
         Copy-EvidenceFile -SourcePath (Join-Path $gateArtifactDir "non_live_validation_shards.md") -RelativeDestination "gate\non_live_validation_shards.md"
     ) | Where-Object { $null -ne $_ }
+
+    $rerunLines = @(
+        "param()",
+        "",
+        '$ErrorActionPreference = "Stop"',
+        ("Set-Location " + (ConvertTo-ProcessArgument -Value $repoRoot)),
+        ""
+    )
+    foreach ($step in $steps) {
+        $commandLine = "& " + (ConvertTo-ProcessArgument $step.command)
+        foreach ($argument in $step.arguments) {
+            $commandLine += " " + (ConvertTo-ProcessArgument $argument)
+        }
+        $rerunLines += "# $($step.label)"
+        $rerunLines += $commandLine
+        $rerunLines += ""
+    }
+    $rerunLines | Set-Content -Path $rerunScriptPath -Encoding utf8
+    $evidenceFiles += [ordered]@{
+        source = $rerunScriptPath
+        path = $rerunScriptPath
+        relative_path = "rerun_customer_trial.ps1"
+    }
+
     $doctorReport = Read-JsonFile -Path (Resolve-RepoPath "logs/reports/doctor_self_check.json")
     $livePreflightReport = Read-JsonFile -Path (Join-Path $gateArtifactDir "release_live_preflight.json")
     $recommendedActions = @()
@@ -229,6 +255,7 @@ try {
         generated_at = (Get-Date).ToUniversalTime().ToString("o")
         project_root = $repoRoot
         output_dir = $resolvedOutputDir
+        rerun_script_path = $rerunScriptPath
         gate_mode = $GateMode
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         restore_prepared_fixture = [bool]$RestorePreparedFixture

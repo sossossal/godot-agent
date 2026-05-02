@@ -182,6 +182,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["restore_prepared_fixture"])
         self.assertTrue(payload["sync_plugin_before_doctor"])
         self.assertTrue(payload["manifest_path"].endswith("customer_trial_bundle_manifest.json"))
+        self.assertTrue(payload["rerun_script_path"].endswith("rerun_customer_trial.ps1"))
         step_ids = [item["id"] for item in payload["steps"]]
         self.assertEqual(step_ids, ["sync_plugin", "doctor", "customer_gate"])
         sync_step = payload["steps"][0]
@@ -256,6 +257,12 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertIn("recommended_actions", payload)
             self.assertTrue(payload["recommended_actions"])
             self.assertTrue((output_dir / "customer_trial_bundle.md").exists())
+            rerun_script = output_dir / "rerun_customer_trial.ps1"
+            self.assertTrue(rerun_script.exists())
+            rerun_text = rerun_script.read_text(encoding="utf-8-sig")
+            self.assertIn(f"Set-Location {project_root}", rerun_text)
+            self.assertIn("Run customer trial gate", rerun_text)
+            self.assertIn("-ReleaseManifestPath missing/release_manifest.json", rerun_text)
         finally:
             shutil.rmtree(output_dir, ignore_errors=True)
 
