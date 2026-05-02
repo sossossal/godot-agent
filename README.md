@@ -93,6 +93,7 @@ python -m agent_system.cli roadmap --json
 .\tools\run_non_live_validation_shards.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -Preview
 .\tools\run_non_live_validation_shards.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -Profile quick
 .\tools\run_non_live_validation_shards.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -Profile release -ContinueOnFailure
+.\tools\run_non_live_validation_shards.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -Profile release -SlowShardSeconds 120 -FailOnSlowShards -ContinueOnFailure
 .\tools\run_non_live_validation_shards.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -Profile customer -SlowShardSeconds 60
 .\tools\run_non_live_validation_shards.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -Shard api,p19_cli_contracts
 .\tools\run_non_live_validation_shards.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -ContinueOnFailure
@@ -104,6 +105,7 @@ python -m agent_system.cli roadmap --json
 .\tools\run_pr_release_gate.ps1 -Stage release -Mode preflight -PythonCommand D:\actions-tools\Python312\python.exe
 .\tools\run_pr_release_gate.ps1 -Stage pr -PythonCommand D:\actions-tools\Python312\python.exe
 .\tools\run_pr_release_gate.ps1 -Stage release -PythonCommand D:\actions-tools\Python312\python.exe -ContinueOnFailure
+.\tools\run_pr_release_gate.ps1 -Stage release -PythonCommand D:\actions-tools\Python312\python.exe -FailOnSlowShards -ContinueOnFailure
 
 # 8.3 GitHub Actions 已接入 pr-release-gate：PR 默认跑轻量 preflight，手动 workflow_dispatch 可选择 full gate
 

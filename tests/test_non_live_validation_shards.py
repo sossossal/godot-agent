@@ -32,6 +32,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 "release",
                 "-SlowShardSeconds",
                 "1",
+                "-FailOnSlowShards",
                 "-Preview",
             ],
             capture_output=True,
@@ -47,6 +48,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["preview"])
         self.assertEqual(payload["profile"], "release")
         self.assertEqual(payload["slow_shard_threshold_seconds"], 1)
+        self.assertTrue(payload["fail_on_slow_shards"])
         shard_ids = [item["id"] for item in payload["shards"]]
         self.assertIn("release_live_ci", shard_ids)
         self.assertIn("promotion_history", shard_ids)
@@ -68,6 +70,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 "full",
                 "-PythonCommand",
                 sys.executable,
+                "-FailOnSlowShards",
                 "-Preview",
             ],
             capture_output=True,
@@ -84,8 +87,11 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertEqual(payload["stage"], "release")
         self.assertEqual(payload["mode"], "full")
         self.assertEqual(payload["non_live_profile"], "release")
+        self.assertTrue(payload["fail_on_slow_shards"])
         step_ids = [item["id"] for item in payload["steps"]]
         self.assertEqual(step_ids, ["git_diff_check", "non_live_validation", "release_live_preflight"])
+        non_live_step = payload["steps"][1]
+        self.assertIn("-FailOnSlowShards", non_live_step["arguments"])
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
     def test_pr_release_gate_preflight_mode_skips_non_live_shards(self):
@@ -128,6 +134,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertIn("$mode = \"preflight\"", workflow)
         self.assertIn(".\\tools\\run_pr_release_gate.ps1 @args", workflow)
         self.assertIn("logs/reports/pr_release_gate", workflow)
+        self.assertIn("fail_on_slow_shards", workflow)
+        self.assertIn("-FailOnSlowShards", workflow)
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
     def test_customer_trial_bundle_preview_runs_doctor_and_customer_gate(self):

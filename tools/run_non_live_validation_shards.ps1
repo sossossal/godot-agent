@@ -8,6 +8,7 @@ param(
     [string]$MarkdownPath = "logs/reports/non_live_validation_shards.md",
     [int]$ShardTimeoutSeconds = 1200,
     [int]$SlowShardSeconds = 180,
+    [switch]$FailOnSlowShards,
     [switch]$ContinueOnFailure,
     [switch]$Preview
 )
@@ -124,6 +125,7 @@ if ($Preview) {
         markdown_path = $resolvedMarkdownPath
         shard_timeout_seconds = $ShardTimeoutSeconds
         slow_shard_threshold_seconds = $SlowShardSeconds
+        fail_on_slow_shards = [bool]$FailOnSlowShards
         shards = $shards
     } | ConvertTo-Json -Depth 8
     exit 0
@@ -192,6 +194,9 @@ try {
                 }
             }
     )
+    if ($FailOnSlowShards -and $slowShards.Count -gt 0) {
+        $overallOk = $false
+    }
 
     $payload = [ordered]@{
         schema_version = "1.0"
@@ -205,6 +210,8 @@ try {
         shard_count = $results.Count
         total_duration_seconds = $totalDurationSeconds
         slow_shard_threshold_seconds = $SlowShardSeconds
+        fail_on_slow_shards = [bool]$FailOnSlowShards
+        slow_shard_gate = if ($FailOnSlowShards -and $slowShards.Count -gt 0) { "blocked" } elseif ($slowShards.Count -gt 0) { "warning" } else { "passed" }
         slow_shards = $slowShards
         recommended_followup_shards = @($slowShards | ForEach-Object { $_.id })
         failed_shards = @($results | Where-Object { $_.status -ne "passed" } | ForEach-Object { $_.id })
@@ -222,6 +229,7 @@ try {
         "- Shards: $($payload.shard_count)",
         "- Total seconds: $($payload.total_duration_seconds)",
         "- Slow threshold seconds: $($payload.slow_shard_threshold_seconds)",
+        "- Slow shard gate: $($payload.slow_shard_gate)",
         "- Slow shards: $((@($payload.recommended_followup_shards) -join ', '))",
         "- Failed: $((@($payload.failed_shards) -join ', '))",
         "",

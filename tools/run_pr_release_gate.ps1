@@ -8,6 +8,7 @@ param(
     [string]$ReleaseManifestPath = "api_server/static/dist/release_manifest.json",
     [string]$BrowserPath = "",
     [int]$SlowShardSeconds = 120,
+    [switch]$FailOnSlowShards,
     [switch]$ContinueOnFailure,
     [switch]$Preview
 )
@@ -107,6 +108,9 @@ $nonLiveArgs = @(
     "-MarkdownPath", $nonLiveMarkdownPath,
     "-SlowShardSeconds", ([string]$SlowShardSeconds)
 )
+if ($FailOnSlowShards) {
+    $nonLiveArgs += "-FailOnSlowShards"
+}
 if ($ContinueOnFailure) {
     $nonLiveArgs += "-ContinueOnFailure"
 }
@@ -152,6 +156,7 @@ if ($Preview) {
         markdown_path = $markdownReportPath
         non_live_report_path = $nonLiveReportPath
         release_live_preflight_report_path = $livePreflightReportPath
+        fail_on_slow_shards = [bool]$FailOnSlowShards
         steps = $stepPlan
     } | ConvertTo-Json -Depth 8
     exit 0
@@ -182,6 +187,8 @@ try {
                 profile = [string]$nonLiveReport.profile
                 shard_count = [int]$nonLiveReport.shard_count
                 total_duration_seconds = [double]$nonLiveReport.total_duration_seconds
+                slow_shard_gate = [string]$nonLiveReport.slow_shard_gate
+                fail_on_slow_shards = [bool]$nonLiveReport.fail_on_slow_shards
                 failed_shards = @($nonLiveReport.failed_shards)
                 slow_shards = @($nonLiveReport.slow_shards | ForEach-Object { $_.id })
                 report_path = $nonLiveReportPath
@@ -227,6 +234,8 @@ try {
         "- Status: $($payload.status)",
         "- Non-live profile: $nonLiveProfile",
         "- Blocked: $((@($payload.blocked_steps) -join ', '))",
+        "- Fail on slow shards: $([bool]$FailOnSlowShards)",
+        "- Non-live slow shard gate: $($evidence.non_live.slow_shard_gate)",
         "- Non-live failed shards: $((@($evidence.non_live.failed_shards) -join ', '))",
         "- Non-live slow shards: $((@($evidence.non_live.slow_shards) -join ', '))",
         "- Live preflight: $($evidence.release_live_preflight.status)",

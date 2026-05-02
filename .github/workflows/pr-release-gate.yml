@@ -31,6 +31,11 @@ on:
         required: true
         default: true
         type: boolean
+      fail_on_slow_shards:
+        description: Fail full gate when non-live shards exceed the slow threshold
+        required: true
+        default: false
+        type: boolean
 
 jobs:
   gate:
@@ -53,21 +58,26 @@ jobs:
           $stage = "${{ inputs.stage }}"
           $mode = "${{ inputs.mode }}"
           $continueOnFailure = "${{ inputs.continue_on_failure }}"
+          $failOnSlowShards = "${{ inputs.fail_on_slow_shards }}"
           if ("${{ github.event_name }}" -eq "pull_request") {
             $stage = "pr"
             $mode = "preflight"
             $continueOnFailure = "false"
+            $failOnSlowShards = "false"
           } elseif ("${{ github.event_name }}" -eq "push") {
             $stage = "merge"
             $mode = "preflight"
             $continueOnFailure = "false"
+            $failOnSlowShards = "false"
           }
           if ([string]::IsNullOrWhiteSpace($stage)) { $stage = "release" }
           if ([string]::IsNullOrWhiteSpace($mode)) { $mode = "preflight" }
           if ([string]::IsNullOrWhiteSpace($continueOnFailure)) { $continueOnFailure = "true" }
+          if ([string]::IsNullOrWhiteSpace($failOnSlowShards)) { $failOnSlowShards = "false" }
           "stage=$stage" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "mode=$mode" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "continue_on_failure=$continueOnFailure" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "fail_on_slow_shards=$failOnSlowShards" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Install dependencies for full gate
         if: steps.gate_inputs.outputs.mode == 'full'
@@ -80,6 +90,7 @@ jobs:
           GATE_STAGE: ${{ steps.gate_inputs.outputs.stage }}
           GATE_MODE: ${{ steps.gate_inputs.outputs.mode }}
           CONTINUE_ON_FAILURE: ${{ steps.gate_inputs.outputs.continue_on_failure }}
+          FAIL_ON_SLOW_SHARDS: ${{ steps.gate_inputs.outputs.fail_on_slow_shards }}
         run: |
           $args = @(
             "-Stage", $env:GATE_STAGE,
@@ -89,6 +100,9 @@ jobs:
           )
           if ($env:CONTINUE_ON_FAILURE -eq "true") {
             $args += "-ContinueOnFailure"
+          }
+          if ($env:FAIL_ON_SLOW_SHARDS -eq "true") {
+            $args += "-FailOnSlowShards"
           }
           .\tools\run_pr_release_gate.ps1 @args
 
