@@ -49,6 +49,7 @@ tests/test_report.json
 *~
 
 # Runtime artifacts
+.actions-runner/
 logs/
 .agent_result.json
 .godot/

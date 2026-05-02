@@ -99,7 +99,7 @@
     },
     "scenes/TestSprite.tscn": {
       "hash": "9a621a309bf8d33cee1a43ed425e208d",
-      "mtime": 1777135758.2104323,
+      "mtime": 1777211785.862027,
       "symbols": [],
       "refs": [],
       "deps": [],
@@ -243,7 +243,7 @@
     },
     "scenes/levels/live_validation_level.tscn": {
       "hash": "b283b17858847ba91084ea523050a70c",
-      "mtime": 1777135778.5458858,
+      "mtime": 1777211802.1420603,
       "symbols": [],
       "refs": [],
       "deps": [],
@@ -355,7 +355,7 @@
     },
     "scenes/levels/live_p8_level.tscn": {
       "hash": "24b8477d15138788d8b33a00b612f2a0",
-      "mtime": 1777135783.1394696,
+      "mtime": 1777211806.23284,
       "symbols": [],
       "refs": [],
       "deps": [],
@@ -363,7 +363,7 @@
     },
     "scripts/audio/live_ui_confirm_audio_router.gd": {
       "hash": "9bd91310bd16bbf14e69215c678f3d68",
-      "mtime": 1777135785.8172984,
+      "mtime": 1777211808.6018357,
       "symbols": [
         {
           "name": "LiveUiConfirmAudioRouter",
@@ -934,6 +934,1680 @@
       "refs": [],
       "deps": [],
       "type": "tscn"
+    },
+    "scenes/P7Live_1777211791.tscn": {
+      "hash": "5a03e782586ff2cdb9dfbeaaab3ed480",
+      "mtime": 1777211800.7441306,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/TestScene_1777211786.tscn": {
+      "hash": "4685001b5278e93cd91e58c66c6fe48f",
+      "mtime": 1777211786.3616638,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/WsProbe_1777211786.tscn": {
+      "hash": "e85b5b2c17ac750620bee26c7e1a78f1",
+      "mtime": 1777211787.5621634,
+      "symbols": [],
+      "refs": [],
+      "deps": [],
+      "type": "tscn"
+    },
+    "scenes/Enemy.tscn": {
+      "hash": "848a2df86bec749a684fd5bfcdc43028",
+      "mtime": 1777491630.714003,
+      "symbols": [],
+      "refs": [
+        {
+          "name": "scripts/enemy_runner.gd",
+          "type": "脚本路径",
+          "line": 3,
+          "column": 1,
+          "context": "node_script",
+          "scope": null
+        }
+      ],
+      "deps": [
+        "scripts/enemy_runner.gd"
+      ],
+      "type": "tscn"
+    },
+    "scenes/Main.tscn": {
+      "hash": "b8f52f2f543cede548a5704a44509a39",
+      "mtime": 1777491630.7109573,
+      "symbols": [],
+      "refs": [
+        {
+          "name": "scripts/main_controller.gd",
+          "type": "脚本路径",
+          "line": 3,
+          "column": 1,
+          "context": "node_script",
+          "scope": null
+        },
+        {
+          "name": "scripts/health_system.gd",
+          "type": "脚本路径",
+          "line": 3,
+          "column": 1,
+          "context": "node_script",
+          "scope": null
+        },
+        {
+          "name": "scripts/hud_controller.gd",
+          "type": "脚本路径",
+          "line": 3,
+          "column": 1,
+          "context": "node_script",
+          "scope": null
+        }
+      ],
+      "deps": [
+        "scenes/Player.tscn",
+        "scenes/Tower.tscn",
+        "scenes/Enemy.tscn",
+        "scripts/main_controller.gd",
+        "scripts/health_system.gd",
+        "scripts/hud_controller.gd"
+      ],
+      "type": "tscn"
+    },
+    "scenes/Player.tscn": {
+      "hash": "a09843bc2c8dcd657aad831a3a3e856d",
+      "mtime": 1777491630.7128386,
+      "symbols": [],
+      "refs": [
+        {
+          "name": "scripts/player_controller.gd",
+          "type": "脚本路径",
+          "line": 3,
+          "column": 1,
+          "context": "node_script",
+          "scope": null
+        }
+      ],
+      "deps": [
+        "scripts/player_controller.gd"
+      ],
+      "type": "tscn"
+    },
+    "scenes/Tower.tscn": {
+      "hash": "b71014259c51e0fe04ab933d20b68d3a",
+      "mtime": 1777491630.714003,
+      "symbols": [],
+      "refs": [
+        {
+          "name": "scripts/tower_controller.gd",
+          "type": "脚本路径",
+          "line": 3,
+          "column": 1,
+          "context": "node_script",
+          "scope": null
+        }
+      ],
+      "deps": [
+        "scripts/tower_controller.gd"
+      ],
+      "type": "tscn"
+    },
+    "scripts/enemy_runner.gd": {
+      "hash": "415e58d52f817921dd5b944fb93f761e",
+      "mtime": 1777491630.717635,
+      "symbols": [
+        {
+          "name": "base_reached",
+          "type": "信号",
+          "line": 3,
+          "column": 8,
+          "signature": "base_reached()"
+        },
+        {
+          "name": "_ready",
+          "type": "函数",
+          "line": 10,
+          "column": 6,
+          "signature": "_ready() -> void"
+        },
+        {
+          "name": "_process",
+          "type": "函数",
+          "line": 13,
+          "column": 6,
+          "signature": "_process(delta: float) -> void",
+          "args": [
+            "delta"
+          ]
+        },
+        {
+          "name": "take_damage",
+          "type": "函数",
+          "line": 18,
+          "column": 6,
+          "signature": "take_damage(amount: int = 1) -> void",
+          "args": [
+            "amount"
+          ]
+        },
+        {
+          "name": "reset_to_spawn",
+          "type": "函数",
+          "line": 23,
+          "column": 6,
+          "signature": "reset_to_spawn() -> void"
+        }
+      ],
+      "refs": [
+        {
+          "name": "extends",
+          "type": null,
+          "line": 1,
+          "column": 1,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "Area2D",
+          "type": "类",
+          "line": 1,
+          "column": 9,
+          "context": "extends",
+          "scope": null
+        },
+        {
+          "name": "signal",
+          "type": null,
+          "line": 3,
+          "column": 1,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "export",
+          "type": null,
+          "line": 5,
+          "column": 2,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 5,
+          "column": 9,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "export",
+          "type": null,
+          "line": 6,
+          "column": 2,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 6,
+          "column": 9,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "export",
+          "type": null,
+          "line": 7,
+          "column": 2,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 7,
+          "column": 9,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 8,
+          "column": 1,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "Vector2",
+          "type": null,
+          "line": 8,
+          "column": 24,
+          "context": "member",
+          "scope": null
+        },
+        {
+          "name": "func",
+          "type": null,
+          "line": 10,
+          "column": 1,
+          "context": "identifier",
+          "scope": "_ready"
+        },
+        {
+          "name": "void",
+          "type": null,
+          "line": 10,
+          "column": 18,
+          "context": "identifier",
+          "scope": "_ready"
+        },
+        {
+          "name": "_spawn_position",
+          "type": null,
+          "line": 11,
+          "column": 5,
+          "context": "identifier",
+          "scope": "_ready"
+        },
+        {
+          "name": "global_position",
+          "type": null,
+          "line": 11,
+          "column": 23,
+          "context": "identifier",
+          "scope": "_ready"
+        },
+        {
+          "name": "func",
+          "type": null,
+          "line": 13,
+          "column": 1,
+          "context": "identifier",
+          "scope": "_process"
+        },
+        {
+          "name": "float",
+          "type": "类",
+          "line": 13,
+          "column": 22,
+          "context": "type_hint",
+          "scope": "_process"
+        },
+        {
+          "name": "void",
+          "type": null,
+          "line": 13,
+          "column": 32,
+          "context": "identifier",
+          "scope": "_process"
+        },
+        {
+          "name": "global_position",
+          "type": null,
+          "line": 14,
+          "column": 5,
+          "context": "member",
+          "scope": "_process"
+        },
+        {
+          "name": "move_speed",
+          "type": null,
+          "line": 14,
+          "column": 26,
+          "context": "identifier",
+          "scope": "_process"
+        },
+        {
+          "name": "if",
+          "type": null,
+          "line": 15,
+          "column": 5,
+          "context": "identifier",
+          "scope": "_process"
+        },
+        {
+          "name": "global_position",
+          "type": null,
+          "line": 15,
+          "column": 8,
+          "context": "member",
+          "scope": "_process"
+        },
+        {
+          "name": "base_x",
+          "type": null,
+          "line": 15,
+          "column": 29,
+          "context": "identifier",
+          "scope": "_process"
+        },
+        {
+          "name": "base_reached",
+          "type": "信号",
+          "line": 16,
+          "column": 9,
+          "context": "member",
+          "scope": "_process"
+        },
+        {
+          "name": "func",
+          "type": null,
+          "line": 18,
+          "column": 1,
+          "context": "identifier",
+          "scope": "take_damage"
+        },
+        {
+          "name": "int",
+          "type": "类",
+          "line": 18,
+          "column": 26,
+          "context": "type_hint",
+          "scope": "take_damage"
+        },
+        {
+          "name": "void",
+          "type": null,
+          "line": 18,
+          "column": 38,
+          "context": "identifier",
+          "scope": "take_damage"
+        },
+        {
+          "name": "health",
+          "type": null,
+          "line": 19,
+          "column": 5,
+          "context": "identifier",
+          "scope": "take_damage"
+        },
+        {
+          "name": "if",
+          "type": null,
+          "line": 20,
+          "column": 5,
+          "context": "identifier",
+          "scope": "take_damage"
+        },
+        {
+          "name": "health",
+          "type": null,
+          "line": 20,
+          "column": 8,
+          "context": "identifier",
+          "scope": "take_damage"
+        },
+        {
+          "name": "reset_to_spawn",
+          "type": "函数",
+          "line": 21,
+          "column": 9,
+          "context": "call",
+          "scope": "take_damage"
+        },
+        {
+          "name": "func",
+          "type": null,
+          "line": 23,
+          "column": 1,
+          "context": "identifier",
+          "scope": "reset_to_spawn"
+        },
+        {
+          "name": "void",
+          "type": null,
+          "line": 23,
+          "column": 26,
+          "context": "identifier",
+          "scope": "reset_to_spawn"
+        },
+        {
+          "name": "global_position",
+          "type": null,
+          "line": 24,
+          "column": 5,
+          "context": "identifier",
+          "scope": "reset_to_spawn"
+        },
+        {
+          "name": "_spawn_position",
+          "type": null,
+          "line": 24,
+          "column": 23,
+          "context": "identifier",
+          "scope": "reset_to_spawn"
+        },
+        {
+          "name": "health",
+          "type": null,
+          "line": 25,
+          "column": 5,
+          "context": "identifier",
+          "scope": "reset_to_spawn"
+        }
+      ],
+      "deps": [],
+      "type": "gd",
+      "class_name": null
+    },
+    "scripts/health_system.gd": {
+      "hash": "17b774dc6c662d002a9c2caccdf14e04",
+      "mtime": 1777491630.717635,
+      "symbols": [
+        {
+          "name": "health_changed",
+          "type": "信号",
+          "line": 3,
+          "column": 8,
+          "signature": "health_changed(current_health: int)",
+          "args": [
+            "current_health"
+          ]
+        },
+        {
+          "name": "damage",
+          "type": "函数",
+          "line": 8,
+          "column": 6,
+          "signature": "damage(amount: int = 1) -> void",
+          "args": [
+            "amount"
+          ]
+        }
+      ],
+      "refs": [
+        {
+          "name": "extends",
+          "type": null,
+          "line": 1,
+          "column": 1,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "Node",
+          "type": "类",
+          "line": 1,
+          "column": 9,
+          "context": "extends",
+          "scope": null
+        },
+        {
+          "name": "signal",
+          "type": null,
+          "line": 3,
+          "column": 1,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "current_health",
+          "type": null,
+          "line": 3,
+          "column": 23,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "int",
+          "type": "类",
+          "line": 3,
+          "column": 39,
+          "context": "type_hint",
+          "scope": null
+        },
+        {
+          "name": "export",
+          "type": null,
+          "line": 5,
+          "column": 2,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 5,
+          "column": 9,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 6,
+          "column": 1,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "func",
+          "type": null,
+          "line": 8,
+          "column": 1,
+          "context": "identifier",
+          "scope": "damage"
+        },
+        {
+          "name": "int",
+          "type": "类",
+          "line": 8,
+          "column": 21,
+          "context": "type_hint",
+          "scope": "damage"
+        },
+        {
+          "name": "void",
+          "type": null,
+          "line": 8,
+          "column": 33,
+          "context": "identifier",
+          "scope": "damage"
+        },
+        {
+          "name": "current_health",
+          "type": null,
+          "line": 9,
+          "column": 5,
+          "context": "identifier",
+          "scope": "damage"
+        },
+        {
+          "name": "max",
+          "type": "函数",
+          "line": 9,
+          "column": 22,
+          "context": "call",
+          "scope": "damage"
+        },
+        {
+          "name": "current_health",
+          "type": null,
+          "line": 9,
+          "column": 26,
+          "context": "identifier",
+          "scope": "damage"
+        },
+        {
+          "name": "health_changed",
+          "type": "信号",
+          "line": 10,
+          "column": 5,
+          "context": "member",
+          "scope": "damage"
+        },
+        {
+          "name": "current_health",
+          "type": null,
+          "line": 10,
+          "column": 25,
+          "context": "identifier",
+          "scope": "damage"
+        }
+      ],
+      "deps": [],
+      "type": "gd",
+      "class_name": null
+    },
+    "scripts/hud_controller.gd": {
+      "hash": "e7af93c193c281356c5bb30f97e6e93c",
+      "mtime": 1777491630.7186954,
+      "symbols": [
+        {
+          "name": "set_resources",
+          "type": "函数",
+          "line": 6,
+          "column": 6,
+          "signature": "set_resources(resources: int) -> void",
+          "args": [
+            "resources"
+          ]
+        },
+        {
+          "name": "set_health",
+          "type": "函数",
+          "line": 9,
+          "column": 6,
+          "signature": "set_health(current_health: int) -> void",
+          "args": [
+            "current_health"
+          ]
+        }
+      ],
+      "refs": [
+        {
+          "name": "extends",
+          "type": null,
+          "line": 1,
+          "column": 1,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "CanvasLayer",
+          "type": "类",
+          "line": 1,
+          "column": 9,
+          "context": "extends",
+          "scope": null
+        },
+        {
+          "name": "onready",
+          "type": null,
+          "line": 3,
+          "column": 2,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 3,
+          "column": 10,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "Label",
+          "type": "类",
+          "line": 3,
+          "column": 27,
+          "context": "type_hint",
+          "scope": null
+        },
+        {
+          "name": "ScoreLabel",
+          "type": null,
+          "line": 3,
+          "column": 36,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "onready",
+          "type": null,
+          "line": 4,
+          "column": 2,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 4,
+          "column": 10,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "Label",
+          "type": "类",
+          "line": 4,
+          "column": 28,
+          "context": "type_hint",
+          "scope": null
+        },
+        {
+          "name": "HealthLabel",
+          "type": null,
+          "line": 4,
+          "column": 37,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "func",
+          "type": null,
+          "line": 6,
+          "column": 1,
+          "context": "identifier",
+          "scope": "set_resources"
+        },
+        {
+          "name": "int",
+          "type": "类",
+          "line": 6,
+          "column": 31,
+          "context": "type_hint",
+          "scope": "set_resources"
+        },
+        {
+          "name": "void",
+          "type": null,
+          "line": 6,
+          "column": 39,
+          "context": "identifier",
+          "scope": "set_resources"
+        },
+        {
+          "name": "score_label",
+          "type": null,
+          "line": 7,
+          "column": 5,
+          "context": "member",
+          "scope": "set_resources"
+        },
+        {
+          "name": "func",
+          "type": null,
+          "line": 9,
+          "column": 1,
+          "context": "identifier",
+          "scope": "set_health"
+        },
+        {
+          "name": "int",
+          "type": "类",
+          "line": 9,
+          "column": 33,
+          "context": "type_hint",
+          "scope": "set_health"
+        },
+        {
+          "name": "void",
+          "type": null,
+          "line": 9,
+          "column": 41,
+          "context": "identifier",
+          "scope": "set_health"
+        },
+        {
+          "name": "health_label",
+          "type": null,
+          "line": 10,
+          "column": 5,
+          "context": "member",
+          "scope": "set_health"
+        }
+      ],
+      "deps": [],
+      "type": "gd",
+      "class_name": null
+    },
+    "scripts/main_controller.gd": {
+      "hash": "5ce3b3c974dc7109fedf66da4b57b396",
+      "mtime": 1777491630.714003,
+      "symbols": [
+        {
+          "name": "_ready",
+          "type": "函数",
+          "line": 11,
+          "column": 6,
+          "signature": "_ready() -> void"
+        },
+        {
+          "name": "_on_tower_placed",
+          "type": "函数",
+          "line": 19,
+          "column": 6,
+          "signature": "_on_tower_placed(_position: Vector2) -> void",
+          "args": [
+            "_position"
+          ]
+        },
+        {
+          "name": "_on_tower_fired",
+          "type": "函数",
+          "line": 25,
+          "column": 6,
+          "signature": "_on_tower_fired() -> void"
+        },
+        {
+          "name": "_on_enemy_base_reached",
+          "type": "函数",
+          "line": 28,
+          "column": 6,
+          "signature": "_on_enemy_base_reached() -> void"
+        },
+        {
+          "name": "_on_health_changed",
+          "type": "函数",
+          "line": 32,
+          "column": 6,
+          "signature": "_on_health_changed(current_health: int) -> void",
+          "args": [
+            "current_health"
+          ]
+        }
+      ],
+      "refs": [
+        {
+          "name": "extends",
+          "type": null,
+          "line": 1,
+          "column": 1,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "Node2D",
+          "type": "类",
+          "line": 1,
+          "column": 9,
+          "context": "extends",
+          "scope": null
+        },
+        {
+          "name": "onready",
+          "type": null,
+          "line": 3,
+          "column": 2,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 3,
+          "column": 10,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "HUD",
+          "type": null,
+          "line": 3,
+          "column": 22,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "onready",
+          "type": null,
+          "line": 4,
+          "column": 2,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 4,
+          "column": 10,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "Health",
+          "type": null,
+          "line": 4,
+          "column": 25,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "onready",
+          "type": null,
+          "line": 5,
+          "column": 2,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 5,
+          "column": 10,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "Player",
+          "type": null,
+          "line": 5,
+          "column": 25,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "onready",
+          "type": null,
+          "line": 6,
+          "column": 2,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 6,
+          "column": 10,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "Tower",
+          "type": null,
+          "line": 6,
+          "column": 24,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "onready",
+          "type": null,
+          "line": 7,
+          "column": 2,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 7,
+          "column": 10,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "Enemy",
+          "type": null,
+          "line": 7,
+          "column": 24,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 9,
+          "column": 1,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "func",
+          "type": null,
+          "line": 11,
+          "column": 1,
+          "context": "identifier",
+          "scope": "_ready"
+        },
+        {
+          "name": "void",
+          "type": null,
+          "line": 11,
+          "column": 18,
+          "context": "identifier",
+          "scope": "_ready"
+        },
+        {
+          "name": "player",
+          "type": null,
+          "line": 12,
+          "column": 5,
+          "context": "member",
+          "scope": "_ready"
+        },
+        {
+          "name": "_on_tower_placed",
+          "type": null,
+          "line": 12,
+          "column": 33,
+          "context": "identifier",
+          "scope": "_ready"
+        },
+        {
+          "name": "tower",
+          "type": null,
+          "line": 13,
+          "column": 5,
+          "context": "member",
+          "scope": "_ready"
+        },
+        {
+          "name": "_on_tower_fired",
+          "type": null,
+          "line": 13,
+          "column": 25,
+          "context": "identifier",
+          "scope": "_ready"
+        },
+        {
+          "name": "enemy",
+          "type": null,
+          "line": 14,
+          "column": 5,
+          "context": "member",
+          "scope": "_ready"
+        },
+        {
+          "name": "_on_enemy_base_reached",
+          "type": null,
+          "line": 14,
+          "column": 32,
+          "context": "identifier",
+          "scope": "_ready"
+        },
+        {
+          "name": "health",
+          "type": null,
+          "line": 15,
+          "column": 5,
+          "context": "member",
+          "scope": "_ready"
+        },
+        {
+          "name": "_on_health_changed",
+          "type": null,
+          "line": 15,
+          "column": 35,
+          "context": "identifier",
+          "scope": "_ready"
+        },
+        {
+          "name": "hud",
+          "type": null,
+          "line": 16,
+          "column": 5,
+          "context": "member",
+          "scope": "_ready"
+        },
+        {
+          "name": "resources",
+          "type": null,
+          "line": 16,
+          "column": 23,
+          "context": "identifier",
+          "scope": "_ready"
+        },
+        {
+          "name": "hud",
+          "type": null,
+          "line": 17,
+          "column": 5,
+          "context": "member",
+          "scope": "_ready"
+        },
+        {
+          "name": "health",
+          "type": null,
+          "line": 17,
+          "column": 20,
+          "context": "member",
+          "scope": "_ready"
+        },
+        {
+          "name": "func",
+          "type": null,
+          "line": 19,
+          "column": 1,
+          "context": "identifier",
+          "scope": "_on_tower_placed"
+        },
+        {
+          "name": "Vector2",
+          "type": "类",
+          "line": 19,
+          "column": 34,
+          "context": "type_hint",
+          "scope": "_on_tower_placed"
+        },
+        {
+          "name": "void",
+          "type": null,
+          "line": 19,
+          "column": 46,
+          "context": "identifier",
+          "scope": "_on_tower_placed"
+        },
+        {
+          "name": "if",
+          "type": null,
+          "line": 20,
+          "column": 5,
+          "context": "identifier",
+          "scope": "_on_tower_placed"
+        },
+        {
+          "name": "resources",
+          "type": null,
+          "line": 20,
+          "column": 8,
+          "context": "identifier",
+          "scope": "_on_tower_placed"
+        },
+        {
+          "name": "return",
+          "type": null,
+          "line": 21,
+          "column": 9,
+          "context": "identifier",
+          "scope": "_on_tower_placed"
+        },
+        {
+          "name": "resources",
+          "type": null,
+          "line": 22,
+          "column": 5,
+          "context": "identifier",
+          "scope": "_on_tower_placed"
+        },
+        {
+          "name": "hud",
+          "type": null,
+          "line": 23,
+          "column": 5,
+          "context": "member",
+          "scope": "_on_tower_placed"
+        },
+        {
+          "name": "resources",
+          "type": null,
+          "line": 23,
+          "column": 23,
+          "context": "identifier",
+          "scope": "_on_tower_placed"
+        },
+        {
+          "name": "func",
+          "type": null,
+          "line": 25,
+          "column": 1,
+          "context": "identifier",
+          "scope": "_on_tower_fired"
+        },
+        {
+          "name": "void",
+          "type": null,
+          "line": 25,
+          "column": 27,
+          "context": "identifier",
+          "scope": "_on_tower_fired"
+        },
+        {
+          "name": "enemy",
+          "type": null,
+          "line": 26,
+          "column": 5,
+          "context": "member",
+          "scope": "_on_tower_fired"
+        },
+        {
+          "name": "func",
+          "type": null,
+          "line": 28,
+          "column": 1,
+          "context": "identifier",
+          "scope": "_on_enemy_base_reached"
+        },
+        {
+          "name": "void",
+          "type": null,
+          "line": 28,
+          "column": 34,
+          "context": "identifier",
+          "scope": "_on_enemy_base_reached"
+        },
+        {
+          "name": "health",
+          "type": null,
+          "line": 29,
+          "column": 5,
+          "context": "member",
+          "scope": "_on_enemy_base_reached"
+        },
+        {
+          "name": "enemy",
+          "type": null,
+          "line": 30,
+          "column": 5,
+          "context": "member",
+          "scope": "_on_enemy_base_reached"
+        },
+        {
+          "name": "func",
+          "type": null,
+          "line": 32,
+          "column": 1,
+          "context": "identifier",
+          "scope": "_on_health_changed"
+        },
+        {
+          "name": "int",
+          "type": "类",
+          "line": 32,
+          "column": 41,
+          "context": "type_hint",
+          "scope": "_on_health_changed"
+        },
+        {
+          "name": "void",
+          "type": null,
+          "line": 32,
+          "column": 49,
+          "context": "identifier",
+          "scope": "_on_health_changed"
+        },
+        {
+          "name": "hud",
+          "type": null,
+          "line": 33,
+          "column": 5,
+          "context": "member",
+          "scope": "_on_health_changed"
+        }
+      ],
+      "deps": [],
+      "type": "gd",
+      "class_name": null
+    },
+    "scripts/player_controller.gd": {
+      "hash": "05608069e95bc36134d3bf42379eaa00",
+      "mtime": 1777491630.7156188,
+      "symbols": [
+        {
+          "name": "tower_placed",
+          "type": "信号",
+          "line": 3,
+          "column": 8,
+          "signature": "tower_placed(location: Vector2)",
+          "args": [
+            "location"
+          ]
+        },
+        {
+          "name": "_physics_process",
+          "type": "函数",
+          "line": 7,
+          "column": 6,
+          "signature": "_physics_process(_delta: float) -> void",
+          "args": [
+            "_delta"
+          ]
+        }
+      ],
+      "refs": [
+        {
+          "name": "extends",
+          "type": null,
+          "line": 1,
+          "column": 1,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "CharacterBody2D",
+          "type": "类",
+          "line": 1,
+          "column": 9,
+          "context": "extends",
+          "scope": null
+        },
+        {
+          "name": "signal",
+          "type": null,
+          "line": 3,
+          "column": 1,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "location",
+          "type": null,
+          "line": 3,
+          "column": 21,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "Vector2",
+          "type": "类",
+          "line": 3,
+          "column": 31,
+          "context": "type_hint",
+          "scope": null
+        },
+        {
+          "name": "export",
+          "type": null,
+          "line": 5,
+          "column": 2,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 5,
+          "column": 9,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "func",
+          "type": null,
+          "line": 7,
+          "column": 1,
+          "context": "identifier",
+          "scope": "_physics_process"
+        },
+        {
+          "name": "float",
+          "type": "类",
+          "line": 7,
+          "column": 31,
+          "context": "type_hint",
+          "scope": "_physics_process"
+        },
+        {
+          "name": "void",
+          "type": null,
+          "line": 7,
+          "column": 41,
+          "context": "identifier",
+          "scope": "_physics_process"
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 8,
+          "column": 5,
+          "context": "identifier",
+          "scope": "_physics_process"
+        },
+        {
+          "name": "Vector2",
+          "type": "函数",
+          "line": 8,
+          "column": 25,
+          "context": "call",
+          "scope": "_physics_process"
+        },
+        {
+          "name": "Input",
+          "type": null,
+          "line": 9,
+          "column": 9,
+          "context": "member",
+          "scope": "_physics_process"
+        },
+        {
+          "name": "Input",
+          "type": null,
+          "line": 10,
+          "column": 9,
+          "context": "member",
+          "scope": "_physics_process"
+        },
+        {
+          "name": "velocity",
+          "type": null,
+          "line": 12,
+          "column": 5,
+          "context": "identifier",
+          "scope": "_physics_process"
+        },
+        {
+          "name": "speed",
+          "type": null,
+          "line": 12,
+          "column": 44,
+          "context": "identifier",
+          "scope": "_physics_process"
+        },
+        {
+          "name": "move_and_slide",
+          "type": "函数",
+          "line": 13,
+          "column": 5,
+          "context": "call",
+          "scope": "_physics_process"
+        },
+        {
+          "name": "if",
+          "type": null,
+          "line": 14,
+          "column": 5,
+          "context": "identifier",
+          "scope": "_physics_process"
+        },
+        {
+          "name": "Input",
+          "type": null,
+          "line": 14,
+          "column": 8,
+          "context": "member",
+          "scope": "_physics_process"
+        },
+        {
+          "name": "tower_placed",
+          "type": "信号",
+          "line": 15,
+          "column": 9,
+          "context": "member",
+          "scope": "_physics_process"
+        },
+        {
+          "name": "global_position",
+          "type": null,
+          "line": 15,
+          "column": 27,
+          "context": "identifier",
+          "scope": "_physics_process"
+        }
+      ],
+      "deps": [],
+      "type": "gd",
+      "class_name": null
+    },
+    "scripts/tower_controller.gd": {
+      "hash": "21d5f73773a0d4fd951b1de1dfeffbe1",
+      "mtime": 1777491630.7166257,
+      "symbols": [
+        {
+          "name": "fired",
+          "type": "信号",
+          "line": 3,
+          "column": 8,
+          "signature": "fired()"
+        },
+        {
+          "name": "_process",
+          "type": "函数",
+          "line": 8,
+          "column": 6,
+          "signature": "_process(delta: float) -> void",
+          "args": [
+            "delta"
+          ]
+        }
+      ],
+      "refs": [
+        {
+          "name": "extends",
+          "type": null,
+          "line": 1,
+          "column": 1,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "Area2D",
+          "type": "类",
+          "line": 1,
+          "column": 9,
+          "context": "extends",
+          "scope": null
+        },
+        {
+          "name": "signal",
+          "type": null,
+          "line": 3,
+          "column": 1,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "export",
+          "type": null,
+          "line": 5,
+          "column": 2,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 5,
+          "column": 9,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "var",
+          "type": null,
+          "line": 6,
+          "column": 1,
+          "context": "identifier",
+          "scope": null
+        },
+        {
+          "name": "func",
+          "type": null,
+          "line": 8,
+          "column": 1,
+          "context": "identifier",
+          "scope": "_process"
+        },
+        {
+          "name": "float",
+          "type": "类",
+          "line": 8,
+          "column": 22,
+          "context": "type_hint",
+          "scope": "_process"
+        },
+        {
+          "name": "void",
+          "type": null,
+          "line": 8,
+          "column": 32,
+          "context": "identifier",
+          "scope": "_process"
+        },
+        {
+          "name": "_cooldown_left",
+          "type": null,
+          "line": 9,
+          "column": 5,
+          "context": "identifier",
+          "scope": "_process"
+        },
+        {
+          "name": "max",
+          "type": "函数",
+          "line": 9,
+          "column": 22,
+          "context": "call",
+          "scope": "_process"
+        },
+        {
+          "name": "_cooldown_left",
+          "type": null,
+          "line": 9,
+          "column": 26,
+          "context": "identifier",
+          "scope": "_process"
+        },
+        {
+          "name": "if",
+          "type": null,
+          "line": 10,
+          "column": 5,
+          "context": "identifier",
+          "scope": "_process"
+        },
+        {
+          "name": "_cooldown_left",
+          "type": null,
+          "line": 10,
+          "column": 8,
+          "context": "identifier",
+          "scope": "_process"
+        },
+        {
+          "name": "return",
+          "type": null,
+          "line": 11,
+          "column": 9,
+          "context": "identifier",
+          "scope": "_process"
+        },
+        {
+          "name": "for",
+          "type": null,
+          "line": 12,
+          "column": 5,
+          "context": "identifier",
+          "scope": "_process"
+        },
+        {
+          "name": "in",
+          "type": null,
+          "line": 12,
+          "column": 14,
+          "context": "identifier",
+          "scope": "_process"
+        },
+        {
+          "name": "get_overlapping_areas",
+          "type": "函数",
+          "line": 12,
+          "column": 17,
+          "context": "call",
+          "scope": "_process"
+        },
+        {
+          "name": "if",
+          "type": null,
+          "line": 13,
+          "column": 9,
+          "context": "identifier",
+          "scope": "_process"
+        },
+        {
+          "name": "_cooldown_left",
+          "type": null,
+          "line": 14,
+          "column": 13,
+          "context": "identifier",
+          "scope": "_process"
+        },
+        {
+          "name": "cooldown",
+          "type": null,
+          "line": 14,
+          "column": 30,
+          "context": "identifier",
+          "scope": "_process"
+        },
+        {
+          "name": "fired",
+          "type": "信号",
+          "line": 15,
+          "column": 13,
+          "context": "member",
+          "scope": "_process"
+        },
+        {
+          "name": "return",
+          "type": null,
+          "line": 16,
+          "column": 13,
+          "context": "identifier",
+          "scope": "_process"
+        }
+      ],
+      "deps": [],
+      "type": "gd",
+      "class_name": null
     }
   },
   "scenes": {
@@ -2533,11 +4207,232 @@
           "parent": null
         }
       ]
+    },
+    "scenes/P7Live_1777211791.tscn": {
+      "nodes": [
+        {
+          "name": "SandboxMain",
+          "type": "Node2D",
+          "parent": null
+        },
+        {
+          "name": "P7ParentA_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentA_1775983686"
+        },
+        {
+          "name": "P7ParentB_1775983686",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1775983686",
+          "type": "Node2D",
+          "parent": "P7ParentB_1775983686"
+        },
+        {
+          "name": "P7ParentA_1777211791",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7Child_1777211791",
+          "type": "Node2D",
+          "parent": "P7ParentA_1777211791"
+        },
+        {
+          "name": "P7ParentB_1777211791",
+          "type": "Node2D",
+          "parent": "."
+        },
+        {
+          "name": "P7ChildRenamed_1777211791",
+          "type": "Node2D",
+          "parent": "P7ParentB_1777211791"
+        },
+        {
+          "name": "P7ParentA_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1777211791/P7SandboxInstance_1777211791"
+        },
+        {
+          "name": "P7ParentB_1775983687",
+          "type": "Node2D",
+          "parent": "P7ParentB_1777211791/P7SandboxInstance_1777211791"
+        }
+      ]
+    },
+    "scenes/TestScene_1777211786.tscn": {
+      "nodes": [
+        {
+          "name": "TestScene_1777211786",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/WsProbe_1777211786.tscn": {
+      "nodes": [
+        {
+          "name": "WsProbe_1777211786",
+          "type": "Node2D",
+          "parent": null
+        }
+      ]
+    },
+    "scenes/Enemy.tscn": {
+      "nodes": [
+        {
+          "name": "Enemy",
+          "type": "Area2D",
+          "parent": null,
+          "script": "scripts/enemy_runner.gd"
+        },
+        {
+          "name": "CollisionShape2D",
+          "type": "CollisionShape2D",
+          "parent": "."
+        },
+        {
+          "name": "EnemyVisual",
+          "type": "Polygon2D",
+          "parent": "."
+        }
+      ]
+    },
+    "scenes/Main.tscn": {
+      "nodes": [
+        {
+          "name": "Main",
+          "type": "Node2D",
+          "parent": null,
+          "script": "scripts/main_controller.gd"
+        },
+        {
+          "name": "DefenseLane",
+          "type": "Polygon2D",
+          "parent": "."
+        },
+        {
+          "name": "Base",
+          "type": "Area2D",
+          "parent": "."
+        },
+        {
+          "name": "CollisionShape2D",
+          "type": "CollisionShape2D",
+          "parent": "Base"
+        },
+        {
+          "name": "BaseVisual",
+          "type": "Polygon2D",
+          "parent": "Base"
+        },
+        {
+          "name": "Health",
+          "type": "Node",
+          "parent": ".",
+          "script": "scripts/health_system.gd"
+        },
+        {
+          "name": "HUD",
+          "type": "CanvasLayer",
+          "parent": ".",
+          "script": "scripts/hud_controller.gd"
+        },
+        {
+          "name": "ScoreLabel",
+          "type": "Label",
+          "parent": "HUD"
+        },
+        {
+          "name": "HealthLabel",
+          "type": "Label",
+          "parent": "HUD"
+        },
+        {
+          "name": "Camera2D",
+          "type": "Camera2D",
+          "parent": "."
+        }
+      ]
+    },
+    "scenes/Player.tscn": {
+      "nodes": [
+        {
+          "name": "Player",
+          "type": "CharacterBody2D",
+          "parent": null,
+          "script": "scripts/player_controller.gd"
+        },
+        {
+          "name": "CollisionShape2D",
+          "type": "CollisionShape2D",
+          "parent": "."
+        },
+        {
+          "name": "CursorVisual",
+          "type": "Polygon2D",
+          "parent": "."
+        }
+      ]
+    },
+    "scenes/Tower.tscn": {
+      "nodes": [
+        {
+          "name": "Tower",
+          "type": "Area2D",
+          "parent": null,
+          "script": "scripts/tower_controller.gd"
+        },
+        {
+          "name": "CollisionShape2D",
+          "type": "CollisionShape2D",
+          "parent": "."
+        },
+        {
+          "name": "TowerVisual",
+          "type": "Polygon2D",
+          "parent": "."
+        }
+      ]
     }
   },
   "graph": {
     "assets/audio/live_ui_confirm.ogg": [
       "scripts/audio/live_ui_confirm_audio_router.gd"
+    ],
+    "scripts/enemy_runner.gd": [
+      "scenes/Enemy.tscn"
+    ],
+    "scripts/hud_controller.gd": [
+      "scenes/Main.tscn"
+    ],
+    "scripts/main_controller.gd": [
+      "scenes/Main.tscn"
+    ],
+    "scenes/Tower.tscn": [
+      "scenes/Main.tscn"
+    ],
+    "scenes/Enemy.tscn": [
+      "scenes/Main.tscn"
+    ],
+    "scenes/Player.tscn": [
+      "scenes/Main.tscn"
+    ],
+    "scripts/health_system.gd": [
+      "scenes/Main.tscn"
+    ],
+    "scripts/player_controller.gd": [
+      "scenes/Player.tscn"
+    ],
+    "scripts/tower_controller.gd": [
+      "scenes/Tower.tscn"
     ]
   },
   "symbol_definitions": {
@@ -2545,6 +4440,20 @@
       {
         "path": "scripts/sandbox_root.gd",
         "line": 4,
+        "column": 6,
+        "type": "函数",
+        "signature": "_ready() -> void"
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 10,
+        "column": 6,
+        "type": "函数",
+        "signature": "_ready() -> void"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 11,
         "column": 6,
         "type": "函数",
         "signature": "_ready() -> void"
@@ -2567,6 +4476,148 @@
         "type": "函数",
         "signature": "play_event(event_name: String, parent: Node = self) -> Node"
       }
+    ],
+    "信号::base_reached": [
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 3,
+        "column": 8,
+        "type": "信号",
+        "signature": "base_reached()"
+      }
+    ],
+    "函数::_process": [
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 13,
+        "column": 6,
+        "type": "函数",
+        "signature": "_process(delta: float) -> void"
+      },
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 8,
+        "column": 6,
+        "type": "函数",
+        "signature": "_process(delta: float) -> void"
+      }
+    ],
+    "函数::take_damage": [
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 18,
+        "column": 6,
+        "type": "函数",
+        "signature": "take_damage(amount: int = 1) -> void"
+      }
+    ],
+    "函数::reset_to_spawn": [
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 23,
+        "column": 6,
+        "type": "函数",
+        "signature": "reset_to_spawn() -> void"
+      }
+    ],
+    "信号::health_changed": [
+      {
+        "path": "scripts/health_system.gd",
+        "line": 3,
+        "column": 8,
+        "type": "信号",
+        "signature": "health_changed(current_health: int)"
+      }
+    ],
+    "函数::damage": [
+      {
+        "path": "scripts/health_system.gd",
+        "line": 8,
+        "column": 6,
+        "type": "函数",
+        "signature": "damage(amount: int = 1) -> void"
+      }
+    ],
+    "函数::set_resources": [
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 6,
+        "column": 6,
+        "type": "函数",
+        "signature": "set_resources(resources: int) -> void"
+      }
+    ],
+    "函数::set_health": [
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 9,
+        "column": 6,
+        "type": "函数",
+        "signature": "set_health(current_health: int) -> void"
+      }
+    ],
+    "函数::_on_tower_placed": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 19,
+        "column": 6,
+        "type": "函数",
+        "signature": "_on_tower_placed(_position: Vector2) -> void"
+      }
+    ],
+    "函数::_on_tower_fired": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 25,
+        "column": 6,
+        "type": "函数",
+        "signature": "_on_tower_fired() -> void"
+      }
+    ],
+    "函数::_on_enemy_base_reached": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 28,
+        "column": 6,
+        "type": "函数",
+        "signature": "_on_enemy_base_reached() -> void"
+      }
+    ],
+    "函数::_on_health_changed": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 32,
+        "column": 6,
+        "type": "函数",
+        "signature": "_on_health_changed(current_health: int) -> void"
+      }
+    ],
+    "信号::tower_placed": [
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 3,
+        "column": 8,
+        "type": "信号",
+        "signature": "tower_placed(location: Vector2)"
+      }
+    ],
+    "函数::_physics_process": [
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 7,
+        "column": 6,
+        "type": "函数",
+        "signature": "_physics_process(_delta: float) -> void"
+      }
+    ],
+    "信号::fired": [
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 3,
+        "column": 8,
+        "type": "信号",
+        "signature": "fired()"
+      }
     ]
   },
   "symbol_references": {
@@ -2586,11 +4637,67 @@
         "type": null,
         "context": "identifier",
         "scope": null
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 1,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/health_system.gd",
+        "line": 1,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 1,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 1,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 1,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 1,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": null
       }
     ],
     "类::Node2D": [
       {
         "path": "scripts/sandbox_root.gd",
+        "line": 1,
+        "column": 9,
+        "type": "类",
+        "context": "extends",
+        "scope": null
+      },
+      {
+        "path": "scripts/main_controller.gd",
         "line": 1,
         "column": 9,
         "type": "类",
@@ -2614,6 +4721,118 @@
         "type": null,
         "context": "identifier",
         "scope": "play_event"
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 10,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": "_ready"
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 13,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": "_process"
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 18,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": "take_damage"
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 23,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": "reset_to_spawn"
+      },
+      {
+        "path": "scripts/health_system.gd",
+        "line": 8,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": "damage"
+      },
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 6,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": "set_resources"
+      },
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 9,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": "set_health"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 11,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": "_ready"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 19,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": "_on_tower_placed"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 25,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": "_on_tower_fired"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 28,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": "_on_enemy_base_reached"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 32,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": "_on_health_changed"
+      },
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 7,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": "_physics_process"
+      },
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 8,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": "_process"
       }
     ],
     "*::void": [
@@ -2624,6 +4843,118 @@
         "type": null,
         "context": "identifier",
         "scope": "_ready"
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 10,
+        "column": 18,
+        "type": null,
+        "context": "identifier",
+        "scope": "_ready"
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 13,
+        "column": 32,
+        "type": null,
+        "context": "identifier",
+        "scope": "_process"
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 18,
+        "column": 38,
+        "type": null,
+        "context": "identifier",
+        "scope": "take_damage"
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 23,
+        "column": 26,
+        "type": null,
+        "context": "identifier",
+        "scope": "reset_to_spawn"
+      },
+      {
+        "path": "scripts/health_system.gd",
+        "line": 8,
+        "column": 33,
+        "type": null,
+        "context": "identifier",
+        "scope": "damage"
+      },
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 6,
+        "column": 39,
+        "type": null,
+        "context": "identifier",
+        "scope": "set_resources"
+      },
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 9,
+        "column": 41,
+        "type": null,
+        "context": "identifier",
+        "scope": "set_health"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 11,
+        "column": 18,
+        "type": null,
+        "context": "identifier",
+        "scope": "_ready"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 19,
+        "column": 46,
+        "type": null,
+        "context": "identifier",
+        "scope": "_on_tower_placed"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 25,
+        "column": 27,
+        "type": null,
+        "context": "identifier",
+        "scope": "_on_tower_fired"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 28,
+        "column": 34,
+        "type": null,
+        "context": "identifier",
+        "scope": "_on_enemy_base_reached"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 32,
+        "column": 49,
+        "type": null,
+        "context": "identifier",
+        "scope": "_on_health_changed"
+      },
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 7,
+        "column": 41,
+        "type": null,
+        "context": "identifier",
+        "scope": "_physics_process"
+      },
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 8,
+        "column": 32,
+        "type": null,
+        "context": "identifier",
+        "scope": "_process"
       }
     ],
     "*::process_mode": [
@@ -2670,6 +5001,14 @@
         "type": "类",
         "context": "type_hint",
         "scope": "play_event"
+      },
+      {
+        "path": "scripts/health_system.gd",
+        "line": 1,
+        "column": 9,
+        "type": "类",
+        "context": "extends",
+        "scope": null
       }
     ],
     "*::class_name": [
@@ -2686,6 +5025,54 @@
       {
         "path": "scripts/audio/live_ui_confirm_audio_router.gd",
         "line": 6,
+        "column": 2,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 5,
+        "column": 2,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 6,
+        "column": 2,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 7,
+        "column": 2,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/health_system.gd",
+        "line": 5,
+        "column": 2,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 5,
+        "column": 2,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 5,
         "column": 2,
         "type": null,
         "context": "identifier",
@@ -2708,6 +5095,150 @@
         "type": null,
         "context": "identifier",
         "scope": "play_event"
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 5,
+        "column": 9,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 6,
+        "column": 9,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 7,
+        "column": 9,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 8,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/health_system.gd",
+        "line": 5,
+        "column": 9,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/health_system.gd",
+        "line": 6,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 3,
+        "column": 10,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 4,
+        "column": 10,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 3,
+        "column": 10,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 4,
+        "column": 10,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 5,
+        "column": 10,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 6,
+        "column": 10,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 7,
+        "column": 10,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 9,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 5,
+        "column": 9,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 8,
+        "column": 5,
+        "type": null,
+        "context": "identifier",
+        "scope": "_physics_process"
+      },
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 5,
+        "column": 9,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 6,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": null
       }
     ],
     "类::AudioStream": [
@@ -2776,6 +5307,54 @@
         "type": null,
         "context": "identifier",
         "scope": "play_event"
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 15,
+        "column": 5,
+        "type": null,
+        "context": "identifier",
+        "scope": "_process"
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 20,
+        "column": 5,
+        "type": null,
+        "context": "identifier",
+        "scope": "take_damage"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 20,
+        "column": 5,
+        "type": null,
+        "context": "identifier",
+        "scope": "_on_tower_placed"
+      },
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 14,
+        "column": 5,
+        "type": null,
+        "context": "identifier",
+        "scope": "_physics_process"
+      },
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 10,
+        "column": 5,
+        "type": null,
+        "context": "identifier",
+        "scope": "_process"
+      },
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 13,
+        "column": 9,
+        "type": null,
+        "context": "identifier",
+        "scope": "_process"
       }
     ],
     "*::not": [
@@ -2840,6 +5419,30 @@
         "type": null,
         "context": "identifier",
         "scope": "play_event"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 21,
+        "column": 9,
+        "type": null,
+        "context": "identifier",
+        "scope": "_on_tower_placed"
+      },
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 11,
+        "column": 9,
+        "type": null,
+        "context": "identifier",
+        "scope": "_process"
+      },
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 16,
+        "column": 13,
+        "type": null,
+        "context": "identifier",
+        "scope": "_process"
       }
     ],
     "*::null": [
@@ -2907,7 +5510,945 @@
         "context": "identifier",
         "scope": "play_event"
       }
+    ],
+    "脚本路径::scripts/enemy_runner.gd": [
+      {
+        "path": "scenes/Enemy.tscn",
+        "line": 3,
+        "column": 1,
+        "type": "脚本路径",
+        "context": "node_script",
+        "scope": null
+      }
+    ],
+    "脚本路径::scripts/main_controller.gd": [
+      {
+        "path": "scenes/Main.tscn",
+        "line": 3,
+        "column": 1,
+        "type": "脚本路径",
+        "context": "node_script",
+        "scope": null
+      }
+    ],
+    "脚本路径::scripts/health_system.gd": [
+      {
+        "path": "scenes/Main.tscn",
+        "line": 3,
+        "column": 1,
+        "type": "脚本路径",
+        "context": "node_script",
+        "scope": null
+      }
+    ],
+    "脚本路径::scripts/hud_controller.gd": [
+      {
+        "path": "scenes/Main.tscn",
+        "line": 3,
+        "column": 1,
+        "type": "脚本路径",
+        "context": "node_script",
+        "scope": null
+      }
+    ],
+    "脚本路径::scripts/player_controller.gd": [
+      {
+        "path": "scenes/Player.tscn",
+        "line": 3,
+        "column": 1,
+        "type": "脚本路径",
+        "context": "node_script",
+        "scope": null
+      }
+    ],
+    "脚本路径::scripts/tower_controller.gd": [
+      {
+        "path": "scenes/Tower.tscn",
+        "line": 3,
+        "column": 1,
+        "type": "脚本路径",
+        "context": "node_script",
+        "scope": null
+      }
+    ],
+    "类::Area2D": [
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 1,
+        "column": 9,
+        "type": "类",
+        "context": "extends",
+        "scope": null
+      },
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 1,
+        "column": 9,
+        "type": "类",
+        "context": "extends",
+        "scope": null
+      }
+    ],
+    "*::signal": [
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 3,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/health_system.gd",
+        "line": 3,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 3,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 3,
+        "column": 1,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      }
+    ],
+    "*::Vector2": [
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 8,
+        "column": 24,
+        "type": null,
+        "context": "member",
+        "scope": null
+      }
+    ],
+    "*::_spawn_position": [
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 11,
+        "column": 5,
+        "type": null,
+        "context": "identifier",
+        "scope": "_ready"
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 24,
+        "column": 23,
+        "type": null,
+        "context": "identifier",
+        "scope": "reset_to_spawn"
+      }
+    ],
+    "*::global_position": [
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 11,
+        "column": 23,
+        "type": null,
+        "context": "identifier",
+        "scope": "_ready"
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 14,
+        "column": 5,
+        "type": null,
+        "context": "member",
+        "scope": "_process"
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 15,
+        "column": 8,
+        "type": null,
+        "context": "member",
+        "scope": "_process"
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 24,
+        "column": 5,
+        "type": null,
+        "context": "identifier",
+        "scope": "reset_to_spawn"
+      },
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 15,
+        "column": 27,
+        "type": null,
+        "context": "identifier",
+        "scope": "_physics_process"
+      }
+    ],
+    "类::float": [
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 13,
+        "column": 22,
+        "type": "类",
+        "context": "type_hint",
+        "scope": "_process"
+      },
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 7,
+        "column": 31,
+        "type": "类",
+        "context": "type_hint",
+        "scope": "_physics_process"
+      },
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 8,
+        "column": 22,
+        "type": "类",
+        "context": "type_hint",
+        "scope": "_process"
+      }
+    ],
+    "*::move_speed": [
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 14,
+        "column": 26,
+        "type": null,
+        "context": "identifier",
+        "scope": "_process"
+      }
+    ],
+    "*::base_x": [
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 15,
+        "column": 29,
+        "type": null,
+        "context": "identifier",
+        "scope": "_process"
+      }
+    ],
+    "信号::base_reached": [
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 16,
+        "column": 9,
+        "type": "信号",
+        "context": "member",
+        "scope": "_process"
+      }
+    ],
+    "类::int": [
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 18,
+        "column": 26,
+        "type": "类",
+        "context": "type_hint",
+        "scope": "take_damage"
+      },
+      {
+        "path": "scripts/health_system.gd",
+        "line": 3,
+        "column": 39,
+        "type": "类",
+        "context": "type_hint",
+        "scope": null
+      },
+      {
+        "path": "scripts/health_system.gd",
+        "line": 8,
+        "column": 21,
+        "type": "类",
+        "context": "type_hint",
+        "scope": "damage"
+      },
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 6,
+        "column": 31,
+        "type": "类",
+        "context": "type_hint",
+        "scope": "set_resources"
+      },
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 9,
+        "column": 33,
+        "type": "类",
+        "context": "type_hint",
+        "scope": "set_health"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 32,
+        "column": 41,
+        "type": "类",
+        "context": "type_hint",
+        "scope": "_on_health_changed"
+      }
+    ],
+    "*::health": [
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 19,
+        "column": 5,
+        "type": null,
+        "context": "identifier",
+        "scope": "take_damage"
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 20,
+        "column": 8,
+        "type": null,
+        "context": "identifier",
+        "scope": "take_damage"
+      },
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 25,
+        "column": 5,
+        "type": null,
+        "context": "identifier",
+        "scope": "reset_to_spawn"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 15,
+        "column": 5,
+        "type": null,
+        "context": "member",
+        "scope": "_ready"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 17,
+        "column": 20,
+        "type": null,
+        "context": "member",
+        "scope": "_ready"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 29,
+        "column": 5,
+        "type": null,
+        "context": "member",
+        "scope": "_on_enemy_base_reached"
+      }
+    ],
+    "函数::reset_to_spawn": [
+      {
+        "path": "scripts/enemy_runner.gd",
+        "line": 21,
+        "column": 9,
+        "type": "函数",
+        "context": "call",
+        "scope": "take_damage"
+      }
+    ],
+    "*::current_health": [
+      {
+        "path": "scripts/health_system.gd",
+        "line": 3,
+        "column": 23,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/health_system.gd",
+        "line": 9,
+        "column": 5,
+        "type": null,
+        "context": "identifier",
+        "scope": "damage"
+      },
+      {
+        "path": "scripts/health_system.gd",
+        "line": 9,
+        "column": 26,
+        "type": null,
+        "context": "identifier",
+        "scope": "damage"
+      },
+      {
+        "path": "scripts/health_system.gd",
+        "line": 10,
+        "column": 25,
+        "type": null,
+        "context": "identifier",
+        "scope": "damage"
+      }
+    ],
+    "函数::max": [
+      {
+        "path": "scripts/health_system.gd",
+        "line": 9,
+        "column": 22,
+        "type": "函数",
+        "context": "call",
+        "scope": "damage"
+      },
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 9,
+        "column": 22,
+        "type": "函数",
+        "context": "call",
+        "scope": "_process"
+      }
+    ],
+    "信号::health_changed": [
+      {
+        "path": "scripts/health_system.gd",
+        "line": 10,
+        "column": 5,
+        "type": "信号",
+        "context": "member",
+        "scope": "damage"
+      }
+    ],
+    "类::CanvasLayer": [
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 1,
+        "column": 9,
+        "type": "类",
+        "context": "extends",
+        "scope": null
+      }
+    ],
+    "*::onready": [
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 3,
+        "column": 2,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 4,
+        "column": 2,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 3,
+        "column": 2,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 4,
+        "column": 2,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 5,
+        "column": 2,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 6,
+        "column": 2,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 7,
+        "column": 2,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      }
+    ],
+    "类::Label": [
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 3,
+        "column": 27,
+        "type": "类",
+        "context": "type_hint",
+        "scope": null
+      },
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 4,
+        "column": 28,
+        "type": "类",
+        "context": "type_hint",
+        "scope": null
+      }
+    ],
+    "*::ScoreLabel": [
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 3,
+        "column": 36,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      }
+    ],
+    "*::HealthLabel": [
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 4,
+        "column": 37,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      }
+    ],
+    "*::score_label": [
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 7,
+        "column": 5,
+        "type": null,
+        "context": "member",
+        "scope": "set_resources"
+      }
+    ],
+    "*::health_label": [
+      {
+        "path": "scripts/hud_controller.gd",
+        "line": 10,
+        "column": 5,
+        "type": null,
+        "context": "member",
+        "scope": "set_health"
+      }
+    ],
+    "*::HUD": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 3,
+        "column": 22,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      }
+    ],
+    "*::Health": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 4,
+        "column": 25,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      }
+    ],
+    "*::Player": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 5,
+        "column": 25,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      }
+    ],
+    "*::Tower": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 6,
+        "column": 24,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      }
+    ],
+    "*::Enemy": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 7,
+        "column": 24,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      }
+    ],
+    "*::player": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 12,
+        "column": 5,
+        "type": null,
+        "context": "member",
+        "scope": "_ready"
+      }
+    ],
+    "*::_on_tower_placed": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 12,
+        "column": 33,
+        "type": null,
+        "context": "identifier",
+        "scope": "_ready"
+      }
+    ],
+    "*::tower": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 13,
+        "column": 5,
+        "type": null,
+        "context": "member",
+        "scope": "_ready"
+      }
+    ],
+    "*::_on_tower_fired": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 13,
+        "column": 25,
+        "type": null,
+        "context": "identifier",
+        "scope": "_ready"
+      }
+    ],
+    "*::enemy": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 14,
+        "column": 5,
+        "type": null,
+        "context": "member",
+        "scope": "_ready"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 26,
+        "column": 5,
+        "type": null,
+        "context": "member",
+        "scope": "_on_tower_fired"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 30,
+        "column": 5,
+        "type": null,
+        "context": "member",
+        "scope": "_on_enemy_base_reached"
+      }
+    ],
+    "*::_on_enemy_base_reached": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 14,
+        "column": 32,
+        "type": null,
+        "context": "identifier",
+        "scope": "_ready"
+      }
+    ],
+    "*::_on_health_changed": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 15,
+        "column": 35,
+        "type": null,
+        "context": "identifier",
+        "scope": "_ready"
+      }
+    ],
+    "*::hud": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 16,
+        "column": 5,
+        "type": null,
+        "context": "member",
+        "scope": "_ready"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 17,
+        "column": 5,
+        "type": null,
+        "context": "member",
+        "scope": "_ready"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 23,
+        "column": 5,
+        "type": null,
+        "context": "member",
+        "scope": "_on_tower_placed"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 33,
+        "column": 5,
+        "type": null,
+        "context": "member",
+        "scope": "_on_health_changed"
+      }
+    ],
+    "*::resources": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 16,
+        "column": 23,
+        "type": null,
+        "context": "identifier",
+        "scope": "_ready"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 20,
+        "column": 8,
+        "type": null,
+        "context": "identifier",
+        "scope": "_on_tower_placed"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 22,
+        "column": 5,
+        "type": null,
+        "context": "identifier",
+        "scope": "_on_tower_placed"
+      },
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 23,
+        "column": 23,
+        "type": null,
+        "context": "identifier",
+        "scope": "_on_tower_placed"
+      }
+    ],
+    "类::Vector2": [
+      {
+        "path": "scripts/main_controller.gd",
+        "line": 19,
+        "column": 34,
+        "type": "类",
+        "context": "type_hint",
+        "scope": "_on_tower_placed"
+      },
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 3,
+        "column": 31,
+        "type": "类",
+        "context": "type_hint",
+        "scope": null
+      }
+    ],
+    "类::CharacterBody2D": [
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 1,
+        "column": 9,
+        "type": "类",
+        "context": "extends",
+        "scope": null
+      }
+    ],
+    "*::location": [
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 3,
+        "column": 21,
+        "type": null,
+        "context": "identifier",
+        "scope": null
+      }
+    ],
+    "函数::Vector2": [
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 8,
+        "column": 25,
+        "type": "函数",
+        "context": "call",
+        "scope": "_physics_process"
+      }
+    ],
+    "*::Input": [
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 9,
+        "column": 9,
+        "type": null,
+        "context": "member",
+        "scope": "_physics_process"
+      },
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 10,
+        "column": 9,
+        "type": null,
+        "context": "member",
+        "scope": "_physics_process"
+      },
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 14,
+        "column": 8,
+        "type": null,
+        "context": "member",
+        "scope": "_physics_process"
+      }
+    ],
+    "*::velocity": [
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 12,
+        "column": 5,
+        "type": null,
+        "context": "identifier",
+        "scope": "_physics_process"
+      }
+    ],
+    "*::speed": [
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 12,
+        "column": 44,
+        "type": null,
+        "context": "identifier",
+        "scope": "_physics_process"
+      }
+    ],
+    "函数::move_and_slide": [
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 13,
+        "column": 5,
+        "type": "函数",
+        "context": "call",
+        "scope": "_physics_process"
+      }
+    ],
+    "信号::tower_placed": [
+      {
+        "path": "scripts/player_controller.gd",
+        "line": 15,
+        "column": 9,
+        "type": "信号",
+        "context": "member",
+        "scope": "_physics_process"
+      }
+    ],
+    "*::_cooldown_left": [
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 9,
+        "column": 5,
+        "type": null,
+        "context": "identifier",
+        "scope": "_process"
+      },
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 9,
+        "column": 26,
+        "type": null,
+        "context": "identifier",
+        "scope": "_process"
+      },
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 10,
+        "column": 8,
+        "type": null,
+        "context": "identifier",
+        "scope": "_process"
+      },
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 14,
+        "column": 13,
+        "type": null,
+        "context": "identifier",
+        "scope": "_process"
+      }
+    ],
+    "*::for": [
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 12,
+        "column": 5,
+        "type": null,
+        "context": "identifier",
+        "scope": "_process"
+      }
+    ],
+    "*::in": [
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 12,
+        "column": 14,
+        "type": null,
+        "context": "identifier",
+        "scope": "_process"
+      }
+    ],
+    "函数::get_overlapping_areas": [
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 12,
+        "column": 17,
+        "type": "函数",
+        "context": "call",
+        "scope": "_process"
+      }
+    ],
+    "*::cooldown": [
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 14,
+        "column": 30,
+        "type": null,
+        "context": "identifier",
+        "scope": "_process"
+      }
+    ],
+    "信号::fired": [
+      {
+        "path": "scripts/tower_controller.gd",
+        "line": 15,
+        "column": 13,
+        "type": "信号",
+        "context": "member",
+        "scope": "_process"
+      }
     ]
   },
-  "updated_at": 1777211772.6130908
+  "updated_at": 1777714125.9892938
 }

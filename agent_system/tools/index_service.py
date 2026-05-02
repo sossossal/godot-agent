@@ -15,6 +15,24 @@ class ProjectIndexService:
     职责: 全局符号表维护、依赖图谱构建、跨文件引用分析
     """
 
+    EXCLUDED_DIR_NAMES = {
+        ".actions-runner",
+        ".git",
+        ".godot",
+        ".pytest_cache",
+        ".venv",
+        "__pycache__",
+        "addons",
+        "logs",
+        "node_modules",
+        "pytest-cache-files",
+        "venv",
+    }
+    EXCLUDED_DIR_PREFIXES = (
+        "pytest-cache-files",
+        "runtime-artifacts-",
+    )
+
     EXT_RES_RE = re.compile(r'\[ext_resource\s+type="([^"]+)"\s+path="([^"]+)"\s+id="([^"]+)"')
     NODE_RE = re.compile(r'\[node\s+name="([^"]+)"\s+type="([^"]+)"(?:\s+parent="([^"]*)")?')
     NODE_SCRIPT_RE = re.compile(r'script\s*=\s*ExtResource\(\s*"([^"]+)"\s*\)')
@@ -41,17 +59,26 @@ class ProjectIndexService:
 
         found_files: List[Path] = []
         for root, dirs, filenames in os.walk(self.project_path):
-            dirs[:] = [d for d in dirs if d not in {".godot", ".git", "addons", "pytest-cache-files", "__pycache__"}]
+            dirs[:] = [d for d in dirs if not self._should_skip_dir(d)]
             for filename in filenames:
                 if filename.endswith((".gd", ".tscn", ".tres", ".res")):
                     found_files.append(Path(root) / filename)
+
+        found_rel_paths = {path.relative_to(self.project_path).as_posix() for path in found_files}
+        stale_paths = set(self.files) - found_rel_paths
+        for rel_path in stale_paths:
+            self.files.pop(rel_path, None)
+            self.scenes.pop(rel_path, None)
+        stale_scene_paths = set(self.scenes) - found_rel_paths
+        for rel_path in stale_scene_paths:
+            self.scenes.pop(rel_path, None)
 
         changed_count = 0
         for file_path in found_files:
             if self._scan_file(file_path, force):
                 changed_count += 1
 
-        if changed_count > 0 or force:
+        if changed_count > 0 or stale_paths or stale_scene_paths or force:
             self._rebuild_symbol_maps()
             self._build_dependency_map()
             self.save_index()
@@ -346,6 +373,15 @@ class ProjectIndexService:
     def _get_file_hash(self, path: Path) -> str:
         return hashlib.md5(path.read_bytes()).hexdigest()
 
+    def _should_skip_dir(self, dirname: str) -> bool:
+        return dirname in self.EXCLUDED_DIR_NAMES or any(
+            dirname.startswith(prefix) for prefix in self.EXCLUDED_DIR_PREFIXES
+        )
+
+    def _is_ignored_rel_path(self, rel_path: str) -> bool:
+        parts = Path(rel_path).parts
+        return any(self._should_skip_dir(part) for part in parts)
+
     def save_index(self):
         try:
             serializable_graph = {key: list(value) for key, value in self.dependency_graph.items()}
@@ -375,6 +411,7 @@ class ProjectIndexService:
             self.symbol_definitions = data.get("symbol_definitions", {})
             self.symbol_references = data.get("symbol_references", {})
             self._sanitize_loaded_files()
+            self._sanitize_loaded_scenes()
         except Exception:
             pass
 
@@ -382,6 +419,8 @@ class ProjectIndexService:
         sanitized: Dict[str, Dict[str, Any]] = {}
         for rel_path, info in self.files.items():
             if not isinstance(info, dict):
+                continue
+            if self._is_ignored_rel_path(rel_path):
                 continue
 
             symbols = info.get("symbols", [])
@@ -402,3 +441,10 @@ class ProjectIndexService:
             sanitized[rel_path] = normalized
 
         self.files = sanitized
+
+    def _sanitize_loaded_scenes(self):
+        self.scenes = {
+            rel_path: info
+            for rel_path, info in self.scenes.items()
+            if isinstance(info, dict) and not self._is_ignored_rel_path(rel_path)
+        }
