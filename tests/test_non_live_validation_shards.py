@@ -61,6 +61,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 str(gate_script_path),
                 "-Stage",
                 "release",
+                "-Mode",
+                "full",
                 "-PythonCommand",
                 sys.executable,
                 "-Preview",
@@ -77,9 +79,42 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertTrue(payload["preview"])
         self.assertEqual(payload["stage"], "release")
+        self.assertEqual(payload["mode"], "full")
         self.assertEqual(payload["non_live_profile"], "release")
         step_ids = [item["id"] for item in payload["steps"]]
         self.assertEqual(step_ids, ["git_diff_check", "non_live_validation", "release_live_preflight"])
+
+    @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
+    def test_pr_release_gate_preflight_mode_skips_non_live_shards(self):
+        completed = subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(gate_script_path),
+                "-Stage",
+                "customer",
+                "-Mode",
+                "preflight",
+                "-PythonCommand",
+                sys.executable,
+                "-Preview",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        payload = json.loads(completed.stdout)
+        self.assertEqual(payload["mode"], "preflight")
+        self.assertEqual(payload["non_live_profile"], "customer")
+        step_ids = [item["id"] for item in payload["steps"]]
+        self.assertEqual(step_ids, ["release_live_preflight"])
 
 
 if __name__ == "__main__":

@@ -1,6 +1,8 @@
 param(
     [ValidateSet("pr", "merge", "release", "customer")]
     [string]$Stage = "pr",
+    [ValidateSet("full", "preflight")]
+    [string]$Mode = "full",
     [string]$PythonCommand = "",
     [string]$ArtifactDir = "logs/reports/pr_release_gate",
     [string]$ReleaseManifestPath = "api_server/static/dist/release_manifest.json",
@@ -48,10 +50,27 @@ function Invoke-GateStep {
     }
 }
 
+function Read-JsonFile {
+    param([string]$Path)
+
+    if (-not (Test-Path $Path)) {
+        return $null
+    }
+    try {
+        return Get-Content -Raw -Path $Path -Encoding UTF8 | ConvertFrom-Json
+    } catch {
+        return $null
+    }
+}
+
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $resolvedArtifactDir = Resolve-RepoPath $ArtifactDir
 $jsonReportPath = Join-Path $resolvedArtifactDir "gate_summary.json"
 $markdownReportPath = Join-Path $resolvedArtifactDir "gate_summary.md"
+$nonLiveReportPath = Join-Path $resolvedArtifactDir "non_live_validation_shards.json"
+$nonLiveMarkdownPath = Join-Path $resolvedArtifactDir "non_live_validation_shards.md"
+$livePreflightReportPath = Join-Path $resolvedArtifactDir "release_live_preflight.json"
+$livePreflightMarkdownPath = Join-Path $resolvedArtifactDir "release_live_preflight.md"
 $resolvedPython = if (-not [string]::IsNullOrWhiteSpace($PythonCommand)) {
     $PythonCommand
 } elseif (-not [string]::IsNullOrWhiteSpace($env:PYTHON)) {
@@ -67,6 +86,7 @@ $nonLiveProfile = switch ($Stage) {
 }
 $runLivePreflight = $Stage -in @("merge", "release", "customer")
 $runGitDiffCheck = $Stage -in @("pr", "merge", "release")
+$runNonLive = $Mode -eq "full"
 
 $stepPlan = @()
 if ($runGitDiffCheck) {
@@ -83,18 +103,20 @@ $nonLiveArgs = @(
     "-File", (Join-Path $repoRoot "tools\run_non_live_validation_shards.ps1"),
     "-PythonCommand", $resolvedPython,
     "-Profile", $nonLiveProfile,
-    "-ReportPath", (Join-Path $resolvedArtifactDir "non_live_validation_shards.json"),
-    "-MarkdownPath", (Join-Path $resolvedArtifactDir "non_live_validation_shards.md"),
+    "-ReportPath", $nonLiveReportPath,
+    "-MarkdownPath", $nonLiveMarkdownPath,
     "-SlowShardSeconds", ([string]$SlowShardSeconds)
 )
 if ($ContinueOnFailure) {
     $nonLiveArgs += "-ContinueOnFailure"
 }
-$stepPlan += [ordered]@{
-    id = "non_live_validation"
-    label = "Non-live validation shard profile '$nonLiveProfile'"
-    command = "powershell"
-    arguments = $nonLiveArgs
+if ($runNonLive) {
+    $stepPlan += [ordered]@{
+        id = "non_live_validation"
+        label = "Non-live validation shard profile '$nonLiveProfile'"
+        command = "powershell"
+        arguments = $nonLiveArgs
+    }
 }
 if ($runLivePreflight) {
     $liveArgs = @(
@@ -104,8 +126,8 @@ if ($runLivePreflight) {
         "-PythonCommand", $resolvedPython,
         "-ReleaseManifestPath", $ReleaseManifestPath,
         "-Preflight",
-        "-PreflightReportPath", (Join-Path $resolvedArtifactDir "release_live_preflight.json"),
-        "-PreflightMarkdownPath", (Join-Path $resolvedArtifactDir "release_live_preflight.md")
+        "-PreflightReportPath", $livePreflightReportPath,
+        "-PreflightMarkdownPath", $livePreflightMarkdownPath
     )
     if (-not [string]::IsNullOrWhiteSpace($BrowserPath)) {
         $liveArgs += @("-BrowserPath", $BrowserPath)
@@ -123,10 +145,13 @@ if ($Preview) {
         ok = $true
         preview = $true
         stage = $Stage
+        mode = $Mode
         non_live_profile = $nonLiveProfile
         artifact_dir = $resolvedArtifactDir
         report_path = $jsonReportPath
         markdown_path = $markdownReportPath
+        non_live_report_path = $nonLiveReportPath
+        release_live_preflight_report_path = $livePreflightReportPath
         steps = $stepPlan
     } | ConvertTo-Json -Depth 8
     exit 0
@@ -148,16 +173,48 @@ try {
         }
     }
 
+    $nonLiveReport = Read-JsonFile -Path $nonLiveReportPath
+    $livePreflightReport = Read-JsonFile -Path $livePreflightReportPath
+    $evidence = [ordered]@{
+        non_live = if ($nonLiveReport) {
+            [ordered]@{
+                status = [string]$nonLiveReport.status
+                profile = [string]$nonLiveReport.profile
+                shard_count = [int]$nonLiveReport.shard_count
+                total_duration_seconds = [double]$nonLiveReport.total_duration_seconds
+                failed_shards = @($nonLiveReport.failed_shards)
+                slow_shards = @($nonLiveReport.slow_shards | ForEach-Object { $_.id })
+                report_path = $nonLiveReportPath
+                markdown_path = $nonLiveMarkdownPath
+            }
+        } else {
+            $null
+        }
+        release_live_preflight = if ($livePreflightReport) {
+            [ordered]@{
+                status = [string]$livePreflightReport.status
+                blocking_checks = @($livePreflightReport.blocking_checks)
+                warning_checks = @($livePreflightReport.warning_checks)
+                report_path = $livePreflightReportPath
+                markdown_path = $livePreflightMarkdownPath
+            }
+        } else {
+            $null
+        }
+    }
+
     $payload = [ordered]@{
         schema_version = "1.0"
         ok = $overallOk
         status = if ($overallOk) { "passed" } else { "blocked" }
         stage = $Stage
+        mode = $Mode
         non_live_profile = $nonLiveProfile
         generated_at = (Get-Date).ToUniversalTime().ToString("o")
         artifact_dir = $resolvedArtifactDir
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
         warning_steps = @($results | Where-Object { $_.status -eq "warning" } | ForEach-Object { $_.id })
+        evidence = $evidence
         results = $results
     }
     $payload | ConvertTo-Json -Depth 8 | Set-Content -Path $jsonReportPath -Encoding utf8
@@ -166,9 +223,13 @@ try {
         "# PR Release Gate",
         "",
         "- Stage: $Stage",
+        "- Mode: $Mode",
         "- Status: $($payload.status)",
         "- Non-live profile: $nonLiveProfile",
         "- Blocked: $((@($payload.blocked_steps) -join ', '))",
+        "- Non-live failed shards: $((@($evidence.non_live.failed_shards) -join ', '))",
+        "- Non-live slow shards: $((@($evidence.non_live.slow_shards) -join ', '))",
+        "- Live preflight: $($evidence.release_live_preflight.status)",
         "",
         "| Step | Status | Seconds |",
         "| --- | --- | --- |"

@@ -101,6 +101,7 @@ python -m agent_system.cli roadmap --json
 .\tools\run_release_live_gates_locally.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -Preflight
 
 # 8.2 PR / merge / release / customer gate 总控入口
+.\tools\run_pr_release_gate.ps1 -Stage release -Mode preflight -PythonCommand D:\actions-tools\Python312\python.exe
 .\tools\run_pr_release_gate.ps1 -Stage pr -PythonCommand D:\actions-tools\Python312\python.exe
 .\tools\run_pr_release_gate.ps1 -Stage release -PythonCommand D:\actions-tools\Python312\python.exe -ContinueOnFailure
 
