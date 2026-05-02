@@ -364,6 +364,20 @@ try {
     $nonLiveReport = Read-JsonFile -Path $nonLiveReportPath
     $preparedFixtureReport = Read-JsonFile -Path $preparedFixtureReportPath
     $livePreflightReport = Read-JsonFile -Path $livePreflightReportPath
+    foreach ($result in $results) {
+        if ($result.id -eq "release_live_preflight" -and $result.status -eq "blocked" -and $livePreflightReport) {
+            $blockingChecks = @($livePreflightReport.blocking_checks)
+            if ($blockingChecks.Count -gt 0 -and [string]::IsNullOrWhiteSpace([string]$result.failure_hint)) {
+                $result.failure_hint = "Live preflight blocked checks: $((@($blockingChecks) -join ', ')). See $livePreflightReportPath."
+            }
+        }
+        if ($result.id -eq "non_live_validation" -and $result.status -eq "blocked" -and $nonLiveReport) {
+            $failedShards = @($nonLiveReport.failed_shards)
+            if ($failedShards.Count -gt 0 -and [string]::IsNullOrWhiteSpace([string]$result.failure_hint)) {
+                $result.failure_hint = "Non-live failed shards: $((@($failedShards) -join ', ')). See $nonLiveReportPath."
+            }
+        }
+    }
     $evidence = [ordered]@{
         prepared_release_fixture = if ($preparedFixtureReport) {
             [ordered]@{
@@ -452,6 +466,32 @@ try {
     )
     foreach ($result in $results) {
         $lines += "| $($result.id) | $($result.status) | $($result.duration_seconds) |"
+    }
+    $diagnosticResults = @($results | Where-Object { $_.status -ne "passed" -or -not [string]::IsNullOrWhiteSpace([string]$_.failure_hint) })
+    if ($diagnosticResults.Count -gt 0) {
+        $lines += @(
+            "",
+            "## Step Diagnostics",
+            ""
+        )
+        foreach ($result in $diagnosticResults) {
+            $lines += "### $($result.id)"
+            $lines += ""
+            $lines += "- Status: $($result.status)"
+            if (-not [string]::IsNullOrWhiteSpace([string]$result.failure_hint)) {
+                $lines += "- Failure hint: $($result.failure_hint)"
+            }
+            if (-not [string]::IsNullOrWhiteSpace([string]$result.command_line)) {
+                $lines += "- Command: ``$($result.command_line)``"
+            }
+            if (-not [string]::IsNullOrWhiteSpace([string]$result.output_tail)) {
+                $lines += ""
+                $lines += '```text'
+                $lines += [string]$result.output_tail
+                $lines += '```'
+            }
+            $lines += ""
+        }
     }
     $lines | Set-Content -Path $markdownReportPath -Encoding utf8
 

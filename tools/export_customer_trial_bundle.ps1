@@ -399,8 +399,42 @@ try {
     if ($recommendedActions.Count -eq 0) {
         $lines += "- None"
     } else {
-        foreach ($action in $recommendedActions) {
-            $lines += "- $action"
+        foreach ($item in $recommendedActionItems) {
+            $label = [string]$item.action
+            $source = [string]$item.source
+            $checkId = [string]$item.check_id
+            $sourceLabel = if ([string]::IsNullOrWhiteSpace($checkId)) { $source } else { "$source/$checkId" }
+            $lines += "- [$sourceLabel] $label"
+        }
+    }
+    $lines += @(
+        "",
+        "## Rerun Commands",
+        "",
+        "| Step | Command |",
+        "| --- | --- |"
+    )
+    foreach ($commandRecord in $commandRecords) {
+        $lines += "| $($commandRecord.id) | ``$($commandRecord.command_line)`` |"
+    }
+    $blockedResults = @($results | Where-Object { $_.status -eq "blocked" })
+    if ($blockedResults.Count -gt 0) {
+        $lines += @(
+            "",
+            "## Blocked Step Output",
+            ""
+        )
+        foreach ($result in $blockedResults) {
+            $lines += "### $($result.id)"
+            $lines += ""
+            if (-not [string]::IsNullOrWhiteSpace([string]$result.output_tail)) {
+                $lines += '```text'
+                $lines += [string]$result.output_tail
+                $lines += '```'
+            } else {
+                $lines += "- No output captured"
+            }
+            $lines += ""
         }
     }
     $lines += @(

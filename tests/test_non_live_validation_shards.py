@@ -376,7 +376,20 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertIn("recommended_action_items", payload)
             self.assertTrue(payload["recommended_action_items"])
             self.assertEqual(payload["recommended_action_items"][0]["source"], "release_live_preflight")
-            self.assertTrue((output_dir / "customer_trial_bundle.md").exists())
+            markdown_path = output_dir / "customer_trial_bundle.md"
+            self.assertTrue(markdown_path.exists())
+            markdown = markdown_path.read_text(encoding="utf-8-sig")
+            self.assertIn("## Recommended Actions", markdown)
+            self.assertIn("[release_live_preflight/", markdown)
+            self.assertIn("## Rerun Commands", markdown)
+            self.assertIn("customer_gate", markdown)
+            self.assertIn("## Blocked Step Output", markdown)
+            gate_markdown = output_dir / "gate" / "gate_summary.md"
+            self.assertTrue(gate_markdown.exists())
+            gate_summary = gate_markdown.read_text(encoding="utf-8-sig")
+            self.assertIn("## Step Diagnostics", gate_summary)
+            self.assertIn("Live preflight blocked checks: release_manifest", gate_summary)
+            self.assertIn("- Command:", gate_summary)
             rerun_script = output_dir / "rerun_customer_trial.ps1"
             self.assertTrue(rerun_script.exists())
             rerun_text = rerun_script.read_text(encoding="utf-8-sig")
