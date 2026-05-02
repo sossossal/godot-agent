@@ -110,7 +110,7 @@ python -m agent_system.cli roadmap --json
 
 # 8.3 GitHub Actions 已接入 pr-release-gate：PR 默认跑轻量 preflight，手动 workflow_dispatch 可选择 full gate
 
-# 8.4 客户试用证据包：汇总 doctor、customer gate、关键报告、命令清单和复跑脚本
+# 8.4 客户试用证据包：汇总 doctor、customer gate、readiness、命令清单和复跑脚本
 .\tools\export_customer_trial_bundle.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -GateMode preflight -ContinueOnFailure
 .\tools\export_customer_trial_bundle.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -GateMode preflight -SyncPluginBeforeDoctor -PrepareReleaseFixture -RestorePreparedFixture -ContinueOnFailure
 

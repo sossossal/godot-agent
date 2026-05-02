@@ -106,6 +106,7 @@ $manifestPath = Join-Path $resolvedOutputDir "customer_trial_bundle_manifest.jso
 $markdownPath = Join-Path $resolvedOutputDir "customer_trial_bundle.md"
 $rerunScriptPath = Join-Path $resolvedOutputDir "rerun_customer_trial.ps1"
 $commandManifestPath = Join-Path $resolvedOutputDir "customer_trial_commands.json"
+$readinessSummaryPath = Join-Path $resolvedOutputDir "customer_trial_readiness.json"
 $steps = @()
 if ($SyncPluginBeforeDoctor) {
     $steps += [ordered]@{
@@ -177,6 +178,7 @@ if ($Preview) {
         markdown_path = $markdownPath
         rerun_script_path = $rerunScriptPath
         command_manifest_path = $commandManifestPath
+        readiness_summary_path = $readinessSummaryPath
         gate_mode = $GateMode
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         restore_prepared_fixture = [bool]$RestorePreparedFixture
@@ -274,6 +276,25 @@ try {
         )
     }
     $recommendedActions = @($recommendedActions | Select-Object -Unique)
+    $readinessSummary = [ordered]@{
+        schema_version = "1.0"
+        status = if ($overallOk) { "passed" } else { "blocked" }
+        ok = $overallOk
+        gate_mode = $GateMode
+        blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
+        recommended_action_count = @($recommendedActions).Count
+        evidence_file_count = @($evidenceFiles).Count + 1
+        command_count = @($commandRecords).Count
+        rerun_script_path = $rerunScriptPath
+        command_manifest_path = $commandManifestPath
+        generated_at = (Get-Date).ToUniversalTime().ToString("o")
+    }
+    $readinessSummary | ConvertTo-Json -Depth 6 | Set-Content -Path $readinessSummaryPath -Encoding utf8
+    $evidenceFiles += [ordered]@{
+        source = $readinessSummaryPath
+        path = $readinessSummaryPath
+        relative_path = "customer_trial_readiness.json"
+    }
 
     $payload = [ordered]@{
         schema_version = "1.0"
@@ -284,12 +305,14 @@ try {
         output_dir = $resolvedOutputDir
         rerun_script_path = $rerunScriptPath
         command_manifest_path = $commandManifestPath
+        readiness_summary_path = $readinessSummaryPath
         gate_mode = $GateMode
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
         recommended_actions = $recommendedActions
+        readiness_summary = $readinessSummary
         command_records = $commandRecords
         evidence_files = $evidenceFiles
         results = $results
