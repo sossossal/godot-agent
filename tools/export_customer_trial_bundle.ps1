@@ -261,6 +261,23 @@ try {
     $doctorReport = Read-JsonFile -Path (Resolve-RepoPath "logs/reports/doctor_self_check.json")
     $livePreflightReport = Read-JsonFile -Path (Join-Path $gateArtifactDir "release_live_preflight.json")
     $recommendedActionItems = @()
+    if ($livePreflightReport) {
+        $recommendedActionItems += @(
+            $livePreflightReport.checks |
+                Where-Object { $_.status -ne "passed" -and -not [string]::IsNullOrWhiteSpace([string]$_.remediation) } |
+                ForEach-Object {
+                    [ordered]@{
+                        source = "release_live_preflight"
+                        check_id = [string]($_.id)
+                        check_name = [string]($_.name)
+                        title = [string]($_.status)
+                        command = ""
+                        message = [string]($_.remediation)
+                        action = [string]($_.remediation)
+                    }
+                }
+        )
+    }
     if ($doctorReport) {
         $recommendedActionItems += @(
             $doctorReport.action_items |
@@ -281,23 +298,6 @@ try {
                     }
                 } |
                 Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_.action) }
-        )
-    }
-    if ($livePreflightReport) {
-        $recommendedActionItems += @(
-            $livePreflightReport.checks |
-                Where-Object { $_.status -ne "passed" -and -not [string]::IsNullOrWhiteSpace([string]$_.remediation) } |
-                ForEach-Object {
-                    [ordered]@{
-                        source = "release_live_preflight"
-                        check_id = [string]($_.id)
-                        check_name = [string]($_.name)
-                        title = [string]($_.status)
-                        command = ""
-                        message = [string]($_.remediation)
-                        action = [string]($_.remediation)
-                    }
-                }
         )
     }
     $seenRecommendedActions = @{}
