@@ -83,8 +83,8 @@ jobs:
           "fail_on_slow_shards=$failOnSlowShards" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           "prepare_release_fixture=$prepareReleaseFixture" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-      - name: Install dependencies for gate
-        if: steps.gate_inputs.outputs.mode == 'full' || steps.gate_inputs.outputs.prepare_release_fixture == 'true'
+      - name: Install dependencies for full gate
+        if: steps.gate_inputs.outputs.mode == 'full'
         shell: pwsh
         run: python -m pip install --upgrade pip; python -m pip install -r requirements.txt
 

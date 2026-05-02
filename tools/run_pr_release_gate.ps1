@@ -142,12 +142,19 @@ function Invoke-GateStep {
     $output = (($captured | ForEach-Object { [string]$_ }) -join [System.Environment]::NewLine).Trim()
     $exitCode = if ($null -ne $LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
     $passed = $exitCode -eq 0
+    $commandLine = "& " + $Command + " " + (($Arguments | ForEach-Object { [string]$_ }) -join " ")
+    $failureHint = ""
+    if (-not $passed -and $output -match "ModuleNotFoundError: No module named '([^']+)'") {
+        $failureHint = "Python dependency '$($Matches[1])' is missing; install requirements.txt before this gate step."
+    }
     return [ordered]@{
         id = $Id
         label = $Label
         status = if ($passed) { "passed" } elseif ($AllowFailure) { "warning" } else { "blocked" }
         exit_code = $exitCode
         duration_seconds = $duration
+        command_line = $commandLine.Trim()
+        failure_hint = $failureHint
         output_tail = if ($output.Length -gt 4000) { $output.Substring($output.Length - 4000) } else { $output }
     }
 }
@@ -231,6 +238,7 @@ $nonLiveProfile = switch ($Stage) {
 $runLivePreflight = $Stage -in @("merge", "release", "customer")
 $runGitDiffCheck = $Stage -in @("pr", "merge", "release")
 $runNonLive = $Mode -eq "full"
+$preparedFixtureScope = if ($Mode -eq "preflight") { "preflight" } else { "full" }
 
 $stepPlan = @()
 if ($runGitDiffCheck) {
@@ -249,6 +257,7 @@ if ($PrepareReleaseFixture) {
         arguments = @(
             (Join-Path $repoRoot "tools\prepare_release_live_fixture.py"),
             "--channel", $PreparedReleaseChannel,
+            "--scope", $preparedFixtureScope,
             "--report-path", $preparedFixtureReportPath,
             "--markdown-path", $preparedFixtureMarkdownPath
         )
@@ -318,6 +327,7 @@ if ($Preview) {
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         prepared_release_fixture_state_root = if ($PrepareReleaseFixture -and $RestorePreparedFixture) { $preparedFixtureStateRoot } else { $null }
         prepared_release_channel = $PreparedReleaseChannel
+        prepared_release_fixture_scope = $preparedFixtureScope
         steps = $stepPlan
     } | ConvertTo-Json -Depth 8
     exit 0
@@ -358,6 +368,7 @@ try {
         prepared_release_fixture = if ($preparedFixtureReport) {
             [ordered]@{
                 status = if ([bool]$preparedFixtureReport.ok) { "passed" } else { "blocked" }
+                fixture_scope = [string]$preparedFixtureReport.fixture_scope
                 channel = [string]$preparedFixtureReport.channel
                 build_id = [string]$preparedFixtureReport.build_id
                 version = [string]$preparedFixtureReport.version
@@ -411,6 +422,7 @@ try {
         evidence = $evidence
         results = $results
         prepare_release_fixture = [bool]$PrepareReleaseFixture
+        prepared_release_fixture_scope = $preparedFixtureScope
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         prepared_fixture_restored = $preparedFixtureRestored
     }
@@ -425,6 +437,7 @@ try {
         "- Non-live profile: $nonLiveProfile",
         "- Blocked: $((@($payload.blocked_steps) -join ', '))",
         "- Prepare release fixture: $([bool]$PrepareReleaseFixture)",
+        "- Prepared fixture scope: $preparedFixtureScope",
         "- Restore prepared fixture: $([bool]$RestorePreparedFixture)",
         "- Prepared fixture restored: $preparedFixtureRestored",
         "- Prepared fixture: $($evidence.prepared_release_fixture.status)",

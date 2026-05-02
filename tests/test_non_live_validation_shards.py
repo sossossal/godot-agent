@@ -96,9 +96,12 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["restore_prepared_fixture"])
         self.assertTrue(payload["prepared_release_fixture_state_root"].endswith("prepared_fixture_state"))
         self.assertTrue(payload["prepared_release_fixture_report_path"].endswith("release_live_fixture.json"))
+        self.assertEqual(payload["prepared_release_fixture_scope"], "full")
         step_ids = [item["id"] for item in payload["steps"]]
         self.assertEqual(step_ids, ["git_diff_check", "prepare_release_fixture", "non_live_validation", "release_live_preflight"])
         fixture_step = payload["steps"][1]
+        self.assertIn("--scope", fixture_step["arguments"])
+        self.assertIn("full", fixture_step["arguments"])
         self.assertIn("--report-path", fixture_step["arguments"])
         non_live_step = payload["steps"][2]
         self.assertIn("-FailOnSlowShards", non_live_step["arguments"])
@@ -135,6 +138,100 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         step_ids = [item["id"] for item in payload["steps"]]
         self.assertEqual(step_ids, ["release_live_preflight"])
 
+    @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
+    def test_pr_release_gate_preflight_fixture_uses_lightweight_scope(self):
+        completed = subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(gate_script_path),
+                "-Stage",
+                "merge",
+                "-Mode",
+                "preflight",
+                "-PythonCommand",
+                sys.executable,
+                "-PrepareReleaseFixture",
+                "-Preview",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        payload = json.loads(completed.stdout)
+        self.assertEqual(payload["prepared_release_fixture_scope"], "preflight")
+        fixture_step = payload["steps"][1]
+        self.assertEqual(fixture_step["id"], "prepare_release_fixture")
+        self.assertIn("--scope", fixture_step["arguments"])
+        self.assertIn("preflight", fixture_step["arguments"])
+
+    def test_prepare_release_live_fixture_preflight_scope_uses_stdlib_only(self):
+        output_dir = project_root / "tests" / ".tmp_preflight_fixture"
+        managed_paths = [
+            project_root / "api_server" / "static" / "dist" / "release_manifest.json",
+            project_root / "api_server" / "static" / "dist" / "release_notes.md",
+            project_root / "api_server" / "static" / "dist" / "web_release_validation_ci",
+        ]
+        backups = []
+        for path in managed_paths:
+            backup = output_dir / "backup" / path.relative_to(project_root)
+            backups.append((path, backup, path.exists(), path.is_dir() if path.exists() else False))
+        shutil.rmtree(output_dir, ignore_errors=True)
+        try:
+            for path, backup, exists, is_dir in backups:
+                if not exists:
+                    continue
+                backup.parent.mkdir(parents=True, exist_ok=True)
+                if is_dir:
+                    shutil.copytree(path, backup)
+                else:
+                    shutil.copy2(path, backup)
+
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-S",
+                    str(fixture_script_path),
+                    "--scope",
+                    "preflight",
+                    "--report-path",
+                    str(output_dir / "release_live_fixture.json"),
+                    "--markdown-path",
+                    str(output_dir / "release_live_fixture.md"),
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                check=False,
+            )
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            payload = json.loads((output_dir / "release_live_fixture.json").read_text(encoding="utf-8"))
+            self.assertEqual(payload["fixture_scope"], "preflight")
+            self.assertEqual(payload["manifest_path"], "api_server/static/dist/release_manifest.json")
+        finally:
+            for path, backup, exists, is_dir in reversed(backups):
+                if path.exists():
+                    if path.is_dir():
+                        shutil.rmtree(path, ignore_errors=True)
+                    else:
+                        path.unlink()
+                if exists and backup.exists():
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    if is_dir:
+                        shutil.copytree(backup, path)
+                    else:
+                        shutil.copy2(backup, path)
+            shutil.rmtree(output_dir, ignore_errors=True)
+
     def test_pr_release_gate_workflow_uses_lightweight_pr_preflight(self):
         workflow = gate_workflow_path.read_text(encoding="utf-8")
 
@@ -154,8 +251,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertIn('if ($stage -in @("merge", "release", "customer")) { $prepareReleaseFixture = "true" }', workflow)
         self.assertIn("PREPARE_RELEASE_FIXTURE", workflow)
         self.assertIn("$gateParams.PrepareReleaseFixture = $true", workflow)
-        self.assertIn("Install dependencies for gate", workflow)
-        self.assertIn("steps.gate_inputs.outputs.prepare_release_fixture == 'true'", workflow)
+        self.assertIn("Install dependencies for full gate", workflow)
+        self.assertIn("if: steps.gate_inputs.outputs.mode == 'full'", workflow)
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
     def test_customer_trial_bundle_preview_runs_doctor_and_customer_gate(self):
