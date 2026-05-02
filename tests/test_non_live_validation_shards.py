@@ -161,6 +161,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 sys.executable,
                 "-GateMode",
                 "preflight",
+                "-BrowserPath",
+                "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
                 "-PrepareReleaseFixture",
                 "-RestorePreparedFixture",
                 "-SyncPluginBeforeDoctor",
@@ -179,6 +181,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertTrue(payload["preview"])
         self.assertEqual(payload["gate_mode"], "preflight")
+        self.assertEqual(payload["browser_path"], "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe")
         self.assertTrue(payload["fail_on_needs_attention"])
         self.assertTrue(payload["prepare_release_fixture"])
         self.assertTrue(payload["restore_prepared_fixture"])
@@ -198,6 +201,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertIn("-Mode", gate_step["arguments"])
         self.assertIn("preflight", gate_step["arguments"])
         self.assertIn("-ReleaseManifestPath", gate_step["arguments"])
+        self.assertIn("-BrowserPath", gate_step["arguments"])
+        self.assertIn("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", gate_step["arguments"])
         self.assertIn("-PrepareReleaseFixture", gate_step["arguments"])
         self.assertIn("-RestorePreparedFixture", gate_step["arguments"])
 

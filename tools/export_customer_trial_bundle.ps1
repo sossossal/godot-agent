@@ -2,6 +2,7 @@ param(
     [string]$PythonCommand = "",
     [string]$OutputDir = "logs/reports/customer_trial_bundle",
     [string]$ReleaseManifestPath = "api_server/static/dist/release_manifest.json",
+    [string]$BrowserPath = "",
     [switch]$PrepareReleaseFixture,
     [switch]$RestorePreparedFixture,
     [switch]$SyncPluginBeforeDoctor,
@@ -148,6 +149,9 @@ $steps += @(
 if ($ContinueOnFailure) {
     $steps[-1].arguments += "-ContinueOnFailure"
 }
+if (-not [string]::IsNullOrWhiteSpace($BrowserPath)) {
+    $steps[-1].arguments += @("-BrowserPath", $BrowserPath)
+}
 if ($PrepareReleaseFixture) {
     $steps[-1].arguments += "-PrepareReleaseFixture"
 }
@@ -181,6 +185,7 @@ if ($Preview) {
         command_manifest_path = $commandManifestPath
         readiness_summary_path = $readinessSummaryPath
         gate_mode = $GateMode
+        browser_path = $BrowserPath
         fail_on_needs_attention = [bool]$FailOnNeedsAttention
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         restore_prepared_fixture = [bool]$RestorePreparedFixture
@@ -239,6 +244,7 @@ try {
         generated_at = (Get-Date).ToUniversalTime().ToString("o")
         project_root = $repoRoot
         gate_mode = $GateMode
+        browser_path = $BrowserPath
         commands = $commandRecords
     } | ConvertTo-Json -Depth 8 | Set-Content -Path $commandManifestPath -Encoding utf8
     $evidenceFiles += [ordered]@{
@@ -329,6 +335,7 @@ try {
         readiness_level = $readinessLevel
         ok = $bundleOk
         gate_mode = $GateMode
+        browser_path = $BrowserPath
         fail_on_needs_attention = [bool]$FailOnNeedsAttention
         should_fail_on_needs_attention = $shouldFailOnNeedsAttention
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
@@ -358,6 +365,7 @@ try {
         command_manifest_path = $commandManifestPath
         readiness_summary_path = $readinessSummaryPath
         gate_mode = $GateMode
+        browser_path = $BrowserPath
         fail_on_needs_attention = [bool]$FailOnNeedsAttention
         should_fail_on_needs_attention = $shouldFailOnNeedsAttention
         prepare_release_fixture = [bool]$PrepareReleaseFixture
