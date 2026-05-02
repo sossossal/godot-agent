@@ -105,6 +105,8 @@ python -m agent_system.cli roadmap --json
 .\tools\run_pr_release_gate.ps1 -Stage pr -PythonCommand D:\actions-tools\Python312\python.exe
 .\tools\run_pr_release_gate.ps1 -Stage release -PythonCommand D:\actions-tools\Python312\python.exe -ContinueOnFailure
 
+# 8.3 GitHub Actions 已接入 pr-release-gate：PR 默认跑轻量 preflight，手动 workflow_dispatch 可选择 full gate
+
 # 9. 启动 Godot 编辑器
 python -m agent_system.cli launch
 python -m agent_system.cli launch --scene res://scenes/Main.tscn

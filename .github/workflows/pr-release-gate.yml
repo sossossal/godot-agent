@@ -1,0 +1,110 @@
+name: pr-release-gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - codex/**
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: Gate stage to execute
+        required: true
+        default: release
+        type: choice
+        options:
+          - pr
+          - merge
+          - release
+          - customer
+      mode:
+        description: Gate mode
+        required: true
+        default: preflight
+        type: choice
+        options:
+          - preflight
+          - full
+      continue_on_failure:
+        description: Continue collecting gate evidence after a blocked step
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  gate:
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Resolve gate inputs
+        id: gate_inputs
+        shell: pwsh
+        run: |
+          $stage = "${{ inputs.stage }}"
+          $mode = "${{ inputs.mode }}"
+          $continueOnFailure = "${{ inputs.continue_on_failure }}"
+          if ("${{ github.event_name }}" -eq "pull_request") {
+            $stage = "pr"
+            $mode = "preflight"
+            $continueOnFailure = "false"
+          } elseif ("${{ github.event_name }}" -eq "push") {
+            $stage = "merge"
+            $mode = "preflight"
+            $continueOnFailure = "false"
+          }
+          if ([string]::IsNullOrWhiteSpace($stage)) { $stage = "release" }
+          if ([string]::IsNullOrWhiteSpace($mode)) { $mode = "preflight" }
+          if ([string]::IsNullOrWhiteSpace($continueOnFailure)) { $continueOnFailure = "true" }
+          "stage=$stage" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "mode=$mode" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "continue_on_failure=$continueOnFailure" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Install dependencies for full gate
+        if: steps.gate_inputs.outputs.mode == 'full'
+        shell: pwsh
+        run: python -m pip install --upgrade pip; python -m pip install -r requirements.txt
+
+      - name: Run PR/release gate
+        shell: pwsh
+        env:
+          GATE_STAGE: ${{ steps.gate_inputs.outputs.stage }}
+          GATE_MODE: ${{ steps.gate_inputs.outputs.mode }}
+          CONTINUE_ON_FAILURE: ${{ steps.gate_inputs.outputs.continue_on_failure }}
+        run: |
+          $args = @(
+            "-Stage", $env:GATE_STAGE,
+            "-Mode", $env:GATE_MODE,
+            "-PythonCommand", "python",
+            "-ArtifactDir", "logs/reports/pr_release_gate"
+          )
+          if ($env:CONTINUE_ON_FAILURE -eq "true") {
+            $args += "-ContinueOnFailure"
+          }
+          .\tools\run_pr_release_gate.ps1 @args
+
+      - name: Publish gate summary
+        if: always()
+        shell: pwsh
+        run: |
+          $summaryPath = "logs/reports/pr_release_gate/gate_summary.md"
+          if (Test-Path $summaryPath) {
+            Get-Content $summaryPath | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          }
+
+      - name: Upload gate artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-release-gate-artifacts
+          path: logs/reports/pr_release_gate
+          if-no-files-found: warn

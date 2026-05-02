@@ -10,6 +10,7 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parents[1]
 script_path = project_root / "tools" / "run_non_live_validation_shards.ps1"
 gate_script_path = project_root / "tools" / "run_pr_release_gate.ps1"
+gate_workflow_path = project_root / ".github" / "workflows" / "pr-release-gate.yml"
 
 
 class NonLiveValidationShardsTestCase(unittest.TestCase):
@@ -115,6 +116,16 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertEqual(payload["non_live_profile"], "customer")
         step_ids = [item["id"] for item in payload["steps"]]
         self.assertEqual(step_ids, ["release_live_preflight"])
+
+    def test_pr_release_gate_workflow_uses_lightweight_pr_preflight(self):
+        workflow = gate_workflow_path.read_text(encoding="utf-8")
+
+        self.assertIn("name: pr-release-gate", workflow)
+        self.assertIn("pull_request:", workflow)
+        self.assertIn("$stage = \"pr\"", workflow)
+        self.assertIn("$mode = \"preflight\"", workflow)
+        self.assertIn(".\\tools\\run_pr_release_gate.ps1 @args", workflow)
+        self.assertIn("logs/reports/pr_release_gate", workflow)
 
 
 if __name__ == "__main__":
