@@ -92,19 +92,19 @@ jobs:
           CONTINUE_ON_FAILURE: ${{ steps.gate_inputs.outputs.continue_on_failure }}
           FAIL_ON_SLOW_SHARDS: ${{ steps.gate_inputs.outputs.fail_on_slow_shards }}
         run: |
-          $args = @(
-            "-Stage", $env:GATE_STAGE,
-            "-Mode", $env:GATE_MODE,
-            "-PythonCommand", "python",
-            "-ArtifactDir", "logs/reports/pr_release_gate"
-          )
+          $gateParams = @{
+            Stage = $env:GATE_STAGE
+            Mode = $env:GATE_MODE
+            PythonCommand = "python"
+            ArtifactDir = "logs/reports/pr_release_gate"
+          }
           if ($env:CONTINUE_ON_FAILURE -eq "true") {
-            $args += "-ContinueOnFailure"
+            $gateParams.ContinueOnFailure = $true
           }
           if ($env:FAIL_ON_SLOW_SHARDS -eq "true") {
-            $args += "-FailOnSlowShards"
+            $gateParams.FailOnSlowShards = $true
           }
-          .\tools\run_pr_release_gate.ps1 @args
+          .\tools\run_pr_release_gate.ps1 @gateParams
 
       - name: Publish gate summary
         if: always()

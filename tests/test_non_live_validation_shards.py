@@ -142,10 +142,13 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertIn("pull_request:", workflow)
         self.assertIn("$stage = \"pr\"", workflow)
         self.assertIn("$mode = \"preflight\"", workflow)
-        self.assertIn(".\\tools\\run_pr_release_gate.ps1 @args", workflow)
+        self.assertIn("$gateParams = @{", workflow)
+        self.assertIn("Stage = $env:GATE_STAGE", workflow)
+        self.assertIn(".\\tools\\run_pr_release_gate.ps1 @gateParams", workflow)
+        self.assertNotIn("@args", workflow)
         self.assertIn("logs/reports/pr_release_gate", workflow)
         self.assertIn("fail_on_slow_shards", workflow)
-        self.assertIn("-FailOnSlowShards", workflow)
+        self.assertIn("$gateParams.FailOnSlowShards = $true", workflow)
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
     def test_customer_trial_bundle_preview_runs_doctor_and_customer_gate(self):
