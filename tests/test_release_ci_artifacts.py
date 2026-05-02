@@ -211,6 +211,9 @@ class ReleaseCiArtifactsTestCase(unittest.TestCase):
         self.assertIn("stdout", payload["stdout_excerpt"])
 
     def test_export_artifacts_snapshots_full_live_validation_lane_reports(self):
+        policy_path = project_root / "deployment" / "release_access_policy.json"
+        policy_before = policy_path.read_text(encoding="utf-8") if policy_path.exists() else ""
+
         with (
             mock.patch("tools.export_release_ci_artifacts._run_bootstrap_preview", return_value={"status": "passed", "ok": True}),
             mock.patch("tools.export_release_ci_artifacts._prepare_runtime_reports", side_effect=self._write_fast_export_fixtures),
@@ -268,6 +271,8 @@ class ReleaseCiArtifactsTestCase(unittest.TestCase):
         self.assertTrue(runner_profile_path.exists())
         self.assertTrue(distribution_delivery_path.exists())
         self.assertTrue(identity_boundary_path.exists())
+        if policy_before:
+            self.assertEqual(policy_path.read_text(encoding="utf-8"), policy_before)
         self.assertIn(lane_report_path, generated_files)
         self.assertIn(doctor_report_path, generated_files)
 

@@ -91,6 +91,7 @@ _CANONICAL_FILE_PATHS = [
     Path(default_release_distribution_delivery_path()),
     Path(default_release_identity_boundary_path()),
     Path("deployment/release_identity_registry.json"),
+    Path("deployment/release_access_policy.json"),
     Path("deployment/release_promotion_history.json"),
     Path("deployment/release_execution_status.json"),
     Path("deployment/release_channels.json"),

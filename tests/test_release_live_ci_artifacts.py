@@ -1095,6 +1095,10 @@ foreach ($root in @($runtimeRoot, $projectRoot)) {
 
         self.assertTrue(payload["ok"])
         self.assertTrue(payload["preview"])
+        self.assertFalse(payload["preflight"])
+        self.assertIn(payload["preflight_status"], {"passed", "warning"})
+        self.assertEqual(payload["preflight_checks"]["blocking_checks"], [])
+        self.assertNotIn("release_manifest", payload["preflight_checks"]["blocking_checks"])
         self.assertEqual(payload["invocation_source"], "local_replay")
         self.assertEqual(
             [step["id"] for step in payload["steps"]],
@@ -1109,6 +1113,46 @@ foreach ($root in @($runtimeRoot, $projectRoot)) {
             ],
         )
         self.assertTrue(payload["step_summary_path"].endswith("release_live_ci_step_summary.md"))
+
+    @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
+    def test_run_release_live_gates_locally_preflight_blocks_missing_manifest(self):
+        self._prepare_runtime()
+        fake_browser = self._prepare_local_replay_files()
+        (self.runtime_dir / "api_server" / "static" / "dist" / "release_manifest.json").unlink()
+
+        completed = subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(local_replay_script_path),
+                "-ProjectRoot",
+                str(self.project_dir),
+                "-RuntimeRoot",
+                str(self.runtime_dir),
+                "-PythonCommand",
+                sys.executable,
+                "-ArtifactDir",
+                str(self.output_dir),
+                "-BrowserPath",
+                str(fake_browser),
+                "-Preflight",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 1)
+        payload = json.loads(completed.stdout)
+        self.assertFalse(payload["ok"])
+        self.assertTrue(payload["preflight"])
+        self.assertEqual(payload["preflight_status"], "blocked")
+        self.assertIn("release_manifest", payload["preflight_checks"]["blocking_checks"])
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
     def test_run_release_live_gates_locally_executes_release_replay_and_writes_step_summary(self):

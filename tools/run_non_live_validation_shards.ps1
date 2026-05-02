@@ -1,10 +1,13 @@
 param(
     [string]$PythonCommand = "",
     [string]$PythonPath = "",
+    [ValidateSet("all", "quick", "release", "customer")]
+    [string]$Profile = "all",
     [string]$Shard = "",
     [string]$ReportPath = "logs/reports/non_live_validation_shards.json",
     [string]$MarkdownPath = "logs/reports/non_live_validation_shards.md",
     [int]$ShardTimeoutSeconds = 1200,
+    [int]$SlowShardSeconds = 180,
     [switch]$ContinueOnFailure,
     [switch]$Preview
 )
@@ -91,24 +94,36 @@ $shards = @(
     (New-Shard -Id "promotion_redacted" -Label "Release promotion redacted auth report" -PytestArgs @("tests/test_release_promotion.py", "-k", "prefers_redacted"))
 )
 
+$profileShardIds = @{
+    quick = @("api", "p19_cli_contracts", "resource_quality", "telemetry_templates", "agent_mcp")
+    release = @("release_foundation", "release_ci_support", "release_live_ci", "release_execution", "promotion_core", "promotion_api_export", "promotion_history", "promotion_target", "promotion_redacted")
+    customer = @("api", "p19_cli_contracts", "resource_quality", "agent_mcp", "release_foundation")
+}
+
 if (-not [string]::IsNullOrWhiteSpace($Shard)) {
     $requested = @($Shard.Split(",") | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    $knownShardIds = @($shards | ForEach-Object { $_.id })
     $shards = @($shards | Where-Object { $requested -contains $_.id })
     if ($shards.Count -ne $requested.Count) {
-        $known = (($shards | ForEach-Object { $_.id }) -join ", ")
-        throw "Unknown shard requested. Matched shards: $known"
+        $known = ($knownShardIds -join ", ")
+        throw "Unknown shard requested. Known shards: $known"
     }
+} elseif ($Profile -ne "all") {
+    $selectedIds = @($profileShardIds[$Profile])
+    $shards = @($shards | Where-Object { $selectedIds -contains $_.id })
 }
 
 if ($Preview) {
     [ordered]@{
         ok = $true
         preview = $true
+        profile = $Profile
         python_command = $resolvedPython
         python_path = $resolvedPythonPath
         report_path = $resolvedReportPath
         markdown_path = $resolvedMarkdownPath
         shard_timeout_seconds = $ShardTimeoutSeconds
+        slow_shard_threshold_seconds = $SlowShardSeconds
         shards = $shards
     } | ConvertTo-Json -Depth 8
     exit 0
@@ -163,15 +178,35 @@ try {
         }
     }
 
+    $totalDurationSeconds = [Math]::Round((@($results) | Measure-Object -Property duration_seconds -Sum).Sum, 2)
+    $slowShards = @(
+        $results |
+            Where-Object { [double]$_.duration_seconds -ge [double]$SlowShardSeconds } |
+            Sort-Object -Property duration_seconds -Descending |
+            ForEach-Object {
+                [ordered]@{
+                    id = $_.id
+                    label = $_.label
+                    duration_seconds = $_.duration_seconds
+                    status = $_.status
+                }
+            }
+    )
+
     $payload = [ordered]@{
         schema_version = "1.0"
         ok = $overallOk
         status = if ($overallOk) { "passed" } else { "blocked" }
+        profile = $Profile
         started_at = $startedAt
         finished_at = (Get-Date).ToUniversalTime().ToString("o")
         python_command = $resolvedPython
         python_path = $env:PYTHONPATH
         shard_count = $results.Count
+        total_duration_seconds = $totalDurationSeconds
+        slow_shard_threshold_seconds = $SlowShardSeconds
+        slow_shards = $slowShards
+        recommended_followup_shards = @($slowShards | ForEach-Object { $_.id })
         failed_shards = @($results | Where-Object { $_.status -ne "passed" } | ForEach-Object { $_.id })
         results = $results
     }
@@ -183,13 +218,17 @@ try {
         "# Non-Live Validation Shards",
         "",
         "- Status: $($payload.status)",
+        "- Profile: $($payload.profile)",
         "- Shards: $($payload.shard_count)",
+        "- Total seconds: $($payload.total_duration_seconds)",
+        "- Slow threshold seconds: $($payload.slow_shard_threshold_seconds)",
+        "- Slow shards: $((@($payload.recommended_followup_shards) -join ', '))",
         "- Failed: $((@($payload.failed_shards) -join ', '))",
         "",
         "| Shard | Status | Seconds |",
         "| --- | --- | --- |"
     )
-    foreach ($result in $results) {
+    foreach ($result in @($results | Sort-Object -Property duration_seconds -Descending)) {
         $lines += "| $($result.id) | $($result.status) | $($result.duration_seconds) |"
     }
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $resolvedMarkdownPath) | Out-Null

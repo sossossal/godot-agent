@@ -20,6 +20,7 @@ param(
     [string]$ExecutedBy = "local_release_runner",
     [string]$Note = "local release-live-gates replay",
     [switch]$FailOnWarnings,
+    [switch]$Preflight,
     [switch]$Preview
 )
 
@@ -108,6 +109,48 @@ function Write-JsonFile {
 
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Path) | Out-Null
     $Payload | ConvertTo-Json -Depth 8 | Set-Content -Path $Path -Encoding utf8
+}
+
+function New-PreflightCheck {
+    param(
+        [string]$Id,
+        [string]$Status,
+        [string]$Message,
+        [string]$Path = ""
+    )
+
+    return [ordered]@{
+        id = $Id
+        status = $Status
+        message = $Message
+        path = $Path
+    }
+}
+
+function Test-CommandAvailable {
+    param([string]$Command)
+
+    if ([string]::IsNullOrWhiteSpace($Command)) {
+        return $false
+    }
+
+    if ([System.IO.Path]::IsPathRooted($Command) -or $Command.Contains("\") -or $Command.Contains("/")) {
+        return Test-Path $Command
+    }
+
+    return $null -ne (Get-Command $Command -ErrorAction SilentlyContinue)
+}
+
+function Get-PreflightStatus {
+    param([object[]]$Checks)
+
+    if (@($Checks | Where-Object { $_.status -eq "blocked" }).Count -gt 0) {
+        return "blocked"
+    }
+    if (@($Checks | Where-Object { $_.status -eq "warning" }).Count -gt 0) {
+        return "warning"
+    }
+    return "passed"
 }
 
 $toolRepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
@@ -241,10 +284,87 @@ $steps = @(
     (Get-StepDefinition -Id "export_live_ci_artifacts" -Label "Export live release CI artifacts" -Command $resolvedPythonCommand -Arguments $liveCiArgs -AlwaysRun $true)
 )
 
-if ($Preview) {
+$resolvedReleaseManifestPath = Resolve-OptionalPath -BasePath $resolvedRuntimeRoot -RawPath $ReleaseManifestPath
+$resolvedRunnerProfilePath = Resolve-OptionalPath -BasePath $resolvedRuntimeRoot -RawPath $RunnerProfilePath
+$resolvedConfigPath = Resolve-OptionalPath -BasePath $resolvedProjectRoot -RawPath $ConfigPath
+$requiredRunnerLabels = @("self-hosted", "windows", "godot")
+$actualRunnerLabels = @(
+    $normalizedRunnerLabels.Split(",") |
+        ForEach-Object { $_.Trim().ToLowerInvariant() } |
+        Where-Object { $_ }
+)
+$missingRunnerLabels = @($requiredRunnerLabels | Where-Object { $actualRunnerLabels -notcontains $_ })
+$preflightChecks = @()
+$preflightChecks += if (Test-Path $resolvedProjectRoot) {
+    New-PreflightCheck -Id "project_root" -Status "passed" -Message "project root exists" -Path $resolvedProjectRoot
+} else {
+    New-PreflightCheck -Id "project_root" -Status "blocked" -Message "project root is missing" -Path $resolvedProjectRoot
+}
+$preflightChecks += if (Test-Path $resolvedRuntimeRoot) {
+    New-PreflightCheck -Id "runtime_root" -Status "passed" -Message "runtime root exists" -Path $resolvedRuntimeRoot
+} else {
+    New-PreflightCheck -Id "runtime_root" -Status "blocked" -Message "runtime root is missing" -Path $resolvedRuntimeRoot
+}
+$preflightChecks += if (Test-CommandAvailable $resolvedPythonCommand) {
+    New-PreflightCheck -Id "python_command" -Status "passed" -Message "python command is available" -Path $resolvedPythonCommand
+} else {
+    New-PreflightCheck -Id "python_command" -Status "blocked" -Message "python command is not available" -Path $resolvedPythonCommand
+}
+$preflightChecks += if (Test-CommandAvailable "powershell") {
+    New-PreflightCheck -Id "powershell_command" -Status "passed" -Message "PowerShell command is available" -Path "powershell"
+} else {
+    New-PreflightCheck -Id "powershell_command" -Status "blocked" -Message "PowerShell command is not available" -Path "powershell"
+}
+$preflightChecks += if (Test-Path $resolvedLiveValidationScriptPath) {
+    New-PreflightCheck -Id "live_validation_script" -Status "passed" -Message "live validation script exists" -Path $resolvedLiveValidationScriptPath
+} else {
+    New-PreflightCheck -Id "live_validation_script" -Status "blocked" -Message "live validation script is missing" -Path $resolvedLiveValidationScriptPath
+}
+$preflightChecks += if (Test-Path $resolvedReleaseManifestPath) {
+    New-PreflightCheck -Id "release_manifest" -Status "passed" -Message "release manifest exists" -Path $resolvedReleaseManifestPath
+} else {
+    New-PreflightCheck -Id "release_manifest" -Status "blocked" -Message "release manifest is missing" -Path $resolvedReleaseManifestPath
+}
+$preflightChecks += if (Test-Path $resolvedRunnerProfilePath) {
+    New-PreflightCheck -Id "runner_profile" -Status "passed" -Message "runner profile exists" -Path $resolvedRunnerProfilePath
+} else {
+    New-PreflightCheck -Id "runner_profile" -Status "warning" -Message "runner profile is missing; baseline export will regenerate it" -Path $resolvedRunnerProfilePath
+}
+$preflightChecks += if (Test-Path $resolvedConfigPath) {
+    New-PreflightCheck -Id "config" -Status "passed" -Message "config path exists" -Path $resolvedConfigPath
+} else {
+    New-PreflightCheck -Id "config" -Status "warning" -Message "config path is missing; Godot/browser checks may be incomplete" -Path $resolvedConfigPath
+}
+if ([string]::IsNullOrWhiteSpace($BrowserPath)) {
+    $preflightChecks += New-PreflightCheck -Id "browser_path" -Status "warning" -Message "browser path is not set; browser live lanes may be skipped" -Path ""
+} else {
+    $resolvedBrowserPath = Resolve-OptionalPath -BasePath $resolvedProjectRoot -RawPath $BrowserPath
+    $preflightChecks += if (Test-Path $resolvedBrowserPath) {
+        New-PreflightCheck -Id "browser_path" -Status "passed" -Message "browser path exists" -Path $resolvedBrowserPath
+    } else {
+        New-PreflightCheck -Id "browser_path" -Status "blocked" -Message "browser path is missing" -Path $resolvedBrowserPath
+    }
+}
+$preflightChecks += if ($missingRunnerLabels.Count -eq 0) {
+    New-PreflightCheck -Id "runner_labels" -Status "passed" -Message "runner labels include release-live requirements" -Path $normalizedRunnerLabels
+} else {
+    New-PreflightCheck -Id "runner_labels" -Status "warning" -Message ("runner labels missing: " + ($missingRunnerLabels -join ", ")) -Path $normalizedRunnerLabels
+}
+$preflightStatus = Get-PreflightStatus -Checks $preflightChecks
+$preflightPayload = [ordered]@{
+    status = $preflightStatus
+    blocking_checks = @($preflightChecks | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
+    warning_checks = @($preflightChecks | Where-Object { $_.status -eq "warning" } | ForEach-Object { $_.id })
+    checks = $preflightChecks
+}
+
+if ($Preview -or $Preflight) {
     [ordered]@{
-        ok = $true
+        ok = if ($Preview -and -not $Preflight) { $true } else { ($preflightStatus -ne "blocked") }
         preview = $true
+        preflight = [bool]$Preflight
+        preflight_status = $preflightStatus
+        preflight_checks = $preflightPayload
         project_root = $resolvedProjectRoot
         runtime_root = $resolvedRuntimeRoot
         artifact_dir = $resolvedArtifactDir
@@ -255,6 +375,9 @@ if ($Preview) {
         job_name = $JobName
         steps = $steps
     } | ConvertTo-Json -Depth 8
+    if ($Preflight -and $preflightStatus -eq "blocked") {
+        exit 1
+    }
     return
 }
 

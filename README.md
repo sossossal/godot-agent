@@ -91,8 +91,14 @@ python -m agent_system.cli roadmap --json
 
 # 8. 分片执行非 live 回归，避免 release/P19 慢用例拖垮单条 pytest
 .\tools\run_non_live_validation_shards.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -Preview
+.\tools\run_non_live_validation_shards.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -Profile quick
+.\tools\run_non_live_validation_shards.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -Profile release -ContinueOnFailure
+.\tools\run_non_live_validation_shards.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -Profile customer -SlowShardSeconds 60
 .\tools\run_non_live_validation_shards.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -Shard api,p19_cli_contracts
 .\tools\run_non_live_validation_shards.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -ContinueOnFailure
+
+# 8.1 本地 release-live gate 预检，不执行 live 步骤也能提前发现环境缺口
+.\tools\run_release_live_gates_locally.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -Preflight
 
 # 9. 启动 Godot 编辑器
 python -m agent_system.cli launch
