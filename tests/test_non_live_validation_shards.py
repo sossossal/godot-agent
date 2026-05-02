@@ -149,6 +149,11 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertIn("logs/reports/pr_release_gate", workflow)
         self.assertIn("fail_on_slow_shards", workflow)
         self.assertIn("$gateParams.FailOnSlowShards = $true", workflow)
+        self.assertIn('$prepareReleaseFixture = "false"', workflow)
+        self.assertIn('$prepareReleaseFixture = "true"', workflow)
+        self.assertIn('if ($stage -in @("merge", "release", "customer")) { $prepareReleaseFixture = "true" }', workflow)
+        self.assertIn("PREPARE_RELEASE_FIXTURE", workflow)
+        self.assertIn("$gateParams.PrepareReleaseFixture = $true", workflow)
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
     def test_customer_trial_bundle_preview_runs_doctor_and_customer_gate(self):
