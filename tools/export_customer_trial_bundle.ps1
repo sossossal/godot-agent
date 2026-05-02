@@ -4,6 +4,7 @@ param(
     [string]$ReleaseManifestPath = "api_server/static/dist/release_manifest.json",
     [switch]$PrepareReleaseFixture,
     [switch]$RestorePreparedFixture,
+    [switch]$SyncPluginBeforeDoctor,
     [ValidateSet("preflight", "full")]
     [string]$GateMode = "preflight",
     [switch]$ContinueOnFailure,
@@ -103,7 +104,21 @@ $resolvedPython = if (-not [string]::IsNullOrWhiteSpace($PythonCommand)) {
 $gateArtifactDir = Join-Path $resolvedOutputDir "gate"
 $manifestPath = Join-Path $resolvedOutputDir "customer_trial_bundle_manifest.json"
 $markdownPath = Join-Path $resolvedOutputDir "customer_trial_bundle.md"
-$steps = @(
+$steps = @()
+if ($SyncPluginBeforeDoctor) {
+    $steps += [ordered]@{
+        id = "sync_plugin"
+        label = "Sync Godot plugin copies"
+        command = "powershell"
+        arguments = @(
+            "-NoProfile",
+            "-ExecutionPolicy", "Bypass",
+            "-File", (Join-Path $repoRoot "tools\sync_plugin.ps1"),
+            "-RepoRoot", $repoRoot
+        )
+    }
+}
+$steps += @(
     [ordered]@{
         id = "doctor"
         label = "Run doctor self-check"
@@ -127,13 +142,13 @@ $steps = @(
     }
 )
 if ($ContinueOnFailure) {
-    $steps[1].arguments += "-ContinueOnFailure"
+    $steps[-1].arguments += "-ContinueOnFailure"
 }
 if ($PrepareReleaseFixture) {
-    $steps[1].arguments += "-PrepareReleaseFixture"
+    $steps[-1].arguments += "-PrepareReleaseFixture"
 }
 if ($RestorePreparedFixture) {
-    $steps[1].arguments += "-RestorePreparedFixture"
+    $steps[-1].arguments += "-RestorePreparedFixture"
 }
 
 if ($Preview) {
@@ -146,6 +161,7 @@ if ($Preview) {
         gate_mode = $GateMode
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         restore_prepared_fixture = [bool]$RestorePreparedFixture
+        sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
         steps = $steps
     } | ConvertTo-Json -Depth 8
     exit 0
@@ -216,6 +232,7 @@ try {
         gate_mode = $GateMode
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         restore_prepared_fixture = [bool]$RestorePreparedFixture
+        sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
         recommended_actions = $recommendedActions
         evidence_files = $evidenceFiles
@@ -230,6 +247,7 @@ try {
         "- Gate mode: $GateMode",
         "- Prepare release fixture: $([bool]$PrepareReleaseFixture)",
         "- Restore prepared fixture: $([bool]$RestorePreparedFixture)",
+        "- Sync plugin before doctor: $([bool]$SyncPluginBeforeDoctor)",
         "- Blocked: $((@($payload.blocked_steps) -join ', '))",
         "",
         "## Recommended Actions",

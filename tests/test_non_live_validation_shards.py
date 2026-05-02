@@ -163,6 +163,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 "preflight",
                 "-PrepareReleaseFixture",
                 "-RestorePreparedFixture",
+                "-SyncPluginBeforeDoctor",
                 "-Preview",
             ],
             capture_output=True,
@@ -179,10 +180,13 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertEqual(payload["gate_mode"], "preflight")
         self.assertTrue(payload["prepare_release_fixture"])
         self.assertTrue(payload["restore_prepared_fixture"])
+        self.assertTrue(payload["sync_plugin_before_doctor"])
         self.assertTrue(payload["manifest_path"].endswith("customer_trial_bundle_manifest.json"))
         step_ids = [item["id"] for item in payload["steps"]]
-        self.assertEqual(step_ids, ["doctor", "customer_gate"])
-        gate_step = payload["steps"][1]
+        self.assertEqual(step_ids, ["sync_plugin", "doctor", "customer_gate"])
+        sync_step = payload["steps"][0]
+        self.assertIn("sync_plugin.ps1", sync_step["arguments"][4])
+        gate_step = payload["steps"][2]
         self.assertIn("-Stage", gate_step["arguments"])
         self.assertIn("customer", gate_step["arguments"])
         self.assertIn("-Mode", gate_step["arguments"])

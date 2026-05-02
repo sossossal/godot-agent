@@ -1405,6 +1405,7 @@ func _build_editor_state(screenshot_base64: String) -> Dictionary:
         "selected_node_paths": selected_node_paths,
         "selected_node_count": selected_node_paths.size(),
         "selected_node_details": selected_node_details,
+        "scene_graph_snapshot": _build_scene_graph_snapshot(root),
         "screenshot": screenshot_base64
     }
 
@@ -1437,6 +1438,41 @@ func _build_selected_node_detail(root: Node, node: Node, node_path: String) -> D
     if node.owner:
         detail["owner_path"] = _get_relative_node_path(root, node.owner)
     return detail
+
+
+func _build_scene_graph_snapshot(root: Node) -> Dictionary:
+    var nodes: Array[Dictionary] = []
+    if root:
+        _collect_scene_graph_node(root, root, nodes)
+    return {
+        "scene_path": root.scene_file_path if root else "",
+        "root_node": root.name if root else "",
+        "node_count": nodes.size(),
+        "nodes": nodes,
+        "source": "godot_plugin"
+    }
+
+
+func _collect_scene_graph_node(root: Node, node: Node, nodes: Array[Dictionary]) -> void:
+    if node == null:
+        return
+    var node_path := _get_relative_node_path(root, node)
+    var detail := {
+        "name": node.name,
+        "path": node_path if node_path != "." else node.name,
+        "type": node.get_class(),
+        "child_count": node.get_child_count()
+    }
+    var node_script = node.get_script()
+    if node_script and node_script is Script and not node_script.resource_path.is_empty():
+        detail["script_path"] = node_script.resource_path
+    if not node.scene_file_path.is_empty():
+        detail["instance_path"] = node.scene_file_path
+    if node.owner:
+        detail["owner_path"] = _get_relative_node_path(root, node.owner)
+    nodes.append(detail)
+    for child in node.get_children():
+        _collect_scene_graph_node(root, child, nodes)
 
 
 func _collect_script_context(interface: EditorInterface) -> Dictionary:

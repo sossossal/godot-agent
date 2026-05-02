@@ -112,7 +112,7 @@ python -m agent_system.cli roadmap --json
 
 # 8.4 客户试用证据包：汇总 doctor、customer gate 和关键报告
 .\tools\export_customer_trial_bundle.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -GateMode preflight -ContinueOnFailure
-.\tools\export_customer_trial_bundle.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -GateMode preflight -PrepareReleaseFixture -RestorePreparedFixture -ContinueOnFailure
+.\tools\export_customer_trial_bundle.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -GateMode preflight -SyncPluginBeforeDoctor -PrepareReleaseFixture -RestorePreparedFixture -ContinueOnFailure
 
 # 9. 启动 Godot 编辑器
 python -m agent_system.cli launch
