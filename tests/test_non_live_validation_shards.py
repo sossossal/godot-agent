@@ -183,6 +183,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["sync_plugin_before_doctor"])
         self.assertTrue(payload["manifest_path"].endswith("customer_trial_bundle_manifest.json"))
         self.assertTrue(payload["rerun_script_path"].endswith("rerun_customer_trial.ps1"))
+        self.assertTrue(payload["command_manifest_path"].endswith("customer_trial_commands.json"))
+        self.assertEqual([item["id"] for item in payload["command_records"]], ["sync_plugin", "doctor", "customer_gate"])
         step_ids = [item["id"] for item in payload["steps"]]
         self.assertEqual(step_ids, ["sync_plugin", "doctor", "customer_gate"])
         sync_step = payload["steps"][0]
@@ -263,6 +265,14 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertIn(f"Set-Location {project_root}", rerun_text)
             self.assertIn("Run customer trial gate", rerun_text)
             self.assertIn("-ReleaseManifestPath missing/release_manifest.json", rerun_text)
+            command_manifest = output_dir / "customer_trial_commands.json"
+            self.assertTrue(command_manifest.exists())
+            command_payload = json.loads(command_manifest.read_text(encoding="utf-8-sig"))
+            self.assertEqual(command_payload["schema_version"], "1.0")
+            self.assertEqual(command_payload["commands"][-1]["id"], "customer_gate")
+            self.assertIn("-ReleaseManifestPath missing/release_manifest.json", command_payload["commands"][-1]["command_line"])
+            evidence_paths = [item["relative_path"] for item in payload["evidence_files"]]
+            self.assertIn("customer_trial_commands.json", evidence_paths)
         finally:
             shutil.rmtree(output_dir, ignore_errors=True)
 

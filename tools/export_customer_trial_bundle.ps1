@@ -105,6 +105,7 @@ $gateArtifactDir = Join-Path $resolvedOutputDir "gate"
 $manifestPath = Join-Path $resolvedOutputDir "customer_trial_bundle_manifest.json"
 $markdownPath = Join-Path $resolvedOutputDir "customer_trial_bundle.md"
 $rerunScriptPath = Join-Path $resolvedOutputDir "rerun_customer_trial.ps1"
+$commandManifestPath = Join-Path $resolvedOutputDir "customer_trial_commands.json"
 $steps = @()
 if ($SyncPluginBeforeDoctor) {
     $steps += [ordered]@{
@@ -152,6 +153,21 @@ if ($RestorePreparedFixture) {
     $steps[-1].arguments += "-RestorePreparedFixture"
 }
 
+$commandRecords = @()
+foreach ($step in $steps) {
+    $commandLine = "& " + (ConvertTo-ProcessArgument -Value $step.command)
+    foreach ($argument in $step.arguments) {
+        $commandLine += " " + (ConvertTo-ProcessArgument -Value $argument)
+    }
+    $commandRecords += [ordered]@{
+        id = $step.id
+        label = $step.label
+        command = $step.command
+        arguments = $step.arguments
+        command_line = $commandLine
+    }
+}
+
 if ($Preview) {
     [ordered]@{
         ok = $true
@@ -160,10 +176,12 @@ if ($Preview) {
         manifest_path = $manifestPath
         markdown_path = $markdownPath
         rerun_script_path = $rerunScriptPath
+        command_manifest_path = $commandManifestPath
         gate_mode = $GateMode
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
+        command_records = $commandRecords
         steps = $steps
     } | ConvertTo-Json -Depth 8
     exit 0
@@ -206,19 +224,28 @@ try {
         ""
     )
     foreach ($step in $steps) {
-        $commandLine = "& " + (ConvertTo-ProcessArgument $step.command)
-        foreach ($argument in $step.arguments) {
-            $commandLine += " " + (ConvertTo-ProcessArgument $argument)
-        }
+        $commandRecord = @($commandRecords | Where-Object { $_.id -eq $step.id } | Select-Object -First 1)[0]
         $rerunLines += "# $($step.label)"
-        $rerunLines += $commandLine
+        $rerunLines += $commandRecord.command_line
         $rerunLines += ""
     }
     $rerunLines | Set-Content -Path $rerunScriptPath -Encoding utf8
+    [ordered]@{
+        schema_version = "1.0"
+        generated_at = (Get-Date).ToUniversalTime().ToString("o")
+        project_root = $repoRoot
+        gate_mode = $GateMode
+        commands = $commandRecords
+    } | ConvertTo-Json -Depth 8 | Set-Content -Path $commandManifestPath -Encoding utf8
     $evidenceFiles += [ordered]@{
         source = $rerunScriptPath
         path = $rerunScriptPath
         relative_path = "rerun_customer_trial.ps1"
+    }
+    $evidenceFiles += [ordered]@{
+        source = $commandManifestPath
+        path = $commandManifestPath
+        relative_path = "customer_trial_commands.json"
     }
 
     $doctorReport = Read-JsonFile -Path (Resolve-RepoPath "logs/reports/doctor_self_check.json")
@@ -256,12 +283,14 @@ try {
         project_root = $repoRoot
         output_dir = $resolvedOutputDir
         rerun_script_path = $rerunScriptPath
+        command_manifest_path = $commandManifestPath
         gate_mode = $GateMode
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
         recommended_actions = $recommendedActions
+        command_records = $commandRecords
         evidence_files = $evidenceFiles
         results = $results
     }
