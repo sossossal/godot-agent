@@ -85,16 +85,26 @@ class GodotCLI:
     def is_available(self) -> bool:
         return self.executable is not None
     
-    def run_headless(self, script_path: str, args: Optional[List[str]] = None) -> ToolResult:
+    def run_script(
+        self,
+        script_path: str,
+        args: Optional[List[str]] = None,
+        *,
+        headless: bool = True,
+        timeout: int = 30,
+    ) -> ToolResult:
         if not self.is_available():
             return ToolResult(success=False, message="Godot 环境不可用", error="未找到 Godot 可执行文件")
             
         try:
-            cmd = [self.executable, "--headless", "--script", script_path]
+            cmd = [self.executable]
+            if headless:
+                cmd.append("--headless")
+            cmd.extend(["--script", script_path])
             if self.project_path: cmd.extend(["--path", self.project_path])
             if args: cmd.extend(args)
             
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30, encoding='utf-8', errors='replace')
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, encoding='utf-8', errors='replace')
             success = result.returncode == 0
             
             return ToolResult(
@@ -105,6 +115,9 @@ class GodotCLI:
             )
         except Exception as e:
             return ToolResult(success=False, message="执行异常", error=str(e))
+
+    def run_headless(self, script_path: str, args: Optional[List[str]] = None) -> ToolResult:
+        return self.run_script(script_path, args=args, headless=True, timeout=30)
     
     def run_scene(self, scene_path: str) -> ToolResult:
         if not self.is_available():

@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import shutil
+import subprocess
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -95,6 +96,33 @@ class TestGodotCLIDetection(unittest.TestCase):
             self.assertEqual(len(doctor.results), 1)
             self.assertTrue(doctor.results[0]["passed"])
             self.assertIn("环境变量 GODOT", doctor.results[0]["message"])
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+
+    def test_run_script_can_execute_without_headless_flag(self):
+        temp_dir = self._make_temp_dir(".tmp_godot_run_script")
+        try:
+            executable = temp_dir / "Godot.exe"
+            executable.write_text("mock", encoding="utf-8")
+            cli = GodotCLI(executable_path=str(executable), project_path="D:/Project")
+            completed = subprocess.CompletedProcess(
+                args=[],
+                returncode=0,
+                stdout="REPLAY_SCREENSHOT_CAPTURE=viewport",
+                stderr="",
+            )
+
+            with patch("agent_system.tools.godot_cli.subprocess.run", return_value=completed) as run_mock:
+                result = cli.run_script("D:/Project/replay.gd", args=["--flag"], headless=False, timeout=45)
+
+            command = run_mock.call_args.args[0]
+            self.assertTrue(result.success)
+            self.assertNotIn("--headless", command)
+            self.assertEqual(command[:3], [str(executable.resolve()), "--script", "D:/Project/replay.gd"])
+            self.assertIn("--path", command)
+            self.assertIn("D:/Project", command)
+            self.assertIn("--flag", command)
+            self.assertEqual(run_mock.call_args.kwargs["timeout"], 45)
         finally:
             shutil.rmtree(temp_dir, ignore_errors=True)
 
