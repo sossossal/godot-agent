@@ -74,6 +74,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 sys.executable,
                 "-FailOnSlowShards",
                 "-PrepareReleaseFixture",
+                "-RestorePreparedFixture",
                 "-Preview",
             ],
             capture_output=True,
@@ -92,6 +93,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertEqual(payload["non_live_profile"], "release")
         self.assertTrue(payload["fail_on_slow_shards"])
         self.assertTrue(payload["prepare_release_fixture"])
+        self.assertTrue(payload["restore_prepared_fixture"])
+        self.assertTrue(payload["prepared_release_fixture_state_root"].endswith("prepared_fixture_state"))
         self.assertTrue(payload["prepared_release_fixture_report_path"].endswith("release_live_fixture.json"))
         step_ids = [item["id"] for item in payload["steps"]]
         self.assertEqual(step_ids, ["git_diff_check", "prepare_release_fixture", "non_live_validation", "release_live_preflight"])
@@ -158,6 +161,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 sys.executable,
                 "-GateMode",
                 "preflight",
+                "-PrepareReleaseFixture",
+                "-RestorePreparedFixture",
                 "-Preview",
             ],
             capture_output=True,
@@ -172,6 +177,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertTrue(payload["preview"])
         self.assertEqual(payload["gate_mode"], "preflight")
+        self.assertTrue(payload["prepare_release_fixture"])
+        self.assertTrue(payload["restore_prepared_fixture"])
         self.assertTrue(payload["manifest_path"].endswith("customer_trial_bundle_manifest.json"))
         step_ids = [item["id"] for item in payload["steps"]]
         self.assertEqual(step_ids, ["doctor", "customer_gate"])
@@ -181,6 +188,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertIn("-Mode", gate_step["arguments"])
         self.assertIn("preflight", gate_step["arguments"])
         self.assertIn("-ReleaseManifestPath", gate_step["arguments"])
+        self.assertIn("-PrepareReleaseFixture", gate_step["arguments"])
+        self.assertIn("-RestorePreparedFixture", gate_step["arguments"])
 
     def test_prepare_release_live_fixture_preview_lists_manifest_and_reports(self):
         completed = subprocess.run(

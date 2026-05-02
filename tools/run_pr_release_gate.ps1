@@ -10,6 +10,7 @@ param(
     [int]$SlowShardSeconds = 120,
     [string]$PreparedReleaseChannel = "release",
     [switch]$PrepareReleaseFixture,
+    [switch]$RestorePreparedFixture,
     [switch]$FailOnSlowShards,
     [switch]$ContinueOnFailure,
     [switch]$Preview
@@ -26,6 +27,104 @@ function Resolve-RepoPath {
         return [System.IO.Path]::GetFullPath($RawPath)
     }
     return [System.IO.Path]::GetFullPath((Join-Path $repoRoot $RawPath))
+}
+
+function Resolve-RepoScopedPath {
+    param([string]$RawPath)
+
+    $resolved = Resolve-RepoPath $RawPath
+    $repoFull = [System.IO.Path]::GetFullPath($repoRoot)
+    $repoPrefix = $repoFull.TrimEnd("\", "/") + [System.IO.Path]::DirectorySeparatorChar
+    if ($resolved -ne $repoFull -and -not $resolved.StartsWith($repoPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "Managed fixture path escapes repository root: $RawPath"
+    }
+    return $resolved
+}
+
+function Get-RepoRelativePath {
+    param([string]$FullPath)
+
+    $repoFull = [System.IO.Path]::GetFullPath($repoRoot).TrimEnd("\", "/")
+    $resolved = [System.IO.Path]::GetFullPath($FullPath)
+    if ($resolved -eq $repoFull) {
+        return "."
+    }
+    return $resolved.Substring($repoFull.Length + 1)
+}
+
+function Copy-StateItem {
+    param(
+        [string]$Source,
+        [string]$Destination,
+        [string]$Kind
+    )
+
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Destination) | Out-Null
+    if ($Kind -eq "dir") {
+        if (Test-Path -LiteralPath $Destination) {
+            Remove-Item -LiteralPath $Destination -Recurse -Force
+        }
+        Copy-Item -LiteralPath $Source -Destination $Destination -Recurse -Force
+    } else {
+        Copy-Item -LiteralPath $Source -Destination $Destination -Force
+    }
+}
+
+function Save-PreparedFixtureState {
+    param(
+        [string[]]$ManagedFiles,
+        [string[]]$ManagedDirectories,
+        [string]$StateRoot
+    )
+
+    if (Test-Path -LiteralPath $StateRoot) {
+        Remove-Item -LiteralPath $StateRoot -Recurse -Force
+    }
+    New-Item -ItemType Directory -Force -Path $StateRoot | Out-Null
+    $snapshots = @()
+    foreach ($rawPath in @($ManagedFiles + $ManagedDirectories)) {
+        $target = Resolve-RepoScopedPath $rawPath
+        $kind = if ($ManagedDirectories -contains $rawPath) { "dir" } else { "file" }
+        $exists = Test-Path -LiteralPath $target
+        $backupPath = Join-Path $StateRoot (Get-RepoRelativePath $target)
+        if ($exists) {
+            $actualKind = if ((Get-Item -LiteralPath $target).PSIsContainer) { "dir" } else { "file" }
+            Copy-StateItem -Source $target -Destination $backupPath -Kind $actualKind
+            $kind = $actualKind
+        }
+        $snapshots += [ordered]@{
+            path = $target
+            kind = $kind
+            existed = [bool]$exists
+            backup_path = $backupPath
+        }
+    }
+    return $snapshots
+}
+
+function Restore-PreparedFixtureState {
+    param([object[]]$Snapshots)
+
+    $items = @($Snapshots)
+    for ($index = $items.Count - 1; $index -ge 0; $index--) {
+        $snapshot = $items[$index]
+        $target = Resolve-RepoScopedPath ([string]$snapshot.path)
+        $kind = [string]$snapshot.kind
+        $backupPath = [string]$snapshot.backup_path
+        $existed = [bool]$snapshot.existed
+
+        if (Test-Path -LiteralPath $target) {
+            if ((Get-Item -LiteralPath $target).PSIsContainer) {
+                Remove-Item -LiteralPath $target -Recurse -Force
+            } else {
+                Remove-Item -LiteralPath $target -Force
+            }
+        }
+
+        if ($existed -and (Test-Path -LiteralPath $backupPath)) {
+            Copy-StateItem -Source $backupPath -Destination $target -Kind $kind
+        }
+    }
 }
 
 function Invoke-GateStep {
@@ -76,6 +175,46 @@ $livePreflightReportPath = Join-Path $resolvedArtifactDir "release_live_prefligh
 $livePreflightMarkdownPath = Join-Path $resolvedArtifactDir "release_live_preflight.md"
 $preparedFixtureReportPath = Join-Path $resolvedArtifactDir "release_live_fixture.json"
 $preparedFixtureMarkdownPath = Join-Path $resolvedArtifactDir "release_live_fixture.md"
+$preparedFixtureStateRoot = Join-Path $resolvedArtifactDir "prepared_fixture_state"
+$preparedFixtureManagedFiles = @(
+    "deployment/release_live_runner_profile.json",
+    "deployment/release_distribution_delivery.json",
+    "deployment/release_identity_boundary.json",
+    "deployment/release_identity_registry.json",
+    "deployment/release_access_policy.json",
+    "deployment/release_promotion_history.json",
+    "deployment/release_execution_status.json",
+    "deployment/release_channels.json",
+    "logs/reports/clean_machine_bootstrap.json",
+    "logs/reports/doctor_self_check.json",
+    "logs/reports/full_live_validation.json",
+    "logs/reports/release_request_auth_identity_audit_staging.json",
+    "logs/reports/release_request_auth_rotation_audit_staging.json",
+    "logs/reports/release_request_auth_posture_promotion_record_staging.json",
+    "logs/reports/release_request_auth_posture_release_execution_staging.json",
+    "logs/reports/release_distribution_bundle_staging.json",
+    "logs/reports/release_distribution_install_smoke_staging.json",
+    "logs/reports/release_distribution_channel_staging.json",
+    "logs/reports/release_distribution_channels/staging/latest.json",
+    "logs/reports/release_distribution_channels/staging/releases.json",
+    "logs/reports/release_distribution_packages/staging/web-staging-ci-001/release_distribution_bundle.zip",
+    "logs/reports/release_distribution_packages/staging/web-staging-ci-001/release_distribution_bundle.sha256",
+    "api_server/static/dist/release_manifest.json",
+    "api_server/static/dist/release_notes.md",
+    "api_server/static/dist/qa_gate_report.md"
+)
+$preparedFixtureManagedDirectories = @(
+    "logs/reports/full_live_validation_lanes",
+    "api_server/static/dist/web_release_validation_ci",
+    "logs/reports/release_distribution/staging/web-staging-ci-001",
+    "logs/reports/release_distribution_packages/staging/web-staging-ci-001",
+    "logs/reports/release_distribution_channels/staging",
+    "logs/reports/release_distribution_handoff/staging/web-staging-ci-001",
+    "logs/reports/release_distribution_signing/staging/web-staging-ci-001",
+    "logs/reports/release_distribution_publish/staging/web-staging-ci-001",
+    "logs/reports/release_distribution_publish_receipts/staging/web-staging-ci-001",
+    "logs/reports/release_request_auth_identity_handoff/staging/staging"
+)
 $resolvedPython = if (-not [string]::IsNullOrWhiteSpace($PythonCommand)) {
     $PythonCommand
 } elseif (-not [string]::IsNullOrWhiteSpace($env:PYTHON)) {
@@ -176,6 +315,8 @@ if ($Preview) {
         release_live_preflight_report_path = $livePreflightReportPath
         fail_on_slow_shards = [bool]$FailOnSlowShards
         prepare_release_fixture = [bool]$PrepareReleaseFixture
+        restore_prepared_fixture = [bool]$RestorePreparedFixture
+        prepared_release_fixture_state_root = if ($PrepareReleaseFixture -and $RestorePreparedFixture) { $preparedFixtureStateRoot } else { $null }
         prepared_release_channel = $PreparedReleaseChannel
         steps = $stepPlan
     } | ConvertTo-Json -Depth 8
@@ -183,8 +324,16 @@ if ($Preview) {
 }
 
 Push-Location $repoRoot
+$preparedFixtureSnapshots = @()
+$preparedFixtureRestored = $false
 try {
     New-Item -ItemType Directory -Force -Path $resolvedArtifactDir | Out-Null
+    if ($PrepareReleaseFixture -and $RestorePreparedFixture) {
+        $preparedFixtureSnapshots = Save-PreparedFixtureState `
+            -ManagedFiles $preparedFixtureManagedFiles `
+            -ManagedDirectories $preparedFixtureManagedDirectories `
+            -StateRoot $preparedFixtureStateRoot
+    }
     $results = @()
     $overallOk = $true
     foreach ($step in $stepPlan) {
@@ -196,6 +345,10 @@ try {
                 break
             }
         }
+    }
+    if ($PrepareReleaseFixture -and $RestorePreparedFixture -and @($preparedFixtureSnapshots).Count -gt 0) {
+        Restore-PreparedFixtureState -Snapshots $preparedFixtureSnapshots
+        $preparedFixtureRestored = $true
     }
 
     $nonLiveReport = Read-JsonFile -Path $nonLiveReportPath
@@ -257,6 +410,9 @@ try {
         warning_steps = @($results | Where-Object { $_.status -eq "warning" } | ForEach-Object { $_.id })
         evidence = $evidence
         results = $results
+        prepare_release_fixture = [bool]$PrepareReleaseFixture
+        restore_prepared_fixture = [bool]$RestorePreparedFixture
+        prepared_fixture_restored = $preparedFixtureRestored
     }
     $payload | ConvertTo-Json -Depth 8 | Set-Content -Path $jsonReportPath -Encoding utf8
 
@@ -269,6 +425,8 @@ try {
         "- Non-live profile: $nonLiveProfile",
         "- Blocked: $((@($payload.blocked_steps) -join ', '))",
         "- Prepare release fixture: $([bool]$PrepareReleaseFixture)",
+        "- Restore prepared fixture: $([bool]$RestorePreparedFixture)",
+        "- Prepared fixture restored: $preparedFixtureRestored",
         "- Prepared fixture: $($evidence.prepared_release_fixture.status)",
         "- Fail on slow shards: $([bool]$FailOnSlowShards)",
         "- Non-live slow shard gate: $($evidence.non_live.slow_shard_gate)",
@@ -289,5 +447,9 @@ try {
         exit 1
     }
 } finally {
+    if ($PrepareReleaseFixture -and $RestorePreparedFixture -and -not $preparedFixtureRestored -and @($preparedFixtureSnapshots).Count -gt 0) {
+        Restore-PreparedFixtureState -Snapshots $preparedFixtureSnapshots
+        $preparedFixtureRestored = $true
+    }
     Pop-Location
 }

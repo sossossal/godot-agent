@@ -3,6 +3,7 @@ param(
     [string]$OutputDir = "logs/reports/customer_trial_bundle",
     [string]$ReleaseManifestPath = "api_server/static/dist/release_manifest.json",
     [switch]$PrepareReleaseFixture,
+    [switch]$RestorePreparedFixture,
     [ValidateSet("preflight", "full")]
     [string]$GateMode = "preflight",
     [switch]$ContinueOnFailure,
@@ -131,6 +132,9 @@ if ($ContinueOnFailure) {
 if ($PrepareReleaseFixture) {
     $steps[1].arguments += "-PrepareReleaseFixture"
 }
+if ($RestorePreparedFixture) {
+    $steps[1].arguments += "-RestorePreparedFixture"
+}
 
 if ($Preview) {
     [ordered]@{
@@ -140,6 +144,8 @@ if ($Preview) {
         manifest_path = $manifestPath
         markdown_path = $markdownPath
         gate_mode = $GateMode
+        prepare_release_fixture = [bool]$PrepareReleaseFixture
+        restore_prepared_fixture = [bool]$RestorePreparedFixture
         steps = $steps
     } | ConvertTo-Json -Depth 8
     exit 0
@@ -208,6 +214,8 @@ try {
         project_root = $repoRoot
         output_dir = $resolvedOutputDir
         gate_mode = $GateMode
+        prepare_release_fixture = [bool]$PrepareReleaseFixture
+        restore_prepared_fixture = [bool]$RestorePreparedFixture
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
         recommended_actions = $recommendedActions
         evidence_files = $evidenceFiles
@@ -220,6 +228,8 @@ try {
         "",
         "- Status: $($payload.status)",
         "- Gate mode: $GateMode",
+        "- Prepare release fixture: $([bool]$PrepareReleaseFixture)",
+        "- Restore prepared fixture: $([bool]$RestorePreparedFixture)",
         "- Blocked: $((@($payload.blocked_steps) -join ', '))",
         "",
         "## Recommended Actions",
