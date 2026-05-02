@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import sys
 import unittest
@@ -164,6 +165,47 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertIn("customer", gate_step["arguments"])
         self.assertIn("-Mode", gate_step["arguments"])
         self.assertIn("preflight", gate_step["arguments"])
+        self.assertIn("-ReleaseManifestPath", gate_step["arguments"])
+
+    @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
+    def test_customer_trial_bundle_collects_recommended_actions_when_blocked(self):
+        output_dir = project_root / "tests" / ".tmp_customer_trial_bundle"
+        shutil.rmtree(output_dir, ignore_errors=True)
+        try:
+            completed = subprocess.run(
+                [
+                    "powershell",
+                    "-NoProfile",
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-File",
+                    str(customer_bundle_script_path),
+                    "-PythonCommand",
+                    sys.executable,
+                    "-GateMode",
+                    "preflight",
+                    "-OutputDir",
+                    str(output_dir),
+                    "-ReleaseManifestPath",
+                    "missing/release_manifest.json",
+                    "-ContinueOnFailure",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                check=False,
+            )
+
+            self.assertEqual(completed.returncode, 1)
+            manifest_path = output_dir / "customer_trial_bundle_manifest.json"
+            self.assertTrue(manifest_path.exists())
+            payload = json.loads(manifest_path.read_text(encoding="utf-8-sig"))
+            self.assertIn("recommended_actions", payload)
+            self.assertTrue(payload["recommended_actions"])
+            self.assertTrue((output_dir / "customer_trial_bundle.md").exists())
+        finally:
+            shutil.rmtree(output_dir, ignore_errors=True)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 param(
     [string]$PythonCommand = "",
     [string]$OutputDir = "logs/reports/customer_trial_bundle",
+    [string]$ReleaseManifestPath = "api_server/static/dist/release_manifest.json",
     [ValidateSet("preflight", "full")]
     [string]$GateMode = "preflight",
     [switch]$ContinueOnFailure,
@@ -75,6 +76,19 @@ function Copy-EvidenceFile {
     }
 }
 
+function Read-JsonFile {
+    param([string]$Path)
+
+    if (-not (Test-Path $Path)) {
+        return $null
+    }
+    try {
+        return Get-Content -Raw -Path $Path -Encoding UTF8 | ConvertFrom-Json
+    } catch {
+        return $null
+    }
+}
+
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $resolvedOutputDir = Resolve-RepoPath $OutputDir
 $resolvedPython = if (-not [string]::IsNullOrWhiteSpace($PythonCommand)) {
@@ -105,6 +119,7 @@ $steps = @(
             "-Stage", "customer",
             "-Mode", $GateMode,
             "-PythonCommand", $resolvedPython,
+            "-ReleaseManifestPath", $ReleaseManifestPath,
             "-ArtifactDir", $gateArtifactDir
         )
     }
@@ -152,6 +167,32 @@ try {
         Copy-EvidenceFile -SourcePath (Join-Path $gateArtifactDir "non_live_validation_shards.json") -RelativeDestination "gate\non_live_validation_shards.json"
         Copy-EvidenceFile -SourcePath (Join-Path $gateArtifactDir "non_live_validation_shards.md") -RelativeDestination "gate\non_live_validation_shards.md"
     ) | Where-Object { $null -ne $_ }
+    $doctorReport = Read-JsonFile -Path (Resolve-RepoPath "logs/reports/doctor_self_check.json")
+    $livePreflightReport = Read-JsonFile -Path (Join-Path $gateArtifactDir "release_live_preflight.json")
+    $recommendedActions = @()
+    if ($doctorReport) {
+        $recommendedActions += @(
+            $doctorReport.action_items |
+                ForEach-Object {
+                    $command = [string]($_.command)
+                    $message = [string]($_.message)
+                    if (-not [string]::IsNullOrWhiteSpace($command)) {
+                        $command
+                    } elseif (-not [string]::IsNullOrWhiteSpace($message)) {
+                        $message
+                    }
+                } |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        )
+    }
+    if ($livePreflightReport) {
+        $recommendedActions += @(
+            $livePreflightReport.checks |
+                Where-Object { $_.status -ne "passed" -and -not [string]::IsNullOrWhiteSpace([string]$_.remediation) } |
+                ForEach-Object { [string]$_.remediation }
+        )
+    }
+    $recommendedActions = @($recommendedActions | Select-Object -Unique)
 
     $payload = [ordered]@{
         schema_version = "1.0"
@@ -162,6 +203,7 @@ try {
         output_dir = $resolvedOutputDir
         gate_mode = $GateMode
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
+        recommended_actions = $recommendedActions
         evidence_files = $evidenceFiles
         results = $results
     }
@@ -173,6 +215,18 @@ try {
         "- Status: $($payload.status)",
         "- Gate mode: $GateMode",
         "- Blocked: $((@($payload.blocked_steps) -join ', '))",
+        "",
+        "## Recommended Actions",
+        ""
+    )
+    if ($recommendedActions.Count -eq 0) {
+        $lines += "- None"
+    } else {
+        foreach ($action in $recommendedActions) {
+            $lines += "- $action"
+        }
+    }
+    $lines += @(
         "",
         "| Evidence | Path |",
         "| --- | --- |"

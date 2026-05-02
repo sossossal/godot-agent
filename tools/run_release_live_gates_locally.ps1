@@ -118,7 +118,8 @@ function New-PreflightCheck {
         [string]$Id,
         [string]$Status,
         [string]$Message,
-        [string]$Path = ""
+        [string]$Path = "",
+        [string]$Remediation = ""
     )
 
     return [ordered]@{
@@ -126,6 +127,7 @@ function New-PreflightCheck {
         status = $Status
         message = $Message
         path = $Path
+        remediation = $Remediation
     }
 }
 
@@ -302,57 +304,57 @@ $preflightChecks = @()
 $preflightChecks += if (Test-Path $resolvedProjectRoot) {
     New-PreflightCheck -Id "project_root" -Status "passed" -Message "project root exists" -Path $resolvedProjectRoot
 } else {
-    New-PreflightCheck -Id "project_root" -Status "blocked" -Message "project root is missing" -Path $resolvedProjectRoot
+    New-PreflightCheck -Id "project_root" -Status "blocked" -Message "project root is missing" -Path $resolvedProjectRoot -Remediation "Pass -ProjectRoot with an existing Godot Agent project checkout."
 }
 $preflightChecks += if (Test-Path $resolvedRuntimeRoot) {
     New-PreflightCheck -Id "runtime_root" -Status "passed" -Message "runtime root exists" -Path $resolvedRuntimeRoot
 } else {
-    New-PreflightCheck -Id "runtime_root" -Status "blocked" -Message "runtime root is missing" -Path $resolvedRuntimeRoot
+    New-PreflightCheck -Id "runtime_root" -Status "blocked" -Message "runtime root is missing" -Path $resolvedRuntimeRoot -Remediation "Pass -RuntimeRoot with an existing runtime directory, or omit it to use the project root."
 }
 $preflightChecks += if (Test-CommandAvailable $resolvedPythonCommand) {
     New-PreflightCheck -Id "python_command" -Status "passed" -Message "python command is available" -Path $resolvedPythonCommand
 } else {
-    New-PreflightCheck -Id "python_command" -Status "blocked" -Message "python command is not available" -Path $resolvedPythonCommand
+    New-PreflightCheck -Id "python_command" -Status "blocked" -Message "python command is not available" -Path $resolvedPythonCommand -Remediation "Install Python 3.12 or pass -PythonCommand with the full path to python.exe."
 }
 $preflightChecks += if (Test-CommandAvailable "powershell") {
     New-PreflightCheck -Id "powershell_command" -Status "passed" -Message "PowerShell command is available" -Path "powershell"
 } else {
-    New-PreflightCheck -Id "powershell_command" -Status "blocked" -Message "PowerShell command is not available" -Path "powershell"
+    New-PreflightCheck -Id "powershell_command" -Status "blocked" -Message "PowerShell command is not available" -Path "powershell" -Remediation "Run this gate from Windows PowerShell or ensure powershell.exe is available on PATH."
 }
 $preflightChecks += if (Test-Path $resolvedLiveValidationScriptPath) {
     New-PreflightCheck -Id "live_validation_script" -Status "passed" -Message "live validation script exists" -Path $resolvedLiveValidationScriptPath
 } else {
-    New-PreflightCheck -Id "live_validation_script" -Status "blocked" -Message "live validation script is missing" -Path $resolvedLiveValidationScriptPath
+    New-PreflightCheck -Id "live_validation_script" -Status "blocked" -Message "live validation script is missing" -Path $resolvedLiveValidationScriptPath -Remediation "Restore tools/run_full_live_validation.ps1 or pass -LiveValidationScriptPath to the intended script."
 }
 $preflightChecks += if (Test-Path $resolvedReleaseManifestPath) {
     New-PreflightCheck -Id "release_manifest" -Status "passed" -Message "release manifest exists" -Path $resolvedReleaseManifestPath
 } else {
-    New-PreflightCheck -Id "release_manifest" -Status "blocked" -Message "release manifest is missing" -Path $resolvedReleaseManifestPath
+    New-PreflightCheck -Id "release_manifest" -Status "blocked" -Message "release manifest is missing" -Path $resolvedReleaseManifestPath -Remediation "Create a release manifest first, or pass -ReleaseManifestPath to an existing api_server/static/dist/.../release_manifest.json."
 }
 $preflightChecks += if (Test-Path $resolvedRunnerProfilePath) {
     New-PreflightCheck -Id "runner_profile" -Status "passed" -Message "runner profile exists" -Path $resolvedRunnerProfilePath
 } else {
-    New-PreflightCheck -Id "runner_profile" -Status "warning" -Message "runner profile is missing; baseline export will regenerate it" -Path $resolvedRunnerProfilePath
+    New-PreflightCheck -Id "runner_profile" -Status "warning" -Message "runner profile is missing; baseline export will regenerate it" -Path $resolvedRunnerProfilePath -Remediation "Run tools/export_release_live_runner_baseline.py or let the full local gate regenerate this file."
 }
 $preflightChecks += if (Test-Path $resolvedConfigPath) {
     New-PreflightCheck -Id "config" -Status "passed" -Message "config path exists" -Path $resolvedConfigPath
 } else {
-    New-PreflightCheck -Id "config" -Status "warning" -Message "config path is missing; Godot/browser checks may be incomplete" -Path $resolvedConfigPath
+    New-PreflightCheck -Id "config" -Status "warning" -Message "config path is missing; Godot/browser checks may be incomplete" -Path $resolvedConfigPath -Remediation "Create config.yaml or pass -ConfigPath to the intended config file."
 }
 if ([string]::IsNullOrWhiteSpace($BrowserPath)) {
-    $preflightChecks += New-PreflightCheck -Id "browser_path" -Status "warning" -Message "browser path is not set; browser live lanes may be skipped" -Path ""
+    $preflightChecks += New-PreflightCheck -Id "browser_path" -Status "warning" -Message "browser path is not set; browser live lanes may be skipped" -Path "" -Remediation "Pass -BrowserPath with Chrome or Edge when browser live lanes are required."
 } else {
     $resolvedBrowserPath = Resolve-OptionalPath -BasePath $resolvedProjectRoot -RawPath $BrowserPath
     $preflightChecks += if (Test-Path $resolvedBrowserPath) {
         New-PreflightCheck -Id "browser_path" -Status "passed" -Message "browser path exists" -Path $resolvedBrowserPath
     } else {
-        New-PreflightCheck -Id "browser_path" -Status "blocked" -Message "browser path is missing" -Path $resolvedBrowserPath
+        New-PreflightCheck -Id "browser_path" -Status "blocked" -Message "browser path is missing" -Path $resolvedBrowserPath -Remediation "Install Chrome or Edge, or pass -BrowserPath to an existing browser executable."
     }
 }
 $preflightChecks += if ($missingRunnerLabels.Count -eq 0) {
     New-PreflightCheck -Id "runner_labels" -Status "passed" -Message "runner labels include release-live requirements" -Path $normalizedRunnerLabels
 } else {
-    New-PreflightCheck -Id "runner_labels" -Status "warning" -Message ("runner labels missing: " + ($missingRunnerLabels -join ", ")) -Path $normalizedRunnerLabels
+    New-PreflightCheck -Id "runner_labels" -Status "warning" -Message ("runner labels missing: " + ($missingRunnerLabels -join ", ")) -Path $normalizedRunnerLabels -Remediation "Use runner labels that include self-hosted, windows, and godot for release-live-gates."
 }
 $preflightStatus = Get-PreflightStatus -Checks $preflightChecks
 $preflightPayload = [ordered]@{
@@ -377,11 +379,11 @@ if ($Preflight) {
         "- Blocking: $((@($preflightPayload.blocking_checks) -join ', '))",
         "- Warning: $((@($preflightPayload.warning_checks) -join ', '))",
         "",
-        "| Check | Status | Message |",
-        "| --- | --- | --- |"
+        "| Check | Status | Message | Remediation |",
+        "| --- | --- | --- | --- |"
     )
     foreach ($check in $preflightChecks) {
-        $preflightLines += "| $($check.id) | $($check.status) | $($check.message) |"
+        $preflightLines += "| $($check.id) | $($check.status) | $($check.message) | $($check.remediation) |"
     }
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $resolvedPreflightMarkdownPath) | Out-Null
     $preflightLines | Set-Content -Path $resolvedPreflightMarkdownPath -Encoding utf8

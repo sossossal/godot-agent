@@ -1153,6 +1153,10 @@ foreach ($root in @($runtimeRoot, $projectRoot)) {
         self.assertTrue(payload["preflight"])
         self.assertEqual(payload["preflight_status"], "blocked")
         self.assertIn("release_manifest", payload["preflight_checks"]["blocking_checks"])
+        manifest_check = next(
+            item for item in payload["preflight_checks"]["checks"] if item["id"] == "release_manifest"
+        )
+        self.assertIn("-ReleaseManifestPath", manifest_check["remediation"])
         self.assertTrue(Path(payload["preflight_report_path"]).exists())
         self.assertTrue(Path(payload["preflight_markdown_path"]).exists())
 
