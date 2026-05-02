@@ -164,6 +164,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 "-PrepareReleaseFixture",
                 "-RestorePreparedFixture",
                 "-SyncPluginBeforeDoctor",
+                "-FailOnNeedsAttention",
                 "-Preview",
             ],
             capture_output=True,
@@ -178,6 +179,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertTrue(payload["preview"])
         self.assertEqual(payload["gate_mode"], "preflight")
+        self.assertTrue(payload["fail_on_needs_attention"])
         self.assertTrue(payload["prepare_release_fixture"])
         self.assertTrue(payload["restore_prepared_fixture"])
         self.assertTrue(payload["sync_plugin_before_doctor"])
@@ -280,6 +282,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             readiness_payload = json.loads(readiness_path.read_text(encoding="utf-8-sig"))
             self.assertEqual(readiness_payload["status"], "blocked")
             self.assertEqual(readiness_payload["readiness_level"], "blocked")
+            self.assertFalse(readiness_payload["fail_on_needs_attention"])
+            self.assertFalse(readiness_payload["should_fail_on_needs_attention"])
             self.assertTrue(readiness_payload["recommended_action_items"])
             self.assertEqual(readiness_payload["recommended_action_items"][0]["action"], payload["recommended_actions"][0])
             self.assertIn("customer_gate", readiness_payload["blocked_steps"])

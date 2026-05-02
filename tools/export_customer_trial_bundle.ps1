@@ -7,6 +7,7 @@ param(
     [switch]$SyncPluginBeforeDoctor,
     [ValidateSet("preflight", "full")]
     [string]$GateMode = "preflight",
+    [switch]$FailOnNeedsAttention,
     [switch]$ContinueOnFailure,
     [switch]$Preview
 )
@@ -180,6 +181,7 @@ if ($Preview) {
         command_manifest_path = $commandManifestPath
         readiness_summary_path = $readinessSummaryPath
         gate_mode = $GateMode
+        fail_on_needs_attention = [bool]$FailOnNeedsAttention
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
@@ -312,12 +314,23 @@ try {
     } else {
         "ready"
     }
+    $shouldFailOnNeedsAttention = [bool]($FailOnNeedsAttention -and $readinessLevel -ne "ready")
+    $bundleOk = [bool]($overallOk -and -not $shouldFailOnNeedsAttention)
+    $bundleStatus = if (-not $overallOk) {
+        "blocked"
+    } elseif ($shouldFailOnNeedsAttention) {
+        "needs_attention"
+    } else {
+        "passed"
+    }
     $readinessSummary = [ordered]@{
         schema_version = "1.0"
-        status = if ($overallOk) { "passed" } else { "blocked" }
+        status = $bundleStatus
         readiness_level = $readinessLevel
-        ok = $overallOk
+        ok = $bundleOk
         gate_mode = $GateMode
+        fail_on_needs_attention = [bool]$FailOnNeedsAttention
+        should_fail_on_needs_attention = $shouldFailOnNeedsAttention
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
         recommended_action_count = @($recommendedActions).Count
         recommended_action_items = $recommendedActionItems
@@ -336,8 +349,8 @@ try {
 
     $payload = [ordered]@{
         schema_version = "1.0"
-        ok = $overallOk
-        status = if ($overallOk) { "passed" } else { "blocked" }
+        ok = $bundleOk
+        status = $bundleStatus
         generated_at = (Get-Date).ToUniversalTime().ToString("o")
         project_root = $repoRoot
         output_dir = $resolvedOutputDir
@@ -345,6 +358,8 @@ try {
         command_manifest_path = $commandManifestPath
         readiness_summary_path = $readinessSummaryPath
         gate_mode = $GateMode
+        fail_on_needs_attention = [bool]$FailOnNeedsAttention
+        should_fail_on_needs_attention = $shouldFailOnNeedsAttention
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
@@ -391,7 +406,7 @@ try {
     $lines | Set-Content -Path $markdownPath -Encoding utf8
 
     $payload | ConvertTo-Json -Depth 8
-    if (-not $overallOk) {
+    if (-not $bundleOk) {
         exit 1
     }
 } finally {
