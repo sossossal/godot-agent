@@ -13,6 +13,7 @@ script_path = project_root / "tools" / "run_non_live_validation_shards.ps1"
 gate_script_path = project_root / "tools" / "run_pr_release_gate.ps1"
 gate_workflow_path = project_root / ".github" / "workflows" / "pr-release-gate.yml"
 customer_bundle_script_path = project_root / "tools" / "export_customer_trial_bundle.ps1"
+fixture_script_path = project_root / "tools" / "prepare_release_live_fixture.py"
 
 
 class NonLiveValidationShardsTestCase(unittest.TestCase):
@@ -33,6 +34,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 "-SlowShardSeconds",
                 "1",
                 "-FailOnSlowShards",
+                "-PrepareReleaseFixture",
                 "-Preview",
             ],
             capture_output=True,
@@ -71,6 +73,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 "-PythonCommand",
                 sys.executable,
                 "-FailOnSlowShards",
+                "-PrepareReleaseFixture",
                 "-Preview",
             ],
             capture_output=True,
@@ -88,9 +91,10 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertEqual(payload["mode"], "full")
         self.assertEqual(payload["non_live_profile"], "release")
         self.assertTrue(payload["fail_on_slow_shards"])
+        self.assertTrue(payload["prepare_release_fixture"])
         step_ids = [item["id"] for item in payload["steps"]]
-        self.assertEqual(step_ids, ["git_diff_check", "non_live_validation", "release_live_preflight"])
-        non_live_step = payload["steps"][1]
+        self.assertEqual(step_ids, ["git_diff_check", "prepare_release_fixture", "non_live_validation", "release_live_preflight"])
+        non_live_step = payload["steps"][2]
         self.assertIn("-FailOnSlowShards", non_live_step["arguments"])
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
@@ -174,6 +178,29 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertIn("-Mode", gate_step["arguments"])
         self.assertIn("preflight", gate_step["arguments"])
         self.assertIn("-ReleaseManifestPath", gate_step["arguments"])
+
+    def test_prepare_release_live_fixture_preview_lists_manifest_and_reports(self):
+        completed = subprocess.run(
+            [
+                sys.executable,
+                str(fixture_script_path),
+                "--channel",
+                "release",
+                "--preview",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        payload = json.loads(completed.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertTrue(payload["preview"])
+        self.assertEqual(payload["manifest_path"], "api_server/static/dist/release_manifest.json")
+        self.assertIn("logs/reports/full_live_validation.json", payload["runtime_reports"])
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
     def test_customer_trial_bundle_collects_recommended_actions_when_blocked(self):

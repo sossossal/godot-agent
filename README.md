@@ -103,6 +103,7 @@ python -m agent_system.cli roadmap --json
 
 # 8.2 PR / merge / release / customer gate 总控入口
 .\tools\run_pr_release_gate.ps1 -Stage release -Mode preflight -PythonCommand D:\actions-tools\Python312\python.exe
+.\tools\run_pr_release_gate.ps1 -Stage release -Mode preflight -PrepareReleaseFixture -PythonCommand D:\actions-tools\Python312\python.exe
 .\tools\run_pr_release_gate.ps1 -Stage pr -PythonCommand D:\actions-tools\Python312\python.exe
 .\tools\run_pr_release_gate.ps1 -Stage release -PythonCommand D:\actions-tools\Python312\python.exe -ContinueOnFailure
 .\tools\run_pr_release_gate.ps1 -Stage release -PythonCommand D:\actions-tools\Python312\python.exe -FailOnSlowShards -ContinueOnFailure
@@ -111,6 +112,7 @@ python -m agent_system.cli roadmap --json
 
 # 8.4 客户试用证据包：汇总 doctor、customer gate 和关键报告
 .\tools\export_customer_trial_bundle.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -GateMode preflight -ContinueOnFailure
+.\tools\export_customer_trial_bundle.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -GateMode preflight -PrepareReleaseFixture -ContinueOnFailure
 
 # 9. 启动 Godot 编辑器
 python -m agent_system.cli launch

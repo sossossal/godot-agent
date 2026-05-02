@@ -2,6 +2,7 @@ param(
     [string]$PythonCommand = "",
     [string]$OutputDir = "logs/reports/customer_trial_bundle",
     [string]$ReleaseManifestPath = "api_server/static/dist/release_manifest.json",
+    [switch]$PrepareReleaseFixture,
     [ValidateSet("preflight", "full")]
     [string]$GateMode = "preflight",
     [switch]$ContinueOnFailure,
@@ -126,6 +127,9 @@ $steps = @(
 )
 if ($ContinueOnFailure) {
     $steps[1].arguments += "-ContinueOnFailure"
+}
+if ($PrepareReleaseFixture) {
+    $steps[1].arguments += "-PrepareReleaseFixture"
 }
 
 if ($Preview) {

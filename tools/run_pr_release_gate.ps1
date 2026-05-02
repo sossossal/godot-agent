@@ -8,6 +8,8 @@ param(
     [string]$ReleaseManifestPath = "api_server/static/dist/release_manifest.json",
     [string]$BrowserPath = "",
     [int]$SlowShardSeconds = 120,
+    [string]$PreparedReleaseChannel = "release",
+    [switch]$PrepareReleaseFixture,
     [switch]$FailOnSlowShards,
     [switch]$ContinueOnFailure,
     [switch]$Preview
@@ -98,6 +100,17 @@ if ($runGitDiffCheck) {
         arguments = @("diff", "--check")
     }
 }
+if ($PrepareReleaseFixture) {
+    $stepPlan += [ordered]@{
+        id = "prepare_release_fixture"
+        label = "Prepare local release-live fixture"
+        command = $resolvedPython
+        arguments = @(
+            (Join-Path $repoRoot "tools\prepare_release_live_fixture.py"),
+            "--channel", $PreparedReleaseChannel
+        )
+    }
+}
 $nonLiveArgs = @(
     "-NoProfile",
     "-ExecutionPolicy", "Bypass",
@@ -157,6 +170,8 @@ if ($Preview) {
         non_live_report_path = $nonLiveReportPath
         release_live_preflight_report_path = $livePreflightReportPath
         fail_on_slow_shards = [bool]$FailOnSlowShards
+        prepare_release_fixture = [bool]$PrepareReleaseFixture
+        prepared_release_channel = $PreparedReleaseChannel
         steps = $stepPlan
     } | ConvertTo-Json -Depth 8
     exit 0
@@ -234,6 +249,7 @@ try {
         "- Status: $($payload.status)",
         "- Non-live profile: $nonLiveProfile",
         "- Blocked: $((@($payload.blocked_steps) -join ', '))",
+        "- Prepare release fixture: $([bool]$PrepareReleaseFixture)",
         "- Fail on slow shards: $([bool]$FailOnSlowShards)",
         "- Non-live slow shard gate: $($evidence.non_live.slow_shard_gate)",
         "- Non-live failed shards: $((@($evidence.non_live.failed_shards) -join ', '))",
