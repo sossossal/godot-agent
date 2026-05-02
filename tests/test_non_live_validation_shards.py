@@ -11,6 +11,7 @@ project_root = Path(__file__).resolve().parents[1]
 script_path = project_root / "tools" / "run_non_live_validation_shards.ps1"
 gate_script_path = project_root / "tools" / "run_pr_release_gate.ps1"
 gate_workflow_path = project_root / ".github" / "workflows" / "pr-release-gate.yml"
+customer_bundle_script_path = project_root / "tools" / "export_customer_trial_bundle.ps1"
 
 
 class NonLiveValidationShardsTestCase(unittest.TestCase):
@@ -126,6 +127,43 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertIn("$mode = \"preflight\"", workflow)
         self.assertIn(".\\tools\\run_pr_release_gate.ps1 @args", workflow)
         self.assertIn("logs/reports/pr_release_gate", workflow)
+
+    @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
+    def test_customer_trial_bundle_preview_runs_doctor_and_customer_gate(self):
+        completed = subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(customer_bundle_script_path),
+                "-PythonCommand",
+                sys.executable,
+                "-GateMode",
+                "preflight",
+                "-Preview",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        payload = json.loads(completed.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertTrue(payload["preview"])
+        self.assertEqual(payload["gate_mode"], "preflight")
+        self.assertTrue(payload["manifest_path"].endswith("customer_trial_bundle_manifest.json"))
+        step_ids = [item["id"] for item in payload["steps"]]
+        self.assertEqual(step_ids, ["doctor", "customer_gate"])
+        gate_step = payload["steps"][1]
+        self.assertIn("-Stage", gate_step["arguments"])
+        self.assertIn("customer", gate_step["arguments"])
+        self.assertIn("-Mode", gate_step["arguments"])
+        self.assertIn("preflight", gate_step["arguments"])
 
 
 if __name__ == "__main__":
