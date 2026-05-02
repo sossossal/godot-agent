@@ -252,30 +252,59 @@ try {
 
     $doctorReport = Read-JsonFile -Path (Resolve-RepoPath "logs/reports/doctor_self_check.json")
     $livePreflightReport = Read-JsonFile -Path (Join-Path $gateArtifactDir "release_live_preflight.json")
-    $recommendedActions = @()
+    $recommendedActionItems = @()
     if ($doctorReport) {
-        $recommendedActions += @(
+        $recommendedActionItems += @(
             $doctorReport.action_items |
                 ForEach-Object {
                     $command = [string]($_.command)
                     $message = [string]($_.message)
-                    if (-not [string]::IsNullOrWhiteSpace($command)) {
-                        $command
-                    } elseif (-not [string]::IsNullOrWhiteSpace($message)) {
-                        $message
+                    $actionText = if (-not [string]::IsNullOrWhiteSpace($command)) { $command } else { $message }
+                    if (-not [string]::IsNullOrWhiteSpace($actionText)) {
+                        [ordered]@{
+                            source = "doctor"
+                            check_id = [string]($_.check_id)
+                            check_name = [string]($_.check_name)
+                            title = [string]($_.title)
+                            command = $command
+                            message = $message
+                            action = $actionText
+                        }
                     }
                 } |
-                Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+                Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_.action) }
         )
     }
     if ($livePreflightReport) {
-        $recommendedActions += @(
+        $recommendedActionItems += @(
             $livePreflightReport.checks |
                 Where-Object { $_.status -ne "passed" -and -not [string]::IsNullOrWhiteSpace([string]$_.remediation) } |
-                ForEach-Object { [string]$_.remediation }
+                ForEach-Object {
+                    [ordered]@{
+                        source = "release_live_preflight"
+                        check_id = [string]($_.id)
+                        check_name = [string]($_.name)
+                        title = [string]($_.status)
+                        command = ""
+                        message = [string]($_.remediation)
+                        action = [string]($_.remediation)
+                    }
+                }
         )
     }
-    $recommendedActions = @($recommendedActions | Select-Object -Unique)
+    $seenRecommendedActions = @{}
+    $recommendedActionItems = @(
+        $recommendedActionItems |
+            Where-Object {
+                $key = [string]$_.action
+                if ([string]::IsNullOrWhiteSpace($key) -or $seenRecommendedActions.ContainsKey($key)) {
+                    return $false
+                }
+                $seenRecommendedActions[$key] = $true
+                return $true
+            }
+    )
+    $recommendedActions = @($recommendedActionItems | ForEach-Object { [string]$_.action })
     $readinessLevel = if (-not $overallOk) {
         "blocked"
     } elseif (@($recommendedActions).Count -gt 0) {
@@ -291,6 +320,7 @@ try {
         gate_mode = $GateMode
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
         recommended_action_count = @($recommendedActions).Count
+        recommended_action_items = $recommendedActionItems
         evidence_file_count = @($evidenceFiles).Count + 1
         command_count = @($commandRecords).Count
         rerun_script_path = $rerunScriptPath
@@ -320,6 +350,7 @@ try {
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
         recommended_actions = $recommendedActions
+        recommended_action_items = $recommendedActionItems
         readiness_level = $readinessLevel
         readiness_summary = $readinessSummary
         command_records = $commandRecords

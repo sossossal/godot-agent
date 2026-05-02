@@ -259,6 +259,9 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             payload = json.loads(manifest_path.read_text(encoding="utf-8-sig"))
             self.assertIn("recommended_actions", payload)
             self.assertTrue(payload["recommended_actions"])
+            self.assertIn("recommended_action_items", payload)
+            self.assertTrue(payload["recommended_action_items"])
+            self.assertEqual(payload["recommended_action_items"][0]["source"], "release_live_preflight")
             self.assertTrue((output_dir / "customer_trial_bundle.md").exists())
             rerun_script = output_dir / "rerun_customer_trial.ps1"
             self.assertTrue(rerun_script.exists())
@@ -277,6 +280,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             readiness_payload = json.loads(readiness_path.read_text(encoding="utf-8-sig"))
             self.assertEqual(readiness_payload["status"], "blocked")
             self.assertEqual(readiness_payload["readiness_level"], "blocked")
+            self.assertTrue(readiness_payload["recommended_action_items"])
+            self.assertEqual(readiness_payload["recommended_action_items"][0]["action"], payload["recommended_actions"][0])
             self.assertIn("customer_gate", readiness_payload["blocked_steps"])
             self.assertEqual(readiness_payload["command_count"], 2)
             evidence_paths = [item["relative_path"] for item in payload["evidence_files"]]
