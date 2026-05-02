@@ -34,11 +34,15 @@ def normalize_skill_validation(value: Any) -> Dict[str, Any]:
     raw = _normalize_dict(value)
     checks = list(raw.get("checks") or [])
     issues = [str(item).strip() for item in list(raw.get("issues") or []) if str(item).strip()]
-    return {
+    payload = {
         "passed": bool(raw.get("passed", not issues)),
         "issues": issues,
         "checks": checks,
     }
+    layout_check = raw.get("layout_check")
+    if isinstance(layout_check, dict):
+        payload["layout_check"] = dict(layout_check)
+    return payload
 
 
 def normalize_skill_rollback(value: Any) -> Dict[str, Any]:

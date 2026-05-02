@@ -442,6 +442,52 @@ class SkillResultMigrationTestCase(unittest.TestCase):
         report_artifact = next(artifact for artifact in task.artifacts if artifact.type == "report")
         self.assertEqual(report_artifact.metadata.get("skill_name"), "audit_godot_resources")
 
+    def test_resource_audit_skill_records_skill_result_contract_directly(self):
+        task, result = self._run_skill_directly(
+            "audit_godot_resources",
+            "审计项目资源",
+            {"deep_scan": True, "check_naming": True, "check_imports": True},
+        )
+
+        self.assertEqual(task.status, TaskStatus.SUCCESS)
+        self.assertEqual(task.context["last_skill_result"]["skill_name"], "audit_godot_resources")
+        self.assertEqual(task.context["last_skill_result"]["validation"]["passed"], True)
+        self.assertIn("layout_check", task.context["last_skill_result"]["validation"])
+        self.assertEqual(result.artifacts[0].metadata.get("skill_name"), "audit_godot_resources")
+
+    def test_audio_management_records_skill_result_contract_directly(self):
+        task, result = self._run_skill_directly(
+            "manage_audio_resource",
+            "添加音频节点",
+            {
+                "audio_name": "JumpSFX",
+                "audio_path": "res://assets/audio/jump_sfx.ogg",
+                "is_2d": True,
+                "autoplay": True,
+                "bus": "Master",
+            },
+        )
+
+        self.assertEqual(task.status, TaskStatus.FAILED)
+        self.assertEqual(task.context["last_skill_result"]["skill_name"], "manage_audio_resource")
+        self.assertEqual(task.context["last_skill_result"]["validation"]["passed"], False)
+        self.assertEqual(result.metadata["skill_result"]["rollback"]["strategy"], "no_write_performed")
+
+        task.context["editor_state"] = {"is_active": True}
+        skill = SkillRegistry.get_skill("manage_audio_resource", self.router.godot_cli, self.router.index_service)
+        result = skill.execute(task, {
+            "audio_name": "JumpSFX",
+            "audio_path": "res://assets/audio/jump_sfx.ogg",
+            "is_2d": True,
+            "autoplay": True,
+            "bus": "Master",
+        })
+        record_skill_result_on_task(task, dict(result.metadata or {}).get("skill_result"))
+
+        self.assertTrue(result.success)
+        self.assertEqual(task.context["last_skill_result"]["validation"]["passed"], True)
+        self.assertEqual(result.artifacts[0].metadata.get("skill_name"), "manage_audio_resource")
+
     def test_resource_fix_preview_records_skill_result_contract_via_resource_manager(self):
         assets_dir = self.project_dir / "assets"
         assets_dir.mkdir(parents=True, exist_ok=True)

@@ -447,6 +447,12 @@ class ArtAssetPipelineSkill(BaseSkill):
             "art_asset_layout_schema_version": manifest_layout["schema_version"],
             "art_asset_manifest_schema_version": ART_ASSET_MANIFEST_SCHEMA_VERSION,
             "art_asset_profile": snapshot,
+            "art_asset_atlas_plan": snapshot["atlas_plan"],
+            "art_asset_atlas_entry_count": snapshot["atlas_entry_count"],
+            "art_asset_atlas_frame_count": snapshot["atlas_frame_count"],
+            "art_asset_material_link_audit": snapshot["material_link_audit"],
+            "art_asset_material_link_status": snapshot["material_link_audit"]["status"],
+            "art_asset_material_link_issue_count": snapshot["material_link_audit"]["issue_count"],
         })
 
         if issues and action in {"validate", "preview", "apply"}:
@@ -747,6 +753,9 @@ class ArtAssetPipelineSkill(BaseSkill):
                 "tags": tags,
                 "notes": notes,
             }
+            atlas_entry = self._build_atlas_entry(asset_type, normalized_entry)
+            if atlas_entry:
+                normalized_entry["atlas"] = atlas_entry
             normalized_entries.append(normalized_entry)
 
             if source_path is not None and check_source_exists and source_path.exists():
@@ -961,6 +970,8 @@ class ArtAssetPipelineSkill(BaseSkill):
                 text = str(candidate or "").strip()
                 if text and text not in copied_targets:
                     copied_targets.append(text)
+        atlas_plan = self._build_atlas_plan(asset_type, entries)
+        material_link_audit = self._build_material_link_audit(asset_type, entries)
         return {
             "schema_version": ART_ASSET_MANIFEST_SCHEMA_VERSION,
             "asset_type": asset_type,
@@ -970,8 +981,155 @@ class ArtAssetPipelineSkill(BaseSkill):
             "entry_count": len(entries),
             "copied_target_count": len(copied_targets),
             "copied_targets": copied_targets,
+            "atlas_plan": atlas_plan,
+            "atlas_entry_count": atlas_plan["entry_count"],
+            "atlas_frame_count": atlas_plan["total_frame_count"],
+            "material_link_audit": material_link_audit,
+            "material_link_status": material_link_audit["status"],
             "entries": entries,
         }
+
+    def _build_atlas_entry(self, asset_type: str, entry: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        if asset_type not in {"spritesheet", "aseprite"}:
+            return None
+        width = self._normalize_int(entry.get("width"))
+        height = self._normalize_int(entry.get("height"))
+        frame_width = self._normalize_int(entry.get("frame_width"))
+        frame_height = self._normalize_int(entry.get("frame_height"))
+        if not width or not height or not frame_width or not frame_height:
+            return None
+        columns = width // frame_width if frame_width else 0
+        rows = height // frame_height if frame_height else 0
+        frame_count = columns * rows
+        atlas_path = str(entry.get("target_path") or "").rsplit(".", 1)[0] + ".atlas.json"
+        status = "passed"
+        warnings: List[str] = []
+        if frame_count <= 0:
+            status = "blocked"
+            warnings.append("frame_count is zero")
+        elif frame_count > 256:
+            status = "warning"
+            warnings.append("frame_count exceeds 256")
+        return {
+            "atlas_id": f"{entry.get('asset_id')}_atlas",
+            "source_sheet": entry.get("target_path"),
+            "atlas_path": atlas_path,
+            "frame_width": frame_width,
+            "frame_height": frame_height,
+            "columns": columns,
+            "rows": rows,
+            "frame_count": frame_count,
+            "status": status,
+            "warnings": warnings,
+        }
+
+    def _build_atlas_plan(self, asset_type: str, entries: List[Dict[str, Any]]) -> Dict[str, Any]:
+        atlas_entries = [dict(entry.get("atlas")) for entry in entries if isinstance(entry.get("atlas"), dict)]
+        blocked = [entry for entry in atlas_entries if entry.get("status") == "blocked"]
+        warning = [entry for entry in atlas_entries if entry.get("status") == "warning"]
+        return {
+            "available": asset_type in {"spritesheet", "aseprite"},
+            "status": "blocked" if blocked else ("warning" if warning else ("passed" if atlas_entries else "skipped")),
+            "entry_count": len(atlas_entries),
+            "total_frame_count": sum(int(entry.get("frame_count") or 0) for entry in atlas_entries),
+            "atlas_paths": [str(entry.get("atlas_path") or "") for entry in atlas_entries if entry.get("atlas_path")],
+            "entries": atlas_entries,
+            "warnings": [warning for entry in atlas_entries for warning in list(entry.get("warnings") or [])],
+        }
+
+    def _build_material_link_audit(self, asset_type: str, entries: List[Dict[str, Any]]) -> Dict[str, Any]:
+        available = asset_type in {"material", "substance"}
+        if not available:
+            return {
+                "available": False,
+                "status": "skipped",
+                "entry_count": 0,
+                "issue_count": 0,
+                "warning_count": 0,
+                "linked_texture_count": 0,
+                "entries": [],
+                "issues": [],
+                "warnings": [],
+            }
+
+        audit_entries: List[Dict[str, Any]] = []
+        issues: List[str] = []
+        warnings: List[str] = []
+        for entry in entries:
+            asset_id = str(entry.get("asset_id") or "material_asset").strip()
+            texture_targets = [
+                str(item or "").strip()
+                for item in list(entry.get("dependency_targets") or [])
+                if Path(str(item or "")).suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".tga", ".exr"}
+            ]
+            channel_map = self._classify_material_channels(texture_targets)
+            missing_channels = [
+                channel
+                for channel in ("albedo", "normal", "orm")
+                if not channel_map.get(channel)
+            ]
+            entry_issues: List[str] = []
+            entry_warnings: List[str] = []
+            if not texture_targets:
+                entry_warnings.append(f"{asset_id} 未声明材质贴图依赖")
+            elif missing_channels:
+                entry_warnings.append(f"{asset_id} 缺少材质通道: {', '.join(missing_channels)}")
+            if asset_type == "substance" and missing_channels:
+                entry_issues.append(f"{asset_id} substance 材质贴图通道不完整: {', '.join(missing_channels)}")
+            issues.extend(entry_issues)
+            warnings.extend(entry_warnings)
+            audit_entries.append({
+                "asset_id": asset_id,
+                "target_path": entry.get("target_path"),
+                "texture_set": entry.get("texture_set") or "",
+                "linked_texture_count": len(texture_targets),
+                "texture_targets": texture_targets,
+                "channels": channel_map,
+                "missing_channels": missing_channels,
+                "status": "blocked" if entry_issues else ("warning" if entry_warnings else "passed"),
+                "issues": entry_issues,
+                "warnings": entry_warnings,
+            })
+
+        return {
+            "available": True,
+            "status": "blocked" if issues else ("warning" if warnings else ("passed" if audit_entries else "skipped")),
+            "entry_count": len(audit_entries),
+            "issue_count": len(issues),
+            "warning_count": len(warnings),
+            "linked_texture_count": sum(item["linked_texture_count"] for item in audit_entries),
+            "entries": audit_entries,
+            "issues": issues,
+            "warnings": warnings,
+        }
+
+    def _classify_material_channels(self, texture_targets: List[str]) -> Dict[str, List[str]]:
+        channels = {
+            "albedo": [],
+            "normal": [],
+            "orm": [],
+            "roughness": [],
+            "metallic": [],
+            "ao": [],
+            "emissive": [],
+        }
+        for target in texture_targets:
+            name = Path(target).stem.lower()
+            if any(token in name for token in ("albedo", "basecolor", "base_color", "diffuse")):
+                channels["albedo"].append(target)
+            if any(token in name for token in ("normal", "nrm")):
+                channels["normal"].append(target)
+            if "orm" in name or "occlusion_roughness_metallic" in name:
+                channels["orm"].append(target)
+            if "roughness" in name:
+                channels["roughness"].append(target)
+            if "metallic" in name or "metalness" in name:
+                channels["metallic"].append(target)
+            if name.endswith("_ao") or "ambient_occlusion" in name or "occlusion" in name:
+                channels["ao"].append(target)
+            if "emissive" in name or "emission" in name:
+                channels["emissive"].append(target)
+        return channels
 
     def _build_diff(self, before: str, after: str, manifest_path: Path) -> str:
         diff = difflib.unified_diff(
@@ -1030,8 +1188,29 @@ class ArtAssetPipelineSkill(BaseSkill):
                 lines.append(f"  license_name={entry['license_name']}")
             if entry.get("dependency_targets"):
                 lines.append(f"  dependency_targets={', '.join(entry['dependency_targets'])}")
+            if entry.get("atlas"):
+                atlas = entry["atlas"]
+                lines.append(
+                    f"  atlas={atlas['atlas_path']} frames={atlas['frame_count']} "
+                    f"grid={atlas['columns']}x{atlas['rows']} status={atlas['status']}"
+                )
         if not entries:
             lines.append("- No entries")
+        atlas_plan = self._build_atlas_plan(asset_type, entries)
+        if atlas_plan["available"]:
+            lines.extend(["", "## Atlas Plan", ""])
+            lines.append(f"- Status: {atlas_plan['status']}")
+            lines.append(f"- Entry Count: {atlas_plan['entry_count']}")
+            lines.append(f"- Total Frame Count: {atlas_plan['total_frame_count']}")
+            lines.extend([f"- {path}" for path in atlas_plan["atlas_paths"]] or ["- No atlas entries"])
+        material_link_audit = self._build_material_link_audit(asset_type, entries)
+        if material_link_audit["available"]:
+            lines.extend(["", "## Material Link Audit", ""])
+            lines.append(f"- Status: {material_link_audit['status']}")
+            lines.append(f"- Entry Count: {material_link_audit['entry_count']}")
+            lines.append(f"- Linked Texture Count: {material_link_audit['linked_texture_count']}")
+            lines.extend([f"- {issue}" for issue in material_link_audit["issues"]] or ["- No blocking issues"])
+            lines.extend([f"- warning: {warning}" for warning in material_link_audit["warnings"]] or [])
         lines.extend(["", "## Copy Plan", ""])
         lines.extend([
             f"- {item['source_path']} -> {item['target_res_path']}"

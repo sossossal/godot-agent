@@ -28,6 +28,34 @@ class AttachScriptSkill(BaseSkill):
     def execute(self, task: Task, params: Dict[str, Any]) -> ToolResult:
         p = AttachParams(**params)
         target_scene = p.target_scene or task.context.get("scene_path")
+        script_layout_check = self.validate_managed_output_path(p.script_path, "generated_script")
+        if not script_layout_check["passed"]:
+            return self.build_result(
+                success=False,
+                message=f"文件树规范阻断脚本挂载: {p.script_path}",
+                params=self.dump_model(p),
+                error="project_layout_validation_failed",
+                validation={
+                    "passed": False,
+                    "checks": [{"name": "project_layout", "status": "blocked"}],
+                    "layout_check": script_layout_check,
+                },
+            )
+        scene_layout_check = None
+        if target_scene:
+            scene_layout_check = self.validate_managed_output_path(target_scene, "generated_scene")
+            if not scene_layout_check["passed"]:
+                return self.build_result(
+                    success=False,
+                    message=f"文件树规范阻断场景挂载写入: {target_scene}",
+                    params=self.dump_model(p),
+                    error="project_layout_validation_failed",
+                    validation={
+                        "passed": False,
+                        "checks": [{"name": "project_layout", "status": "blocked"}],
+                        "layout_check": scene_layout_check,
+                    },
+                )
         
         editor_state = task.context.get("editor_state", {})
         if editor_state.get("is_active") and not p.target_scene:
@@ -43,8 +71,10 @@ class AttachScriptSkill(BaseSkill):
                     "passed": True,
                     "checks": [
                         {"name": "target_scene_resolution", "status": "passed"},
+                        {"name": "project_layout", "status": "passed"},
                         {"name": "editor_dispatch_ready", "status": "passed"},
                     ],
+                    "layout_check": script_layout_check,
                 },
                 rollback={"available": False, "strategy": "wait_for_editor_confirmation"},
             )
@@ -70,8 +100,10 @@ class AttachScriptSkill(BaseSkill):
                     "passed": True,
                     "checks": [
                         {"name": "target_scene_resolution", "status": "passed"},
+                        {"name": "project_layout", "status": "passed"},
                         {"name": "headless_attach", "status": "passed"},
                     ],
+                    "layout_check": scene_layout_check or script_layout_check,
                 },
                 rollback={"available": False, "strategy": "restore_scene_from_backup_or_vcs"},
             )

@@ -27,6 +27,19 @@ class InstantiateSkill(BaseSkill):
 
     def execute(self, task: Task, params: Dict[str, Any]) -> ToolResult:
         p = InstantiationParams(**params)
+        layout_check = self.validate_managed_output_path(p.instance_scene_path, "generated_scene")
+        if not layout_check["passed"]:
+            return self.build_result(
+                success=False,
+                message=f"文件树规范阻断场景实例化: {p.instance_scene_path}",
+                params=self.dump_model(p),
+                error="project_layout_validation_failed",
+                validation={
+                    "passed": False,
+                    "checks": [{"name": "project_layout", "status": "blocked"}],
+                    "layout_check": layout_check,
+                },
+            )
         
         # 1. 检查编辑器状态
         editor_state = task.context.get("editor_state", {})
@@ -70,8 +83,10 @@ class InstantiateSkill(BaseSkill):
                 "passed": True,
                 "checks": [
                     {"name": "editor_online", "status": "passed"},
+                    {"name": "project_layout", "status": "passed"},
                     {"name": "instantiate_script_generated", "status": "passed"},
                 ],
+                "layout_check": layout_check,
             },
             rollback={"available": False, "strategy": "wait_for_editor_confirmation"},
         )

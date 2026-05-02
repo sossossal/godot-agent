@@ -49,6 +49,19 @@ class GenerateMovementSkill(BaseSkill):
             
         # 🆕 产物路径重定向
         res_path = self.resolve_generated_path(f"res://scripts/{p.script_name}", task)
+        layout_check = self.validate_managed_output_path(res_path, "generated_script")
+        if not layout_check["passed"]:
+            return self.build_result(
+                success=False,
+                message=f"文件树规范阻断脚本生成: {res_path}",
+                params=self.dump_model(p),
+                error="project_layout_validation_failed",
+                validation={
+                    "passed": False,
+                    "checks": [{"name": "project_layout", "status": "blocked"}],
+                    "layout_check": layout_check,
+                },
+            )
         
         try:
             full_path, backup_path = self._save_script(task, res_path, code)
@@ -67,8 +80,10 @@ class GenerateMovementSkill(BaseSkill):
                     "passed": True,
                     "checks": [
                         {"name": "template_render", "status": "passed"},
+                        {"name": "project_layout", "status": "passed"},
                         {"name": "script_write", "status": "passed"},
                     ],
+                    "layout_check": layout_check,
                 },
                 rollback={
                     "available": bool(backup_path),

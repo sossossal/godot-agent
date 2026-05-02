@@ -32,7 +32,13 @@ class AudioManagementSkill(BaseSkill):
         # 1. 检查编辑器状态
         editor_state = task.context.get("editor_state", {})
         if not editor_state.get("is_active"):
-            return ToolResult(success=False, message="编辑器离线, 无法实时注入音频节点")
+            return self.build_result(
+                success=False,
+                message="编辑器离线, 无法实时注入音频节点",
+                params=self.dump_model(p),
+                validation={"passed": False, "issues": ["editor_offline"]},
+                rollback={"available": False, "strategy": "no_write_performed"},
+            )
             
         task.add_log(f"🔊 正在配置音频资源: {p.audio_name} -> {p.audio_path}")
         
@@ -80,8 +86,18 @@ func _run(plugin: EditorPlugin):
                 creation_params=params
             ))
 
-        return ToolResult(
-            success=True, 
+        return self.build_result(
+            success=True,
             message=f"已在场景中成功添加音频节点 '{p.audio_name}'。",
-            artifacts=[artifact]
+            params=self.dump_model(p),
+            artifacts=[artifact],
+            validation={
+                "passed": True,
+                "checks": [
+                    {"name": "editor_online", "status": "passed"},
+                    {"name": "audio_editor_script_generated", "status": "passed"},
+                ],
+            },
+            rollback={"available": False, "strategy": "wait_for_editor_confirmation"},
+            metadata={"audio_node_type": node_type},
         )

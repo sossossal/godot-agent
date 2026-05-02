@@ -129,7 +129,7 @@ class ProjectLayoutValidator:
         ]
 
     def _build_result(self, target: Path, kind: str, scope: str, issues: List[LayoutIssue]) -> Dict[str, Any]:
-        return {
+        result = {
             "schema_version": PROJECT_LAYOUT_SCHEMA_VERSION,
             "passed": not issues,
             "path": str(target),
@@ -137,6 +137,9 @@ class ProjectLayoutValidator:
             "scope": scope,
             "issues": [issue.to_dict() for issue in issues],
         }
+        if issues:
+            result["repair_preview"] = self._build_repair_preview(target, kind, scope, issues)
+        return result
 
     def _relative_to_root(self, target: Path, root: Path) -> Optional[Path]:
         try:
@@ -154,7 +157,7 @@ class ProjectLayoutValidator:
         return None, None
 
     def _resolve_scope_for_kind(self, target: Path, kind: str) -> Tuple[Optional[str], Optional[Path]]:
-        if kind in {"data_table", "generated_script", "generated_scene", "art_asset", "asset_manifest", "telemetry_catalog", "telemetry_session", "liveops_manifest", "platform_delivery_manifest", "scene_ownership_manifest", "release_access_policy_manifest", "release_request_auth_manifest", "release_identity_registry_manifest", "release_capability_registry_manifest", "release_promotion_history_manifest", "release_execution_status_manifest", "release_channel_manifest"}:
+        if kind in {"project_config", "data_table", "generated_script", "generated_scene", "art_asset", "asset_manifest", "telemetry_catalog", "telemetry_session", "liveops_manifest", "platform_delivery_manifest", "scene_ownership_manifest", "release_access_policy_manifest", "release_request_auth_manifest", "release_identity_registry_manifest", "release_capability_registry_manifest", "release_promotion_history_manifest", "release_execution_status_manifest", "release_channel_manifest"}:
             priorities = (("project", self.project_root), ("runtime", self.runtime_root))
         else:
             priorities = (("runtime", self.runtime_root), ("project", self.project_root))
@@ -284,6 +287,12 @@ class ProjectLayoutValidator:
             require(normalized.startswith("data_tables/"), "wrong_directory", "Data tables must live under data_tables/")
             require(suffix in {".csv", ".tsv", ".json"}, "wrong_extension", "Data tables must use .csv, .tsv or .json")
             require(bool(_SNAKE_CASE_RE.match(stem)), "wrong_name", "Data table file names must use snake_case")
+            return issues
+
+        if kind == "project_config":
+            require(scope == "project", "wrong_scope", "Project config must live under the project root")
+            require(normalized == "project.godot", "wrong_directory", "Project config must be project.godot")
+            require(target.name == "project.godot", "wrong_name", "Project config file name must be project.godot")
             return issues
 
         if kind == "generated_script":
@@ -441,6 +450,172 @@ class ProjectLayoutValidator:
             return issues
 
         return issues
+
+    def _build_repair_preview(self, target: Path, kind: str, scope: str, issues: List[LayoutIssue]) -> Dict[str, Any]:
+        suggested_root, suggested_relative = self._suggest_relative_path(target, kind)
+        suggested_path = suggested_root / suggested_relative if suggested_root else target
+        return {
+            "available": bool(suggested_root and suggested_relative),
+            "apply_mode": "preview_only",
+            "message": "Suggested managed path only; no files were moved or written.",
+            "source_path": str(target),
+            "suggested_path": str(suggested_path),
+            "suggested_relative_path": suggested_relative.as_posix() if suggested_relative else "",
+            "kind": kind,
+            "issue_codes": [issue.code for issue in issues],
+            "changes": self._repair_changes(target, suggested_path, issues),
+        }
+
+    def _suggest_relative_path(self, target: Path, kind: str) -> Tuple[Optional[Path], Optional[Path]]:
+        if kind == "project_config":
+            return self.project_root, Path("project.godot")
+        base_dir = self._repair_base_dir_for_target(target, kind)
+        if not base_dir:
+            return None, None
+        root = self.runtime_root if self._kind_prefers_runtime(kind) else self.project_root
+        file_name = self._repair_file_name(target, kind)
+        return root, Path(base_dir) / file_name
+
+    def _repair_base_dir_for_target(self, target: Path, kind: str) -> str:
+        project_relative = self._relative_to_root(target, self.project_root)
+        if project_relative is not None:
+            normalized = project_relative.as_posix()
+            if kind == "generated_script" and normalized.startswith("agent_modules/scripts/"):
+                return "agent_modules/scripts"
+            if kind == "generated_scene" and normalized.startswith("agent_modules/scenes/"):
+                return "agent_modules/scenes"
+        return self._repair_base_dir(kind)
+
+    def _repair_base_dir(self, kind: str) -> str:
+        mapping = {
+            "data_table": "data_tables",
+            "generated_script": "scripts",
+            "generated_scene": "scenes",
+            "art_asset": "assets",
+            "asset_manifest": "assets/manifests",
+            "telemetry_catalog": "telemetry",
+            "telemetry_session": "telemetry/sessions",
+            "liveops_manifest": "liveops",
+            "platform_delivery_manifest": "deployment",
+            "scene_ownership_manifest": "scenes",
+            "release_access_policy_manifest": "deployment",
+            "release_request_auth_manifest": "deployment",
+            "release_identity_registry_manifest": "deployment",
+            "release_capability_registry_manifest": "deployment",
+            "release_promotion_history_manifest": "deployment",
+            "release_execution_status_manifest": "deployment",
+            "release_channel_manifest": "deployment",
+            "runtime_report": "logs/reports",
+            "runtime_screenshot": "logs/test_artifacts",
+            "release_output": "api_server/static/dist",
+            "release_report": "api_server/static/dist",
+            "release_manifest": "api_server/static/dist",
+            "baseline_artifact": "tests/baselines/screenshots",
+        }
+        return mapping.get(kind, "")
+
+    def _repair_file_name(self, target: Path, kind: str) -> str:
+        fixed_names = {
+            "telemetry_catalog": "event_catalog.json",
+            "platform_delivery_manifest": "platform_delivery.json",
+            "scene_ownership_manifest": "scene_ownership_board.json",
+            "release_access_policy_manifest": "release_access_policy.json",
+            "release_request_auth_manifest": "release_request_auth.json",
+            "release_identity_registry_manifest": "release_identity_registry.json",
+            "release_capability_registry_manifest": "release_capability_registry.json",
+            "release_promotion_history_manifest": "release_promotion_history.json",
+            "release_execution_status_manifest": "release_execution_status.json",
+            "release_channel_manifest": "release_channels.json",
+            "release_manifest": "release_manifest.json",
+        }
+        if kind in fixed_names:
+            return fixed_names[kind]
+        if kind == "liveops_manifest":
+            return target.name if target.name in {"remote_config.json", "experiments.json"} else "remote_config.json"
+        if kind == "release_report":
+            return target.name if target.name in {"release_notes.md", "qa_gate_report.md", "build.log"} else "release_notes.md"
+
+        extension = self._repair_extension(target, kind)
+        stem = target.stem or "generated"
+        if kind in {"data_table", "generated_script", "art_asset", "asset_manifest", "telemetry_session"}:
+            stem = self._sanitize_snake_case(stem)
+        elif kind == "generated_scene":
+            stem = self._sanitize_scene_stem(stem)
+        else:
+            stem = self._sanitize_safe_stem(stem)
+        return f"{stem}{extension}"
+
+    def _repair_extension(self, target: Path, kind: str) -> str:
+        suffix = target.suffix.lower()
+        allowed = {
+            "data_table": {".csv", ".tsv", ".json"},
+            "generated_script": {".gd"},
+            "generated_scene": {".tscn"},
+            "art_asset": {".png", ".jpg", ".jpeg", ".webp", ".tres", ".res", ".tscn", ".ogg", ".wav", ".mp3", ".flac", ".import", ".gdshader", ".glb", ".gltf", ".json", ".atlas", ".zip"},
+            "asset_manifest": {".json"},
+            "telemetry_session": {".json", ".jsonl"},
+            "runtime_report": {".md", ".json", ".txt"},
+            "runtime_screenshot": {".png", ".jpg", ".jpeg", ".json", ".txt"},
+            "release_output": {".html", ".exe"},
+            "baseline_artifact": {".png", ".jpg", ".jpeg", ".json", ".txt"},
+        }
+        defaults = {
+            "data_table": ".json",
+            "generated_script": ".gd",
+            "generated_scene": ".tscn",
+            "art_asset": ".png",
+            "asset_manifest": ".json",
+            "telemetry_session": ".jsonl",
+            "runtime_report": ".json",
+            "runtime_screenshot": ".png",
+            "release_output": ".html",
+            "baseline_artifact": ".png",
+        }
+        return suffix if suffix in allowed.get(kind, set()) else defaults.get(kind, suffix or ".json")
+
+    def _kind_prefers_runtime(self, kind: str) -> bool:
+        return kind in {
+            "runtime_report",
+            "runtime_screenshot",
+            "release_output",
+            "release_report",
+            "release_manifest",
+            "baseline_artifact",
+        }
+
+    def _sanitize_snake_case(self, value: str) -> str:
+        text = re.sub(r"[^A-Za-z0-9]+", "_", value).strip("_").lower()
+        return text or "generated"
+
+    def _sanitize_scene_stem(self, value: str) -> str:
+        text = re.sub(r"[^A-Za-z0-9_]+", "_", value).strip("_")
+        return text or "GeneratedScene"
+
+    def _sanitize_safe_stem(self, value: str) -> str:
+        text = re.sub(r"[^A-Za-z0-9._-]+", "_", value).strip("._-")
+        return text or "generated"
+
+    def _repair_changes(self, target: Path, suggested_path: Path, issues: List[LayoutIssue]) -> List[Dict[str, str]]:
+        changes: List[Dict[str, str]] = []
+        if target.parent != suggested_path.parent:
+            changes.append({
+                "field": "directory",
+                "from": str(target.parent),
+                "to": str(suggested_path.parent),
+            })
+        if target.name != suggested_path.name:
+            changes.append({
+                "field": "file_name",
+                "from": target.name,
+                "to": suggested_path.name,
+            })
+        if not changes:
+            changes.append({
+                "field": "path",
+                "from": str(target),
+                "to": str(suggested_path),
+            })
+        return changes
 
     def _issue(self, code: str, message: str, target: Path, kind: str, scope: str) -> LayoutIssue:
         return LayoutIssue(

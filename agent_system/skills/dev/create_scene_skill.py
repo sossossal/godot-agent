@@ -36,6 +36,19 @@ class CreateSceneSkill(BaseSkill):
         
         base_path = f"res://scenes/{scene_name}.tscn"
         full_path = base_path
+        layout_check = self.validate_managed_output_path(full_path, "generated_scene")
+        if not layout_check["passed"]:
+            return self.build_result(
+                success=False,
+                message=f"文件树规范阻断场景创建: {full_path}",
+                params=self.dump_model(p),
+                error="project_layout_validation_failed",
+                validation={
+                    "passed": False,
+                    "checks": [{"name": "project_layout", "status": "blocked"}],
+                    "layout_check": layout_check,
+                },
+            )
         task.context["scene_path"] = full_path
         task.context["scene_path_source"] = "developer"
         
@@ -64,8 +77,10 @@ class CreateSceneSkill(BaseSkill):
                     "passed": True,
                     "checks": [
                         {"name": "scene_path_resolution", "status": "passed"},
+                        {"name": "project_layout", "status": "passed"},
                         {"name": "editor_dispatch_ready", "status": "passed"},
                     ],
+                    "layout_check": layout_check,
                 },
                 rollback={"available": False, "strategy": "wait_for_editor_confirmation"},
             )
@@ -87,8 +102,10 @@ class CreateSceneSkill(BaseSkill):
                     "passed": True,
                     "checks": [
                         {"name": "scene_path_resolution", "status": "passed"},
+                        {"name": "project_layout", "status": "passed"},
                         {"name": "headless_scene_create", "status": "passed"},
                     ],
+                    "layout_check": layout_check,
                 },
                 rollback={"available": False, "strategy": "delete_created_scene_or_restore_from_vcs"},
             )

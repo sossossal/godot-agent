@@ -1,4 +1,6 @@
 import os
+import json
+import re
 import shutil
 import sys
 import tempfile
@@ -36,6 +38,41 @@ class MockGodotCLI:
 
     def get_version(self):
         return "4.2.0"
+
+
+class CapturingMockGodotCLI(MockGodotCLI):
+    def run_headless(self, script_path, args=None):
+        script = Path(script_path).read_text(encoding="utf-8")
+        match = re.search(r'var _output_path := "([^"]+)"', script)
+        if not match:
+            return ToolResult(False, "missing output path")
+        output_path = Path(match.group(1))
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(
+            json.dumps({
+                "schema_version": "1.1",
+                "scene_path": "res://scenes/main_scene.tscn",
+                "metrics": {
+                    "scene_load_ms": 42,
+                    "fps": 60,
+                    "memory_peak_mb": 128,
+                    "draw_call_count": 16,
+                    "node_count": 8,
+                    "frame_spike_ms": 4,
+                },
+                "memory_trend": {
+                    "sample_count": 1,
+                    "min_mb": 128,
+                    "max_mb": 128,
+                    "avg_mb": 128,
+                    "growth_mb": 0,
+                    "trend_status": "stable",
+                },
+                "frame_breakdown": [{"stage": "scene_load", "ms": 42}],
+            }, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        return ToolResult(True, "OK", data={"stdout": f"PERFORMANCE_PROFILE_PATH={output_path}", "stderr": ""})
 
 
 class PerformancePipelineTestCase(unittest.TestCase):
@@ -90,6 +127,36 @@ class PerformancePipelineTestCase(unittest.TestCase):
         self.assertEqual(task.context["performance_summary"]["schema_version"], "1.1")
         self.assertEqual(task.context["performance_summary"]["metrics"]["draw_call_count"], 280)
         self.assertEqual(result.metadata["skill_result"]["skill_name"], "manage_game_performance")
+
+    def test_performance_capture_runs_headless_and_writes_profile(self):
+        skill = PerformancePipelineSkill(CapturingMockGodotCLI(project_path=str(self.project_dir)))
+        task = Task(prompt="采集性能画像")
+        result = skill.execute(task, {
+            "action": "capture",
+            "scene_path": "res://scenes/main_scene.tscn",
+            "budget_overrides": {
+                "max_scene_load_ms": 100,
+                "min_fps": 55,
+                "max_memory_peak_mb": 160,
+                "max_draw_call_count": 32,
+                "max_node_count": 16,
+            },
+        })
+
+        self.cleanup_paths.extend([
+            task.context.get("performance_report_path", ""),
+            task.context.get("performance_profile_path", ""),
+        ])
+
+        self.assertTrue(result.success)
+        profile_path = Path(task.context["performance_profile_path"])
+        self.assertTrue(profile_path.exists())
+        self.assertEqual(task.context["performance_capture"]["status"], "passed")
+        self.assertEqual(task.context["performance_summary"]["metrics"]["scene_load_ms"], 42)
+        self.assertTrue(any(
+            artifact.metadata.get("performance_artifact") == "captured_profile"
+            for artifact in result.artifacts
+        ))
 
     def test_performance_analyze_flags_budget_overflow_and_regression(self):
         skill = PerformancePipelineSkill(MockGodotCLI(project_path=str(self.project_dir)))
@@ -245,6 +312,82 @@ class PerformancePipelineTestCase(unittest.TestCase):
         self.assertEqual(task.context["performance_summary"]["metrics"]["memory_growth_mb"], 12.0)
         self.assertEqual(task.context["performance_summary"]["memory_trend"]["trend_status"], "growing")
         self.assertEqual(task.context["performance_summary"]["frame_breakdown"][0]["stage"], "cpu")
+
+    def test_performance_analyze_tracks_memory_regressions(self):
+        skill = PerformancePipelineSkill(MockGodotCLI(project_path=str(self.project_dir)))
+        task = Task(prompt="分析内存回归")
+
+        result = skill.execute(task, {
+            "action": "analyze",
+            "baseline_metrics": {
+                "fps": 60,
+                "memory_peak_mb": 128,
+                "memory_samples_mb": [120, 123, 125],
+            },
+            "profile_metrics": {
+                "fps": 60,
+                "memory_peak_mb": 166,
+                "memory_samples_mb": [126, 136, 148, 166],
+            },
+            "budget_overrides": {
+                "min_fps": 55,
+                "max_memory_peak_mb": 180,
+                "max_memory_growth_mb": 10,
+                "max_memory_peak_delta_mb": 32,
+            },
+        })
+
+        self.cleanup_paths.extend([
+            task.context.get("performance_report_path", ""),
+            task.context.get("performance_profile_path", ""),
+        ])
+
+        self.assertFalse(result.success)
+        summary = task.context["performance_summary"]
+        self.assertEqual(summary["memory_regression"]["status"], "blocked")
+        self.assertEqual(summary["memory_regression"]["growth_delta_mb"], 35.0)
+        self.assertEqual(summary["metrics"]["memory_growth_delta_mb"], 35.0)
+        self.assertTrue(any(
+            check["name"] == "memory_regression_trend" and check["status"] == "blocked"
+            for check in summary["checks"]
+        ))
+
+    def test_performance_analyze_compares_screenshot_baselines(self):
+        skill = PerformancePipelineSkill(MockGodotCLI(project_path=str(self.project_dir)))
+        screenshot_dir = self.project_dir / "logs" / "test_artifacts" / "screenshots"
+        screenshot_dir.mkdir(parents=True, exist_ok=True)
+        baseline_path = screenshot_dir / "baseline.png"
+        candidate_path = screenshot_dir / "candidate.png"
+        baseline_path.write_bytes(b"abcdef")
+        candidate_path.write_bytes(b"abcxef")
+
+        task = Task(prompt="分析截图 baseline diff")
+        result = skill.execute(task, {
+            "action": "analyze",
+            "screenshot_baseline_path": str(baseline_path.relative_to(project_root)),
+            "screenshot_candidate_path": str(candidate_path.relative_to(project_root)),
+            "budget_overrides": {
+                "max_screenshot_diff_ratio": 0.2,
+            },
+        })
+
+        self.cleanup_paths.extend([
+            task.context.get("performance_report_path", ""),
+            task.context.get("performance_profile_path", ""),
+        ])
+
+        self.assertTrue(result.success)
+        summary = task.context["performance_summary"]
+        self.assertEqual(summary["metrics"]["screenshot_diff_ratio"], 0.1667)
+        self.assertEqual(summary["screenshot_compare"]["status"], "passed")
+        self.assertTrue(any(
+            check["name"] == "screenshot_baseline_compare" and check["status"] == "passed"
+            for check in summary["checks"]
+        ))
+        self.assertTrue(any(
+            check["name"] == "screenshot_diff" and check["status"] == "passed"
+            for check in summary["checks"]
+        ))
 
     @patch("agent_system.router.GodotCLI", MockGodotCLI)
     def test_router_routes_performance_prompt_and_records_skill_result(self):

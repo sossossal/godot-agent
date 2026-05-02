@@ -168,6 +168,8 @@ class ResourceManagerRole(BaseRole):
                         "scene_path": task.context.get("performance_scene_path") or task.context.get("scene_path"),
                         "baseline_path": task.context.get("performance_baseline_path"),
                         "profile_path": task.context.get("performance_profile_path"),
+                        "screenshot_baseline_path": task.context.get("performance_screenshot_baseline_path"),
+                        "screenshot_candidate_path": task.context.get("performance_screenshot_candidate_path"),
                         "baseline_metrics": task.context.get("performance_baseline_metrics"),
                         "profile_metrics": task.context.get("performance_profile")
                             or task.context.get("performance_profile_metrics"),
@@ -267,6 +269,24 @@ class ResourceManagerRole(BaseRole):
                         "enemy_rows": task.context.get("balance_enemy_rows"),
                         "quest_rows": task.context.get("balance_quest_rows"),
                         "loot_rows": task.context.get("balance_loot_rows"),
+                        "compare_with_baseline": task.context.get("balance_compare_with_baseline"),
+                        "baseline_enemy_table_path": task.context.get("balance_baseline_enemy_table_path"),
+                        "baseline_quest_table_path": task.context.get("balance_baseline_quest_table_path"),
+                        "baseline_loot_table_path": task.context.get("balance_baseline_loot_table_path"),
+                        "baseline_enemy_rows": task.context.get("balance_baseline_enemy_rows"),
+                        "baseline_quest_rows": task.context.get("balance_baseline_quest_rows"),
+                        "baseline_loot_rows": task.context.get("balance_baseline_loot_rows"),
+                        "simulate_combat_balance": task.context.get("balance_simulate_combat"),
+                        "player_hp": task.context.get("balance_player_hp"),
+                        "player_attack": task.context.get("balance_player_attack"),
+                        "player_attacks_per_second": task.context.get("balance_player_attacks_per_second"),
+                        "enemy_attacks_per_second": task.context.get("balance_enemy_attacks_per_second"),
+                        "min_ttk_seconds": task.context.get("balance_min_ttk_seconds"),
+                        "max_ttk_seconds": task.context.get("balance_max_ttk_seconds"),
+                        "max_damage_taken_ratio": task.context.get("balance_max_damage_taken_ratio"),
+                        "audit_growth_curve": task.context.get("balance_audit_growth_curve"),
+                        "max_enemy_power_slope_ratio": task.context.get("balance_max_enemy_power_slope_ratio"),
+                        "max_reward_slope_ratio": task.context.get("balance_max_reward_slope_ratio"),
                     }
                     params.update({key: value for key, value in context_overrides.items() if value not in (None, "", [])})
                     result = skill.execute(task, params)

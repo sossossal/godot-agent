@@ -27,6 +27,19 @@ class SignalBusSkill(BaseSkill):
     def execute(self, task: Task, params: Dict[str, Any]) -> ToolResult:
         p = SignalBusParams(**params)
         bus_path = "res://scripts/signal_bus.gd"
+        layout_check = self.validate_managed_output_path(bus_path, "generated_script")
+        if not layout_check["passed"]:
+            return self.build_result(
+                success=False,
+                message=f"文件树规范阻断 SignalBus 写入: {bus_path}",
+                params=self.dump_model(p),
+                error="project_layout_validation_failed",
+                validation={
+                    "passed": False,
+                    "checks": [{"name": "project_layout", "status": "blocked"}],
+                    "layout_check": layout_check,
+                },
+            )
         full_path = self.resolve_project_file_path(bus_path)
         os.makedirs(os.path.dirname(full_path), exist_ok=True)
         
@@ -82,8 +95,10 @@ class SignalBusSkill(BaseSkill):
                 "passed": True,
                 "checks": [
                     {"name": "signal_definition_present", "status": "passed"},
+                    {"name": "project_layout", "status": "passed"},
                     {"name": "autoload_registered", "status": "passed"},
                 ],
+                "layout_check": layout_check,
             },
             rollback={
                 "available": bool(backup_paths),

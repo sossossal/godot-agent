@@ -28,6 +28,19 @@ class InputMappingSkill(BaseSkill):
     def execute(self, task: Task, params: Dict[str, Any]) -> ToolResult:
         p = InputParams(**params)
         project_file = os.path.join(self.godot_cli.project_path or ".", "project.godot")
+        layout_check = self.validate_managed_output_path("res://project.godot", "project_config")
+        if not layout_check["passed"]:
+            return self.build_result(
+                success=False,
+                message="文件树规范阻断输入映射写入: res://project.godot",
+                params=self.dump_model(p),
+                error="project_layout_validation_failed",
+                validation={
+                    "passed": False,
+                    "checks": [{"name": "project_layout", "status": "blocked"}],
+                    "layout_check": layout_check,
+                },
+            )
         
         if not os.path.exists(project_file):
             return self.build_result(
@@ -97,8 +110,10 @@ class InputMappingSkill(BaseSkill):
                 "passed": True,
                 "checks": [
                     {"name": "project_file_exists", "status": "passed"},
+                    {"name": "project_layout", "status": "passed"},
                     {"name": "input_mapping_present", "status": "passed"},
                 ],
+                "layout_check": layout_check,
             },
             rollback={
                 "available": bool(backup_path),

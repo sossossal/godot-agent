@@ -14,9 +14,11 @@ from typing import Any, Dict, List, Optional
 
 from agent_system.contracts import (
     BUILD_RUN_MATRIX_SCHEMA_VERSION,
+    PERFORMANCE_SUMMARY_SCHEMA_VERSION,
     normalize_build_run_matrix,
     normalize_platform_delivery_profile,
 )
+from agent_system.tools.performance_analysis import GamePerformanceAnalyzer
 from agent_system.tools.production_scale import build_production_readiness, list_production_scenarios
 from agent_system.tools.release_candidate import build_release_candidate_checklist
 
@@ -154,6 +156,11 @@ def build_build_run_matrix(
     ))
     if "release_candidate" in selected_scenario_ids:
         rows.append(_build_release_candidate_row(release_candidate))
+    rows.append(_build_runtime_performance_sampling_row(
+        resolved_project_root,
+        resolved_runtime_root,
+        selected_scenario_ids,
+    ))
     rows.extend(_build_run_lane_rows(resolved_runtime_root, selected_scenario_ids))
     manifest_display = _display_project_path(resolved_project_root, resolved_manifest_path)
 
@@ -181,6 +188,7 @@ def build_build_run_matrix(
             "platform_delivery_profile": platform_profile.get("schema_version", ""),
             "production_scenarios": list_production_scenarios().get("schema_version", ""),
             "release_candidate_checklist": release_candidate.get("schema_version", ""),
+            "performance_summary": PERFORMANCE_SUMMARY_SCHEMA_VERSION,
         },
     })
     return payload
@@ -392,6 +400,84 @@ def _build_release_candidate_row(release_candidate: Dict[str, Any]) -> Dict[str,
     }
 
 
+def _build_runtime_performance_sampling_row(
+    project_root: Path,
+    runtime_root: Path,
+    selected_scenario_ids: List[str],
+) -> Dict[str, Any]:
+    profile_path = _find_latest_performance_profile(runtime_root)
+    blocking_reasons: List[str] = []
+    warning_reasons: List[str] = []
+    notes: List[str] = [
+        "Consumes the latest runtime profile emitted by manage_game_performance or live production flows.",
+    ]
+    summary_payload: Dict[str, Any] = {}
+    details: Dict[str, Any] = {
+        "profile_path": _display_runtime_path(runtime_root, profile_path) if profile_path else "",
+        "profile_exists": bool(profile_path and profile_path.exists()),
+        "performance_schema_version": PERFORMANCE_SUMMARY_SCHEMA_VERSION,
+    }
+
+    if profile_path:
+        analyzer = GamePerformanceAnalyzer(project_root, runtime_root=runtime_root)
+        profile_payload = _load_json(profile_path)
+        scene_path = str(profile_payload.get("scene_path") or "").strip()
+        snapshot = analyzer.snapshot(
+            scene_path=scene_path,
+            profile_path=str(profile_path),
+            budget_overrides=dict(profile_payload.get("budgets") or {}),
+        )
+        summary_payload = dict(snapshot.get("summary") or {})
+        status = "passed" if summary_payload.get("passed") else "blocked"
+        if status == "blocked":
+            blocking_reasons.extend(summary_payload.get("issues") or ["Performance profile failed budget checks"])
+        warning_reasons.extend(str(item) for item in list(summary_payload.get("warnings") or []))
+        details.update({
+            "scene_path": scene_path,
+            "baseline_path": _display_runtime_path(runtime_root, Path(str(snapshot.get("baseline_path") or ""))) if snapshot.get("baseline_path") else "",
+            "baseline_exists": bool(snapshot.get("baseline_exists")),
+            "metric_count": len(dict(summary_payload.get("metrics") or {})),
+            "check_count": len(list(summary_payload.get("checks") or [])),
+            "issue_count": len(list(summary_payload.get("issues") or [])),
+            "warning_count": len(list(summary_payload.get("warnings") or [])),
+            "top_frame_stage": str(summary_payload.get("metrics", {}).get("top_frame_stage") or ""),
+            "memory_trend_status": str(summary_payload.get("memory_trend", {}).get("trend_status") or ""),
+            "performance_summary": summary_payload,
+        })
+        row_summary = (
+            f"Runtime profile sampled: {details['metric_count']} metric(s), "
+            f"{details['issue_count']} issue(s), {details['warning_count']} warning(s)"
+        )
+    else:
+        status = "warning"
+        warning_reasons.append("No runtime performance profile found under logs/test_artifacts")
+        row_summary = "Awaiting runtime performance profile in logs/test_artifacts"
+
+    return {
+        "row_id": "runtime_performance_sampling",
+        "row_type": "run",
+        "label": "Runtime Performance Sampling",
+        "status": status,
+        "required": False,
+        "default_selected": True,
+        "platform_id": "",
+        "platform_label": "",
+        "scenario_ids": [
+            item for item in ["vertical_slice_2d", "content_pipeline", "release_candidate"]
+            if item in selected_scenario_ids
+        ],
+        "execution_mode": "non_live",
+        "command": "python -m agent_system.cli run \"分析性能画像\" -y",
+        "endpoint": "/performance/profile",
+        "script_path": "",
+        "summary": row_summary,
+        "details": details,
+        "notes": notes,
+        "blocking_reasons": blocking_reasons,
+        "warning_reasons": warning_reasons,
+    }
+
+
 def _build_run_lane_rows(runtime_root: Path, selected_scenario_ids: List[str]) -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
     for lane in _RUN_LANES:
@@ -431,6 +517,34 @@ def _build_run_lane_rows(runtime_root: Path, selected_scenario_ids: List[str]) -
             "warning_reasons": warning_reasons,
         })
     return rows
+
+
+def _find_latest_performance_profile(runtime_root: Path) -> Optional[Path]:
+    artifact_dir = runtime_root / "logs" / "test_artifacts"
+    if not artifact_dir.exists():
+        return None
+    candidates = [
+        path for path in artifact_dir.glob("performance_profile_*.json")
+        if path.is_file()
+    ]
+    if not candidates:
+        return None
+    return max(candidates, key=lambda item: item.stat().st_mtime).resolve()
+
+
+def _load_json(path: Path) -> Dict[str, Any]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    return dict(payload) if isinstance(payload, dict) else {}
+
+
+def _display_runtime_path(runtime_root: Path, target_path: Path) -> str:
+    try:
+        return target_path.resolve().relative_to(runtime_root).as_posix()
+    except ValueError:
+        return target_path.as_posix()
 
 
 def _build_lane_summary(

@@ -44,6 +44,8 @@ class AssetReviewWorkflowTestCase(unittest.TestCase):
                     "source_tool": "outsource_delivery",
                     "package_version": "v2026_04",
                     "license_name": "work_for_hire",
+                    "source_dependency_paths": ["res://raw_assets/outsource/npc_vendor_terms.pdf"],
+                    "target_dependency_paths": ["res://assets/packages/outsource/npc_vendor_terms.pdf"],
                     "tags": ["delivery", "vendor"],
                 }],
             }, ensure_ascii=False, indent=2),
@@ -64,6 +66,38 @@ class AssetReviewWorkflowTestCase(unittest.TestCase):
         self.assertEqual(payload["pending_review_count"], 1)
         self.assertEqual(payload["review_entries"][0]["asset_id"], "npc_vendor_delivery")
         self.assertEqual(payload["review_entries"][0]["review_status"], "pending_review")
+        self.assertEqual(payload["provenance_issue_count"], 0)
+        self.assertEqual(payload["license_coverage_ratio"], 1.0)
+        self.assertEqual(payload["provenance_summary"]["source_dependency_count"], 1)
+        self.assertEqual(payload["review_entries"][0]["source_dependency_paths"], ["res://raw_assets/outsource/npc_vendor_terms.pdf"])
+
+    def test_workflow_reports_provenance_gaps(self):
+        manifest_dir = self.project_dir / "assets" / "manifests"
+        manifest_dir.mkdir(parents=True, exist_ok=True)
+        (manifest_dir / "outsource_assets.json").write_text(
+            json.dumps({
+                "schema_version": "1.1",
+                "asset_type": "outsource",
+                "entries": [{
+                    "asset_id": "incomplete_delivery",
+                    "target_path": "res://assets/packages/outsource/incomplete_delivery.zip",
+                    "tags": ["delivery"],
+                }],
+            }, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+        payload = build_asset_review_workflow(
+            self.project_dir,
+            runtime_root=self.runtime_dir,
+            asset_type="outsource",
+        )
+
+        self.assertEqual(payload["status"], "warning")
+        self.assertEqual(payload["provenance_issue_count"], 1)
+        self.assertEqual(payload["license_coverage_ratio"], 0.0)
+        self.assertEqual(payload["provenance_summary"]["missing_license_assets"], ["incomplete_delivery"])
+        self.assertIn("asset_provenance", payload["warning_checks"])
 
     def test_asset_review_api_apply_writes_review_board(self):
         self._write_outsource_manifest()

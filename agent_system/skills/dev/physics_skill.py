@@ -42,6 +42,19 @@ class PhysicsConfigSkill(BaseSkill):
                 params=self.dump_model(p),
                 validation={"passed": False, "issues": ["missing_target_scene"]},
             )
+        layout_check = self.validate_managed_output_path(target_scene, "generated_scene")
+        if not layout_check["passed"]:
+            return self.build_result(
+                success=False,
+                message=f"文件树规范阻断物理配置写入: {target_scene}",
+                params=self.dump_model(p),
+                error="project_layout_validation_failed",
+                validation={
+                    "passed": False,
+                    "checks": [{"name": "project_layout", "status": "blocked"}],
+                    "layout_check": layout_check,
+                },
+            )
         
         # 统一类名
         suffix = "3D" if p.is_3d else "2D"
@@ -76,8 +89,10 @@ class PhysicsConfigSkill(BaseSkill):
                     "passed": True,
                     "checks": [
                         {"name": "target_scene_resolved", "status": "passed"},
+                        {"name": "project_layout", "status": "passed"},
                         {"name": "headless_physics_bake", "status": "passed"},
                     ],
+                    "layout_check": layout_check,
                 },
                 rollback={"available": False, "strategy": "restore_scene_from_vcs_or_backup"},
             )

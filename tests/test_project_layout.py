@@ -10,6 +10,18 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from agent_system.models import Task
+from agent_system.skills.code.ai_skill import AIBehaviorSkill
+from agent_system.skills.code.animation_skill import TweenAnimationSkill
+from agent_system.skills.code.dialogue_skill import DialogueSystemSkill
+from agent_system.skills.code.movement_skill import GenerateMovementSkill
+from agent_system.skills.code.signal_bus_skill import SignalBusSkill
+from agent_system.skills.code.wiring_skill import SignalWiringSkill
+from agent_system.skills.dev.attach_script_skill import AttachScriptSkill
+from agent_system.skills.dev.create_scene_skill import CreateSceneSkill
+from agent_system.skills.dev.input_skill import InputMappingSkill
+from agent_system.skills.dev.instantiate_skill import InstantiateSkill
+from agent_system.skills.dev.physics_skill import PhysicsConfigSkill
+from agent_system.skills.dev.setup_3d_skill import Setup3DEnvironmentSkill
 from agent_system.skills.resource.data_table_skill import DataTablePipelineSkill
 from agent_system.skills.resource.export_skill import ExportProjectSkill
 from agent_system.tools.doctor import SystemDoctor
@@ -107,6 +119,41 @@ class ProjectLayoutTestCase(unittest.TestCase):
 
         self.assertTrue(result["passed"])
 
+    def test_validator_accepts_project_config_path(self):
+        validator = ProjectLayoutValidator(project_root=self.project_dir, runtime_root=project_root)
+        result = validator.validate_managed_path(self.project_dir / "project.godot", "project_config")
+
+        self.assertTrue(result["passed"])
+
+    def test_validator_returns_repair_preview_for_invalid_script_path(self):
+        validator = ProjectLayoutValidator(project_root=self.project_dir, runtime_root=project_root)
+        result = validator.validate_managed_path(self.project_dir / "scripts" / "Bad Name.txt", "generated_script")
+
+        self.assertFalse(result["passed"])
+        preview = result["repair_preview"]
+        self.assertTrue(preview["available"])
+        self.assertEqual(preview["apply_mode"], "preview_only")
+        self.assertEqual(preview["suggested_relative_path"], "scripts/bad_name.gd")
+        self.assertIn("wrong_extension", preview["issue_codes"])
+        self.assertIn("wrong_name", preview["issue_codes"])
+
+    def test_validator_returns_repair_preview_for_wrong_scene_directory(self):
+        validator = ProjectLayoutValidator(project_root=self.project_dir, runtime_root=project_root)
+        result = validator.validate_managed_path(self.project_dir / "levels" / "Bad Scene.txt", "generated_scene")
+
+        self.assertFalse(result["passed"])
+        preview = result["repair_preview"]
+        self.assertEqual(preview["suggested_relative_path"], "scenes/Bad_Scene.tscn")
+        self.assertTrue(any(item["field"] == "directory" for item in preview["changes"]))
+        self.assertTrue(any(item["field"] == "file_name" for item in preview["changes"]))
+
+    def test_validator_returns_repair_preview_for_project_config(self):
+        validator = ProjectLayoutValidator(project_root=self.project_dir, runtime_root=project_root)
+        result = validator.validate_managed_path(self.project_dir / "config" / "project.txt", "project_config")
+
+        self.assertFalse(result["passed"])
+        self.assertEqual(result["repair_preview"]["suggested_relative_path"], "project.godot")
+
     def test_validator_accepts_release_promotion_history_manifest_path(self):
         validator = ProjectLayoutValidator(project_root=self.project_dir, runtime_root=project_root)
         result = validator.validate_managed_path(
@@ -170,6 +217,161 @@ class ProjectLayoutTestCase(unittest.TestCase):
         self.assertFalse(result.success)
         self.assertIn("文件树规范", result.message)
         self.assertFalse((self.project_dir / "scripts" / "quests.csv").exists())
+
+    def test_movement_skill_blocks_invalid_generated_script_name(self):
+        skill = GenerateMovementSkill(MockGodotCLI(project_path=str(self.project_dir)))
+        task = Task(prompt="生成移动脚本")
+        result = skill.execute(task, {
+            "script_name": "bad name.gd",
+            "is_3d": False,
+        })
+
+        self.assertFalse(result.success)
+        self.assertIn("文件树规范", result.message)
+        self.assertEqual(result.error, "project_layout_validation_failed")
+        layout_check = result.metadata["skill_result"]["validation"]["layout_check"]
+        self.assertFalse(layout_check["passed"])
+        self.assertEqual(layout_check["repair_preview"]["suggested_relative_path"], "agent_modules/scripts/bad_name.gd")
+        self.assertFalse((self.project_dir / "agent_modules" / "scripts" / "bad name.gd").exists())
+
+    def test_ai_skill_blocks_script_path_escape_before_write(self):
+        skill = AIBehaviorSkill(MockGodotCLI(project_path=str(self.project_dir)))
+        task = Task(prompt="生成 AI 脚本")
+        result = skill.execute(task, {
+            "target_node_name": "Enemy",
+            "target_script_name": "../enemy_ai.gd",
+        })
+
+        self.assertFalse(result.success)
+        self.assertIn("文件树规范", result.message)
+        layout_check = result.metadata["skill_result"]["validation"]["layout_check"]
+        self.assertFalse(layout_check["passed"])
+        self.assertFalse((self.project_dir / "enemy_ai.gd").exists())
+
+    def test_dialogue_skill_blocks_invalid_generated_script_name(self):
+        skill = DialogueSystemSkill(MockGodotCLI(project_path=str(self.project_dir)))
+        task = Task(prompt="生成对话系统")
+        result = skill.execute(task, {
+            "dialogue_name": "intro story",
+            "lines": [{"character": "NPC", "text": "hello", "options": []}],
+        })
+
+        self.assertFalse(result.success)
+        self.assertIn("文件树规范", result.message)
+        layout_check = result.metadata["skill_result"]["validation"]["layout_check"]
+        self.assertFalse(layout_check["passed"])
+        self.assertFalse((self.project_dir / "scripts" / "intro story_controller.gd").exists())
+
+    def test_wiring_skill_blocks_invalid_target_script_before_write(self):
+        target = self.project_dir / "scripts" / "bad name.gd"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("extends Node\n", encoding="utf-8")
+        skill = SignalWiringSkill(MockGodotCLI(project_path=str(self.project_dir)))
+        task = Task(prompt="连接信号")
+        result = skill.execute(task, {
+            "target_script": "res://scripts/bad name.gd",
+            "signal_name": "score_changed",
+            "callback_name": "_on_score_changed",
+        })
+
+        self.assertFalse(result.success)
+        self.assertIn("文件树规范", result.message)
+        layout_check = result.metadata["skill_result"]["validation"]["layout_check"]
+        self.assertFalse(layout_check["passed"])
+        self.assertNotIn("score_changed", target.read_text(encoding="utf-8"))
+
+    def test_animation_skill_blocks_invalid_target_script_before_write(self):
+        target = self.project_dir / "scripts" / "bad name.gd"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("extends Control\n", encoding="utf-8")
+        skill = TweenAnimationSkill(MockGodotCLI(project_path=str(self.project_dir)))
+        task = Task(prompt="添加动画")
+        result = skill.execute(task, {
+            "target_script": "res://scripts/bad name.gd",
+            "animation_type": "fade_in",
+        })
+
+        self.assertFalse(result.success)
+        self.assertIn("文件树规范", result.message)
+        layout_check = result.metadata["skill_result"]["validation"]["layout_check"]
+        self.assertFalse(layout_check["passed"])
+        self.assertNotIn("play_fade_in", target.read_text(encoding="utf-8"))
+
+    def test_signal_bus_skill_records_layout_check_for_managed_script(self):
+        (self.project_dir / "project.godot").write_text("[application]\n", encoding="utf-8")
+        skill = SignalBusSkill(MockGodotCLI(project_path=str(self.project_dir)))
+        task = Task(prompt="维护信号总线")
+        result = skill.execute(task, {"signal_name": "score_changed"})
+
+        self.assertTrue(result.success)
+        layout_check = result.metadata["skill_result"]["validation"]["layout_check"]
+        self.assertTrue(layout_check["passed"])
+        self.assertTrue((self.project_dir / "scripts" / "signal_bus.gd").exists())
+
+    def test_input_skill_records_project_config_layout_check(self):
+        (self.project_dir / "project.godot").write_text("[application]\n", encoding="utf-8")
+        skill = InputMappingSkill(MockGodotCLI(project_path=str(self.project_dir)))
+        task = Task(prompt="配置输入")
+        result = skill.execute(task, {"action_name": "jump", "key_code": "Space"})
+
+        self.assertTrue(result.success)
+        layout_check = result.metadata["skill_result"]["validation"]["layout_check"]
+        self.assertTrue(layout_check["passed"])
+        self.assertIn("jump=", (self.project_dir / "project.godot").read_text(encoding="utf-8"))
+
+    def test_create_scene_skill_blocks_invalid_scene_name_before_dispatch(self):
+        skill = CreateSceneSkill(MockGodotCLI(project_path=str(self.project_dir)))
+        task = Task(prompt="创建场景")
+        result = skill.execute(task, {"scene_name": "bad scene", "root_type": "Node2D"})
+
+        self.assertFalse(result.success)
+        self.assertIn("文件树规范", result.message)
+        layout_check = result.metadata["skill_result"]["validation"]["layout_check"]
+        self.assertFalse(layout_check["passed"])
+        self.assertNotIn("scene_path", task.context)
+
+    def test_attach_script_skill_blocks_invalid_script_path_before_dispatch(self):
+        skill = AttachScriptSkill(MockGodotCLI(project_path=str(self.project_dir)))
+        task = Task(prompt="挂载脚本", context={"editor_state": {"is_active": True}})
+        result = skill.execute(task, {
+            "target_node_path": "Player",
+            "script_path": "res://scripts/bad name.gd",
+        })
+
+        self.assertFalse(result.success)
+        self.assertIn("文件树规范", result.message)
+        layout_check = result.metadata["skill_result"]["validation"]["layout_check"]
+        self.assertFalse(layout_check["passed"])
+
+    def test_setup_3d_skill_blocks_invalid_scene_name_before_dispatch(self):
+        skill = Setup3DEnvironmentSkill(MockGodotCLI(project_path=str(self.project_dir)))
+        task = Task(prompt="创建 3D 场景")
+        result = skill.execute(task, {"scene_name": "Main 3D"})
+
+        self.assertFalse(result.success)
+        self.assertIn("文件树规范", result.message)
+        layout_check = result.metadata["skill_result"]["validation"]["layout_check"]
+        self.assertFalse(layout_check["passed"])
+
+    def test_instantiate_skill_blocks_invalid_prefab_scene_before_dispatch(self):
+        skill = InstantiateSkill(MockGodotCLI(project_path=str(self.project_dir)))
+        task = Task(prompt="实例化预制件", context={"editor_state": {"is_active": True}})
+        result = skill.execute(task, {"instance_scene_path": "res://scenes/bad scene.tscn"})
+
+        self.assertFalse(result.success)
+        self.assertIn("文件树规范", result.message)
+        layout_check = result.metadata["skill_result"]["validation"]["layout_check"]
+        self.assertFalse(layout_check["passed"])
+
+    def test_physics_skill_blocks_invalid_target_scene_before_headless_bake(self):
+        skill = PhysicsConfigSkill(MockGodotCLI(project_path=str(self.project_dir)))
+        task = Task(prompt="配置物理碰撞", context={"scene_path": "res://scenes/bad scene.tscn"})
+        result = skill.execute(task, {"target_node_path": "Player", "is_3d": False})
+
+        self.assertFalse(result.success)
+        self.assertIn("文件树规范", result.message)
+        layout_check = result.metadata["skill_result"]["validation"]["layout_check"]
+        self.assertFalse(layout_check["passed"])
 
     def test_export_skill_blocks_output_outside_release_directory(self):
         skill = ExportProjectSkill(MockGodotCLI(project_path=str(self.project_dir)))

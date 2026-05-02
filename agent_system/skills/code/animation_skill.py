@@ -28,6 +28,19 @@ class TweenAnimationSkill(BaseSkill):
 
     def execute(self, task: Task, params: Dict[str, Any]) -> ToolResult:
         p = AnimationParams(**params)
+        layout_check = self.validate_managed_output_path(p.target_script, "generated_script")
+        if not layout_check["passed"]:
+            return self.build_result(
+                success=False,
+                message=f"文件树规范阻断动画脚本写入: {p.target_script}",
+                params=self.dump_model(p),
+                error="project_layout_validation_failed",
+                validation={
+                    "passed": False,
+                    "checks": [{"name": "project_layout", "status": "blocked"}],
+                    "layout_check": layout_check,
+                },
+            )
         full_path = self.resolve_project_file_path(p.target_script)
         
         if not os.path.exists(full_path):
@@ -59,8 +72,10 @@ class TweenAnimationSkill(BaseSkill):
                     "passed": True,
                     "checks": [
                         {"name": "target_script_exists", "status": "passed"},
+                        {"name": "project_layout", "status": "passed"},
                         {"name": "animation_function_present", "status": "passed"},
                     ],
+                    "layout_check": layout_check,
                 },
                 rollback={"available": False, "strategy": "no_write_required"},
             )
@@ -88,8 +103,10 @@ class TweenAnimationSkill(BaseSkill):
                 "passed": True,
                 "checks": [
                     {"name": "target_script_exists", "status": "passed"},
+                    {"name": "project_layout", "status": "passed"},
                     {"name": "animation_function_inserted", "status": "passed"},
                 ],
+                "layout_check": layout_check,
             },
             rollback={
                 "available": bool(backup_path),

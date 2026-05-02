@@ -34,6 +34,16 @@ _BUDGET_ALIASES = {
     "texture_budget_mb": "max_texture_memory_mb",
     "texture_budget": "max_texture_memory_mb",
     "frame_spike_budget": "max_frame_spike_ms",
+    "screenshot_diff_budget": "max_screenshot_diff_ratio",
+    "screenshot_budget": "max_screenshot_diff_ratio",
+    "memory_growth_budget": "max_memory_growth_mb",
+    "memory_trend_budget": "max_memory_growth_mb",
+}
+
+_EXTRA_BUDGET_KEYS = {
+    "max_memory_growth_mb",
+    "max_memory_avg_delta_mb",
+    "max_memory_peak_delta_mb",
 }
 
 _METRIC_SPECS: Dict[str, Dict[str, Any]] = {
@@ -197,6 +207,8 @@ class GamePerformanceAnalyzer:
         scene_path: Optional[str] = None,
         baseline_path: Optional[str] = None,
         profile_path: Optional[str] = None,
+        screenshot_baseline_path: Optional[str] = None,
+        screenshot_candidate_path: Optional[str] = None,
         baseline_metrics: Optional[Dict[str, Any]] = None,
         profile_metrics: Optional[Dict[str, Any]] = None,
         budget_overrides: Optional[Dict[str, Any]] = None,
@@ -216,6 +228,7 @@ class GamePerformanceAnalyzer:
         profile_payload = self._load_payload(resolved_profile_path) if resolved_profile_path and resolved_profile_path.exists() else {}
         resolved_baseline_metrics = self._normalize_metrics(baseline_metrics or baseline_payload)
         resolved_profile_metrics = self._normalize_metrics(profile_metrics or profile_payload)
+        resolved_baseline_memory_trend = self._normalize_memory_trend(baseline_metrics or baseline_payload)
         resolved_frame_breakdown = self._normalize_frame_breakdown(profile_metrics or profile_payload)
         resolved_memory_trend = self._normalize_memory_trend(profile_metrics or profile_payload)
         resolved_budgets = self._normalize_budgets({
@@ -225,12 +238,17 @@ class GamePerformanceAnalyzer:
         })
 
         summary = None
-        if resolved_profile_metrics:
+        if resolved_profile_metrics or screenshot_baseline_path or screenshot_candidate_path:
             summary = self.analyze(
                 scene_path=scene_path,
                 baseline_path=str(resolved_baseline_path),
                 profile_path=str(resolved_profile_path) if resolved_profile_path else None,
-                baseline_metrics=resolved_baseline_metrics,
+                screenshot_baseline_path=screenshot_baseline_path,
+                screenshot_candidate_path=screenshot_candidate_path,
+                baseline_metrics={
+                    **resolved_baseline_metrics,
+                    "memory_trend": resolved_baseline_memory_trend,
+                },
                 profile_metrics={
                     **resolved_profile_metrics,
                     "frame_breakdown": resolved_frame_breakdown,
@@ -257,6 +275,8 @@ class GamePerformanceAnalyzer:
         scene_path: Optional[str] = None,
         baseline_path: Optional[str] = None,
         profile_path: Optional[str] = None,
+        screenshot_baseline_path: Optional[str] = None,
+        screenshot_candidate_path: Optional[str] = None,
         baseline_metrics: Optional[Dict[str, Any]] = None,
         profile_metrics: Optional[Dict[str, Any]] = None,
         budget_overrides: Optional[Dict[str, Any]] = None,
@@ -276,6 +296,7 @@ class GamePerformanceAnalyzer:
 
         resolved_baseline_metrics = self._normalize_metrics(baseline_metrics or baseline_payload)
         resolved_profile_metrics = self._normalize_metrics(profile_metrics or profile_payload)
+        baseline_memory_trend = self._normalize_memory_trend(baseline_metrics or baseline_payload)
         frame_breakdown = self._normalize_frame_breakdown(profile_metrics or profile_payload)
         memory_trend = self._normalize_memory_trend(profile_metrics or profile_payload)
         resolved_budgets = self._normalize_budgets({
@@ -283,6 +304,18 @@ class GamePerformanceAnalyzer:
             **dict(profile_payload.get("budgets") or {}),
             **dict(budget_overrides or {}),
         })
+        screenshot_compare = self.compare_screenshot_baselines(
+            baseline_path=screenshot_baseline_path,
+            candidate_path=screenshot_candidate_path,
+            max_diff_ratio=resolved_budgets.get("max_screenshot_diff_ratio"),
+        ) if screenshot_baseline_path or screenshot_candidate_path else {}
+        if screenshot_compare.get("diff_ratio") is not None:
+            resolved_profile_metrics["screenshot_diff_ratio"] = float(screenshot_compare["diff_ratio"])
+        memory_regression = self.track_memory_regressions(
+            baseline_trend=baseline_memory_trend,
+            candidate_trend=memory_trend,
+            budgets=resolved_budgets,
+        )
 
         checks: List[Dict[str, Any]] = []
         issues: List[str] = []
@@ -325,6 +358,22 @@ class GamePerformanceAnalyzer:
                 else "已加载性能 profile，未提供 baseline"
             ),
         })
+        if screenshot_compare:
+            checks.append({
+                "name": "screenshot_baseline_compare",
+                "status": screenshot_compare["status"],
+                "message": screenshot_compare["message"],
+                "baseline_path": screenshot_compare.get("baseline_path", ""),
+                "candidate_path": screenshot_compare.get("candidate_path", ""),
+                "diff_ratio": screenshot_compare.get("diff_ratio"),
+                "max_diff_ratio": screenshot_compare.get("max_diff_ratio"),
+            })
+            if screenshot_compare["status"] == "blocked":
+                issues.append(screenshot_compare["message"])
+            elif screenshot_compare["status"] == "warning":
+                warnings.append(screenshot_compare["message"])
+            else:
+                notes.append(screenshot_compare["message"])
 
         metrics: Dict[str, Any] = dict(resolved_profile_metrics)
         if frame_breakdown:
@@ -344,6 +393,24 @@ class GamePerformanceAnalyzer:
                 "status": "passed",
                 "message": f"已采集 memory trend，growth={metrics['memory_growth_mb']}MB",
             })
+        if memory_regression:
+            checks.append({
+                "name": "memory_regression_trend",
+                "status": memory_regression["status"],
+                "message": memory_regression["message"],
+                "growth_delta_mb": memory_regression.get("growth_delta_mb"),
+                "peak_delta_mb": memory_regression.get("peak_delta_mb"),
+                "avg_delta_mb": memory_regression.get("avg_delta_mb"),
+            })
+            metrics["memory_growth_delta_mb"] = memory_regression["growth_delta_mb"]
+            metrics["memory_peak_delta_mb"] = memory_regression["peak_delta_mb"]
+            metrics["memory_avg_delta_mb"] = memory_regression["avg_delta_mb"]
+            if memory_regression["status"] == "blocked":
+                issues.append(memory_regression["message"])
+            elif memory_regression["status"] == "warning":
+                warnings.append(memory_regression["message"])
+            else:
+                notes.append(memory_regression["message"])
         if resolved_baseline_metrics:
             for metric_name, value in resolved_baseline_metrics.items():
                 metrics[f"baseline_{metric_name}"] = value
@@ -397,6 +464,18 @@ class GamePerformanceAnalyzer:
             notes.append(f"Frame breakdown stages: {', '.join(item['stage'] for item in frame_breakdown)}")
         if memory_trend.get("sample_count"):
             notes.append(f"Memory trend: {memory_trend['trend_status']} growth={memory_trend['growth_mb']}MB")
+        if memory_regression:
+            notes.append(
+                "Memory regression: "
+                f"growth_delta={memory_regression['growth_delta_mb']}MB"
+                f" / budget={memory_regression['max_growth_delta_mb']}MB"
+            )
+        if screenshot_compare:
+            notes.append(
+                "Screenshot compare: "
+                f"{screenshot_compare.get('diff_ratio', '-')}"
+                f" / budget={screenshot_compare.get('max_diff_ratio', '-')}"
+            )
 
         return normalize_performance_summary({
             "passed": len(issues) == 0,
@@ -411,6 +490,8 @@ class GamePerformanceAnalyzer:
             "budgets": resolved_budgets,
             "frame_breakdown": frame_breakdown,
             "memory_trend": memory_trend,
+            "memory_regression": memory_regression,
+            "screenshot_compare": screenshot_compare,
             "baselines": [
                 {
                     "scene_path": str(scene_path or "").strip(),
@@ -419,6 +500,116 @@ class GamePerformanceAnalyzer:
                 }
             ],
         })
+
+    def compare_screenshot_baselines(
+        self,
+        *,
+        baseline_path: Optional[str],
+        candidate_path: Optional[str],
+        max_diff_ratio: Any = None,
+    ) -> Dict[str, Any]:
+        baseline = self._resolve_any_path(baseline_path or "") if baseline_path else None
+        candidate = self._resolve_any_path(candidate_path or "") if candidate_path else None
+        budget = _to_float(max_diff_ratio)
+        if budget is None:
+            budget = 0.035
+
+        missing = []
+        if baseline is None or not baseline.exists():
+            missing.append(f"missing screenshot baseline: {baseline_path or '-'}")
+        if candidate is None or not candidate.exists():
+            missing.append(f"missing screenshot candidate: {candidate_path or '-'}")
+        if missing:
+            return {
+                "status": "blocked",
+                "message": "; ".join(missing),
+                "baseline_path": str(baseline or ""),
+                "candidate_path": str(candidate or ""),
+                "baseline_exists": bool(baseline and baseline.exists()),
+                "candidate_exists": bool(candidate and candidate.exists()),
+                "diff_ratio": None,
+                "max_diff_ratio": round(float(budget), 4),
+            }
+
+        baseline_bytes = baseline.read_bytes()
+        candidate_bytes = candidate.read_bytes()
+        denominator = max(len(baseline_bytes), len(candidate_bytes), 1)
+        overlap = min(len(baseline_bytes), len(candidate_bytes))
+        mismatch_count = sum(
+            1 for index in range(overlap)
+            if baseline_bytes[index] != candidate_bytes[index]
+        ) + abs(len(baseline_bytes) - len(candidate_bytes))
+        diff_ratio = round(mismatch_count / denominator, 4)
+        status = "passed" if diff_ratio <= float(budget) else "blocked"
+        return {
+            "status": status,
+            "message": (
+                f"截图 diff {diff_ratio} / 预算 {round(float(budget), 4)}"
+                if status == "passed"
+                else f"截图 diff {diff_ratio} 超出预算 {round(float(budget), 4)}"
+            ),
+            "baseline_path": str(baseline),
+            "candidate_path": str(candidate),
+            "baseline_exists": True,
+            "candidate_exists": True,
+            "baseline_size_bytes": len(baseline_bytes),
+            "candidate_size_bytes": len(candidate_bytes),
+            "mismatch_count": mismatch_count,
+            "diff_ratio": diff_ratio,
+            "max_diff_ratio": round(float(budget), 4),
+        }
+
+    def track_memory_regressions(
+        self,
+        *,
+        baseline_trend: Dict[str, Any],
+        candidate_trend: Dict[str, Any],
+        budgets: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        baseline_count = int(baseline_trend.get("sample_count") or 0)
+        candidate_count = int(candidate_trend.get("sample_count") or 0)
+        if not baseline_count or not candidate_count:
+            return {}
+
+        growth_delta = round(float(candidate_trend.get("growth_mb") or 0.0) - float(baseline_trend.get("growth_mb") or 0.0), 4)
+        peak_delta = round(float(candidate_trend.get("max_mb") or 0.0) - float(baseline_trend.get("max_mb") or 0.0), 4)
+        avg_delta = round(float(candidate_trend.get("avg_mb") or 0.0) - float(baseline_trend.get("avg_mb") or 0.0), 4)
+        max_growth_delta = _to_float(budgets.get("max_memory_growth_mb"))
+        if max_growth_delta is None:
+            max_growth_delta = 8.0
+        max_peak_delta = _to_float(budgets.get("max_memory_peak_delta_mb"))
+        if max_peak_delta is None:
+            max_peak_delta = max(float(max_growth_delta) * 2.0, 16.0)
+        max_avg_delta = _to_float(budgets.get("max_memory_avg_delta_mb"))
+        if max_avg_delta is None:
+            max_avg_delta = max(float(max_growth_delta), 8.0)
+
+        blocked = (
+            growth_delta > float(max_growth_delta)
+            or peak_delta > float(max_peak_delta)
+            or avg_delta > float(max_avg_delta)
+        )
+        status = "blocked" if blocked else "passed"
+        message = (
+            "内存趋势回归 "
+            f"growth_delta={growth_delta}MB / budget={round(float(max_growth_delta), 4)}MB, "
+            f"peak_delta={peak_delta}MB / budget={round(float(max_peak_delta), 4)}MB, "
+            f"avg_delta={avg_delta}MB / budget={round(float(max_avg_delta), 4)}MB"
+        )
+        return {
+            "status": status,
+            "message": message,
+            "baseline": dict(baseline_trend),
+            "candidate": dict(candidate_trend),
+            "baseline_sample_count": baseline_count,
+            "candidate_sample_count": candidate_count,
+            "growth_delta_mb": growth_delta,
+            "peak_delta_mb": peak_delta,
+            "avg_delta_mb": avg_delta,
+            "max_growth_delta_mb": round(float(max_growth_delta), 4),
+            "max_peak_delta_mb": round(float(max_peak_delta), 4),
+            "max_avg_delta_mb": round(float(max_avg_delta), 4),
+        }
 
     def _build_budget_check(
         self,
@@ -614,7 +805,7 @@ class GamePerformanceAnalyzer:
     def _normalize_budgets(self, source: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         payload = dict(source or {})
         result: Dict[str, Any] = {}
-        known_keys = {spec["budget_key"] for spec in _METRIC_SPECS.values()}
+        known_keys = {spec["budget_key"] for spec in _METRIC_SPECS.values()} | set(_EXTRA_BUDGET_KEYS)
         regression_keys = {spec["regression_budget_key"] for spec in _METRIC_SPECS.values()}
         for key, value in payload.items():
             canonical = _BUDGET_ALIASES.get(str(key).strip(), str(key).strip())
@@ -700,5 +891,29 @@ def build_performance_report(summary: Dict[str, Any]) -> str:
         f"- growth_mb: {memory_trend.get('growth_mb', 0)}",
         f"- trend_status: {memory_trend.get('trend_status') or '-'}",
     ])
+    memory_regression = dict(normalized.get("memory_regression") or {})
+    lines.extend(["", "## Memory Regression", ""])
+    if memory_regression:
+        lines.extend([
+            f"- status: {memory_regression.get('status') or '-'}",
+            f"- growth_delta_mb: {memory_regression.get('growth_delta_mb') if memory_regression.get('growth_delta_mb') is not None else '-'}",
+            f"- max_growth_delta_mb: {memory_regression.get('max_growth_delta_mb') if memory_regression.get('max_growth_delta_mb') is not None else '-'}",
+            f"- peak_delta_mb: {memory_regression.get('peak_delta_mb') if memory_regression.get('peak_delta_mb') is not None else '-'}",
+            f"- avg_delta_mb: {memory_regression.get('avg_delta_mb') if memory_regression.get('avg_delta_mb') is not None else '-'}",
+        ])
+    else:
+        lines.append("- none")
+    screenshot_compare = dict(normalized.get("screenshot_compare") or {})
+    lines.extend(["", "## Screenshot Compare", ""])
+    if screenshot_compare:
+        lines.extend([
+            f"- status: {screenshot_compare.get('status') or '-'}",
+            f"- diff_ratio: {screenshot_compare.get('diff_ratio') if screenshot_compare.get('diff_ratio') is not None else '-'}",
+            f"- max_diff_ratio: {screenshot_compare.get('max_diff_ratio') if screenshot_compare.get('max_diff_ratio') is not None else '-'}",
+            f"- baseline_path: {screenshot_compare.get('baseline_path') or '-'}",
+            f"- candidate_path: {screenshot_compare.get('candidate_path') or '-'}",
+        ])
+    else:
+        lines.append("- none")
     lines.append("")
     return "\n".join(lines)

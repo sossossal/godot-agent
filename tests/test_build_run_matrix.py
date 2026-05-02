@@ -1,3 +1,4 @@
+import json
 import shutil
 import sys
 import unittest
@@ -31,7 +32,9 @@ class BuildRunMatrixTestCase(unittest.TestCase):
         self.assertIn("platform_delivery_baseline", row_ids)
         self.assertIn("non_live_regression", row_ids)
         self.assertIn("release_candidate_checklist", row_ids)
+        self.assertIn("runtime_performance_sampling", row_ids)
         self.assertIn("build_run_matrix", payload["contract_versions"])
+        self.assertIn("performance_summary", payload["contract_versions"])
         self.assertGreaterEqual(payload["platform_count"], 1)
 
     def test_matrix_blocks_when_platform_delivery_baseline_is_missing(self):
@@ -44,6 +47,52 @@ class BuildRunMatrixTestCase(unittest.TestCase):
         self.assertEqual(payload["status"], "blocked")
         self.assertTrue(payload["should_block"])
         self.assertIn("platform_delivery_baseline", payload["blocking_rows"])
+
+    def test_matrix_includes_runtime_performance_sampling_evidence(self):
+        profile_dir = self.project_dir / "logs" / "test_artifacts"
+        profile_dir.mkdir(parents=True, exist_ok=True)
+        profile_path = profile_dir / "performance_profile_matrix_sample.json"
+        profile_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": "1.1",
+                    "scene_path": "res://scenes/main_scene.tscn",
+                    "metrics": {
+                        "fps": 60,
+                        "draw_call_count": 120,
+                        "node_count": 80,
+                        "memory_peak_mb": 128,
+                        "frame_breakdown": [
+                            {"stage": "render", "ms": 6.5},
+                            {"stage": "script", "ms": 3.0},
+                        ],
+                        "memory_samples_mb": [120, 122, 124],
+                    },
+                    "budgets": {
+                        "min_fps": 55,
+                        "max_draw_call_count": 180,
+                        "max_node_count": 120,
+                        "max_memory_peak_mb": 160,
+                    },
+                },
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+
+        payload = build_build_run_matrix(
+            self.project_dir,
+            runtime_root=self.project_dir,
+            scenario_ids=["content_pipeline"],
+        )
+
+        rows = {row["row_id"]: row for row in payload["rows"]}
+        performance_row = rows["runtime_performance_sampling"]
+        self.assertEqual(performance_row["status"], "passed")
+        self.assertTrue(performance_row["default_selected"])
+        self.assertEqual(performance_row["details"]["profile_path"], "logs/test_artifacts/performance_profile_matrix_sample.json")
+        self.assertEqual(performance_row["details"]["performance_summary"]["schema_version"], "1.1")
+        self.assertEqual(performance_row["details"]["top_frame_stage"], "render")
 
     def test_build_run_matrix_api_shape(self):
         client = TestClient(app)

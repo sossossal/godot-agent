@@ -6,11 +6,13 @@ Godot Agent 技能系统基类 (模块化重构版)
 import os
 import shutil
 import time
+from pathlib import Path
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional, Type
 from pydantic import BaseModel, Field
 from ..contracts import build_skill_result_envelope
 from ..models import Task, ToolResult, Artifact, Backup
+from ..validations import ProjectLayoutValidator
 
 
 class SkillMetadata(BaseModel):
@@ -77,6 +79,14 @@ class BaseSkill(ABC):
             relative_path = res_path.replace("res://", "", 1)
             return os.path.join(self.godot_cli.project_path or ".", relative_path)
         return os.path.join(self.godot_cli.project_path or ".", res_path)
+
+    def validate_managed_output_path(self, res_path: str, kind: str) -> Dict[str, Any]:
+        project_root = Path(getattr(self.godot_cli, "project_path", None) or ".").resolve()
+        full_path = Path(self.resolve_project_file_path(res_path)).resolve()
+        return ProjectLayoutValidator(
+            project_root=project_root,
+            runtime_root=Path.cwd().resolve(),
+        ).validate_managed_path(full_path, kind)
 
     def backup_existing_file(self, task: Task, full_path: str) -> Optional[str]:
         if not full_path or not os.path.exists(full_path):

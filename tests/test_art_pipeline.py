@@ -89,6 +89,71 @@ class ArtAssetPipelineTestCase(unittest.TestCase):
         self.assertTrue(any("超出预算" in issue for issue in result.metadata["skill_result"]["validation"]["issues"]))
         self.assertTrue(any(artifact.type == "report" for artifact in result.artifacts))
 
+    def test_art_asset_skill_builds_spritesheet_atlas_plan(self):
+        source_file = self.project_dir / "raw_assets" / "runner_sheet.png"
+        source_file.write_bytes(b"fake-runner-sheet")
+
+        skill = ArtAssetPipelineSkill(MockGodotCLI(project_path=str(self.project_dir)))
+        task = Task(prompt="预览精灵表图集计划")
+        result = skill.execute(task, {
+            "action": "preview",
+            "asset_type": "spritesheet",
+            "asset_id": "runner_sheet",
+            "source_path": "res://raw_assets/runner_sheet.png",
+            "width": 512,
+            "height": 256,
+            "frame_width": 128,
+            "frame_height": 128,
+        })
+
+        self.assertTrue(result.success)
+        atlas_plan = task.context["art_asset_atlas_plan"]
+        self.assertEqual(atlas_plan["status"], "passed")
+        self.assertEqual(atlas_plan["entry_count"], 1)
+        self.assertEqual(atlas_plan["total_frame_count"], 8)
+        self.assertEqual(task.context["art_asset_atlas_frame_count"], 8)
+        self.assertEqual(task.context["art_asset_profile"]["entries"][0]["atlas"]["columns"], 4)
+        self.assertIn("runner_sheet.atlas.json", task.context["art_asset_profile"]["entries"][0]["atlas"]["atlas_path"])
+
+    def test_art_asset_skill_audits_material_resource_links(self):
+        material_file = self.project_dir / "raw_assets" / "materials" / "stone_wall.tres"
+        albedo_file = self.project_dir / "raw_assets" / "materials" / "stone_wall_albedo.png"
+        normal_file = self.project_dir / "raw_assets" / "materials" / "stone_wall_normal.png"
+        orm_file = self.project_dir / "raw_assets" / "materials" / "stone_wall_orm.png"
+        material_file.parent.mkdir(parents=True, exist_ok=True)
+        material_file.write_bytes(b"fake-material")
+        albedo_file.write_bytes(b"fake-albedo")
+        normal_file.write_bytes(b"fake-normal")
+        orm_file.write_bytes(b"fake-orm")
+
+        skill = ArtAssetPipelineSkill(MockGodotCLI(project_path=str(self.project_dir)))
+        task = Task(prompt="预览材质资源链接")
+        result = skill.execute(task, {
+            "action": "preview",
+            "asset_type": "material",
+            "asset_id": "stone_wall_material",
+            "source_path": "res://raw_assets/materials/stone_wall.tres",
+            "target_path": "res://assets/materials/stone_wall.tres",
+            "source_dependency_paths": [
+                "res://raw_assets/materials/stone_wall_albedo.png",
+                "res://raw_assets/materials/stone_wall_normal.png",
+                "res://raw_assets/materials/stone_wall_orm.png",
+            ],
+            "target_dependency_paths": [
+                "res://assets/materials/stone_wall_albedo.png",
+                "res://assets/materials/stone_wall_normal.png",
+                "res://assets/materials/stone_wall_orm.png",
+            ],
+        })
+
+        self.assertTrue(result.success)
+        audit = task.context["art_asset_material_link_audit"]
+        self.assertEqual(audit["status"], "passed")
+        self.assertEqual(audit["linked_texture_count"], 3)
+        self.assertEqual(task.context["art_asset_material_link_issue_count"], 0)
+        self.assertEqual(audit["entries"][0]["channels"]["albedo"], ["res://assets/materials/stone_wall_albedo.png"])
+        self.assertEqual(audit["entries"][0]["missing_channels"], [])
+
     def test_art_asset_skill_apply_model_profile_copies_dependencies_and_records_profile_fields(self):
         source_file = self.project_dir / "raw_assets" / "models" / "hero_knight.blend"
         albedo_file = self.project_dir / "raw_assets" / "models" / "hero_knight_albedo.png"

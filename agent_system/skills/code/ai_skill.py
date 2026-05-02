@@ -29,6 +29,19 @@ class AIBehaviorSkill(BaseSkill):
         p = AIParams(**params)
         script_name = p.target_script_name or f"{p.target_node_name.lower()}_ai.gd"
         res_path = f"res://scripts/{script_name}"
+        layout_check = self.validate_managed_output_path(res_path, "generated_script")
+        if not layout_check["passed"]:
+            return self.build_result(
+                success=False,
+                message=f"文件树规范阻断 AI 脚本生成: {res_path}",
+                params=self.dump_model(p),
+                error="project_layout_validation_failed",
+                validation={
+                    "passed": False,
+                    "checks": [{"name": "project_layout", "status": "blocked"}],
+                    "layout_check": layout_check,
+                },
+            )
         full_path = self.resolve_project_file_path(res_path)
         os.makedirs(os.path.dirname(full_path), exist_ok=True)
         
@@ -64,8 +77,10 @@ class AIBehaviorSkill(BaseSkill):
                 "passed": True,
                 "checks": [
                     {"name": "ai_script_render", "status": "passed"},
+                    {"name": "project_layout", "status": "passed"},
                     {"name": "ai_script_write", "status": "passed"},
                 ],
+                "layout_check": layout_check,
             },
             rollback={
                 "available": bool(backup_path),

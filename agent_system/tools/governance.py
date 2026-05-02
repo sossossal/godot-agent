@@ -54,6 +54,11 @@ _CHANGE_TYPES: Dict[str, Dict[str, Any]] = {
         "required_evidence": ["contract", "tests", "docs", "quality_dashboard"],
         "recommended_paths": ["agent_system/", "api_server/", "tests/", "docs/", "README.md"],
     },
+    "game_creation": {
+        "label": "Zero-to-Playable Game Creation",
+        "required_evidence": ["contract", "layout", "schema", "preview_or_diff", "quality_gate", "rollback", "tests", "docs"],
+        "recommended_paths": ["project.godot", "scenes/", "scripts/", "data_tables/game_creation/", "docs/"],
+    },
     "skill": {
         "label": "Skill",
         "required_evidence": ["contract", "layout", "tests", "docs", "rollback", "quality_gate"],

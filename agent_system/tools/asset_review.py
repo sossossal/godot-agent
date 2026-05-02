@@ -94,6 +94,7 @@ def build_asset_review_workflow(
         review_records=review_records,
         filtered_asset_ids=normalized_asset_ids,
     )
+    provenance_summary = _build_provenance_summary(review_entries)
 
     pending_review_count = sum(1 for item in review_entries if item["review_status"] == "pending_review")
     approved_count = sum(1 for item in review_entries if item["review_status"] == "approved")
@@ -199,6 +200,17 @@ def build_asset_review_workflow(
             required=False,
             details={"orphan_review_count": orphan_review_count},
         ),
+        _item(
+            "asset_provenance",
+            "Asset Provenance",
+            "warning" if provenance_summary["issue_count"] else "passed",
+            (
+                f"provenance issues={provenance_summary['issue_count']}, "
+                f"license coverage={provenance_summary['license_coverage_ratio']}"
+            ),
+            required=False,
+            details=provenance_summary,
+        ),
     ]
 
     return normalize_asset_review_workflow({
@@ -221,6 +233,7 @@ def build_asset_review_workflow(
         "returned_count": returned_count,
         "updated_count": updated_count,
         "orphan_review_count": orphan_review_count,
+        "provenance_summary": provenance_summary,
         "checklist": checklist,
         "review_entries": review_entries,
         "notes": [
@@ -377,6 +390,8 @@ def _build_review_entries(
             "source_tool": str(raw_entry.get("source_tool") or "").strip(),
             "package_version": str(raw_entry.get("package_version") or "").strip(),
             "license_name": str(raw_entry.get("license_name") or "").strip(),
+            "source_dependency_paths": _clean_text_list(raw_entry.get("source_dependency_paths")),
+            "target_dependency_paths": _clean_text_list(raw_entry.get("target_dependency_paths")),
             "reviewer": str(review_record.get("reviewer") or "").strip(),
             "review_note": str(review_record.get("review_note") or "").strip(),
             "reviewed_at": str(review_record.get("reviewed_at") or "").strip(),
@@ -387,6 +402,58 @@ def _build_review_entries(
             "warnings": warnings,
         })
     return entries
+
+
+def _build_provenance_summary(review_entries: List[Dict[str, Any]]) -> Dict[str, Any]:
+    issue_assets: List[str] = []
+    missing_source_assets: List[str] = []
+    missing_target_assets: List[str] = []
+    missing_tool_assets: List[str] = []
+    missing_license_assets: List[str] = []
+    dependency_assets: List[str] = []
+    source_dependency_count = 0
+    target_dependency_count = 0
+
+    for entry in review_entries:
+        asset_id = str(entry.get("asset_id") or "unnamed_asset").strip()
+        if not str(entry.get("source_path") or "").strip():
+            missing_source_assets.append(asset_id)
+        if not str(entry.get("target_path") or "").strip():
+            missing_target_assets.append(asset_id)
+        if not str(entry.get("source_tool") or "").strip():
+            missing_tool_assets.append(asset_id)
+        if not str(entry.get("license_name") or "").strip():
+            missing_license_assets.append(asset_id)
+        source_deps = _clean_text_list(entry.get("source_dependency_paths"))
+        target_deps = _clean_text_list(entry.get("target_dependency_paths"))
+        source_dependency_count += len(source_deps)
+        target_dependency_count += len(target_deps)
+        if source_deps or target_deps:
+            dependency_assets.append(asset_id)
+
+    for collection in (missing_source_assets, missing_target_assets, missing_tool_assets, missing_license_assets):
+        for asset_id in collection:
+            if asset_id not in issue_assets:
+                issue_assets.append(asset_id)
+
+    total = len(review_entries)
+    license_coverage = 1.0 if total == 0 else (total - len(missing_license_assets)) / float(total)
+    source_tool_coverage = 1.0 if total == 0 else (total - len(missing_tool_assets)) / float(total)
+    dependency_coverage = 0.0 if total == 0 else len(set(dependency_assets)) / float(total)
+    return {
+        "asset_count": total,
+        "issue_count": len(issue_assets),
+        "issue_assets": issue_assets,
+        "missing_source_assets": missing_source_assets,
+        "missing_target_assets": missing_target_assets,
+        "missing_tool_assets": missing_tool_assets,
+        "missing_license_assets": missing_license_assets,
+        "license_coverage_ratio": round(license_coverage, 4),
+        "source_tool_coverage_ratio": round(source_tool_coverage, 4),
+        "dependency_coverage_ratio": round(dependency_coverage, 4),
+        "source_dependency_count": source_dependency_count,
+        "target_dependency_count": target_dependency_count,
+    }
 
 
 def _build_recommendations(checklist: List[Dict[str, Any]], review_entries: List[Dict[str, Any]]) -> List[str]:
