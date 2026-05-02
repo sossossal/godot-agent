@@ -92,8 +92,11 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertEqual(payload["non_live_profile"], "release")
         self.assertTrue(payload["fail_on_slow_shards"])
         self.assertTrue(payload["prepare_release_fixture"])
+        self.assertTrue(payload["prepared_release_fixture_report_path"].endswith("release_live_fixture.json"))
         step_ids = [item["id"] for item in payload["steps"]]
         self.assertEqual(step_ids, ["git_diff_check", "prepare_release_fixture", "non_live_validation", "release_live_preflight"])
+        fixture_step = payload["steps"][1]
+        self.assertIn("--report-path", fixture_step["arguments"])
         non_live_step = payload["steps"][2]
         self.assertIn("-FailOnSlowShards", non_live_step["arguments"])
 
@@ -200,6 +203,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertTrue(payload["preview"])
         self.assertEqual(payload["manifest_path"], "api_server/static/dist/release_manifest.json")
+        self.assertTrue(payload["report_path"].endswith("release_live_fixture.json"))
         self.assertIn("logs/reports/full_live_validation.json", payload["runtime_reports"])
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")

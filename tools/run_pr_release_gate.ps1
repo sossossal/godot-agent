@@ -74,6 +74,8 @@ $nonLiveReportPath = Join-Path $resolvedArtifactDir "non_live_validation_shards.
 $nonLiveMarkdownPath = Join-Path $resolvedArtifactDir "non_live_validation_shards.md"
 $livePreflightReportPath = Join-Path $resolvedArtifactDir "release_live_preflight.json"
 $livePreflightMarkdownPath = Join-Path $resolvedArtifactDir "release_live_preflight.md"
+$preparedFixtureReportPath = Join-Path $resolvedArtifactDir "release_live_fixture.json"
+$preparedFixtureMarkdownPath = Join-Path $resolvedArtifactDir "release_live_fixture.md"
 $resolvedPython = if (-not [string]::IsNullOrWhiteSpace($PythonCommand)) {
     $PythonCommand
 } elseif (-not [string]::IsNullOrWhiteSpace($env:PYTHON)) {
@@ -107,7 +109,9 @@ if ($PrepareReleaseFixture) {
         command = $resolvedPython
         arguments = @(
             (Join-Path $repoRoot "tools\prepare_release_live_fixture.py"),
-            "--channel", $PreparedReleaseChannel
+            "--channel", $PreparedReleaseChannel,
+            "--report-path", $preparedFixtureReportPath,
+            "--markdown-path", $preparedFixtureMarkdownPath
         )
     }
 }
@@ -168,6 +172,7 @@ if ($Preview) {
         report_path = $jsonReportPath
         markdown_path = $markdownReportPath
         non_live_report_path = $nonLiveReportPath
+        prepared_release_fixture_report_path = $preparedFixtureReportPath
         release_live_preflight_report_path = $livePreflightReportPath
         fail_on_slow_shards = [bool]$FailOnSlowShards
         prepare_release_fixture = [bool]$PrepareReleaseFixture
@@ -194,8 +199,22 @@ try {
     }
 
     $nonLiveReport = Read-JsonFile -Path $nonLiveReportPath
+    $preparedFixtureReport = Read-JsonFile -Path $preparedFixtureReportPath
     $livePreflightReport = Read-JsonFile -Path $livePreflightReportPath
     $evidence = [ordered]@{
+        prepared_release_fixture = if ($preparedFixtureReport) {
+            [ordered]@{
+                status = if ([bool]$preparedFixtureReport.ok) { "passed" } else { "blocked" }
+                channel = [string]$preparedFixtureReport.channel
+                build_id = [string]$preparedFixtureReport.build_id
+                version = [string]$preparedFixtureReport.version
+                manifest_path = [string]$preparedFixtureReport.manifest_path
+                report_path = $preparedFixtureReportPath
+                markdown_path = $preparedFixtureMarkdownPath
+            }
+        } else {
+            $null
+        }
         non_live = if ($nonLiveReport) {
             [ordered]@{
                 status = [string]$nonLiveReport.status
@@ -250,6 +269,7 @@ try {
         "- Non-live profile: $nonLiveProfile",
         "- Blocked: $((@($payload.blocked_steps) -join ', '))",
         "- Prepare release fixture: $([bool]$PrepareReleaseFixture)",
+        "- Prepared fixture: $($evidence.prepared_release_fixture.status)",
         "- Fail on slow shards: $([bool]$FailOnSlowShards)",
         "- Non-live slow shard gate: $($evidence.non_live.slow_shard_gate)",
         "- Non-live failed shards: $((@($evidence.non_live.failed_shards) -join ', '))",

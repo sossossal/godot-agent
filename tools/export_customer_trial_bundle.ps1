@@ -164,6 +164,8 @@ try {
     $evidenceFiles = @(
         Copy-EvidenceFile -SourcePath "logs/reports/doctor_self_check.json" -RelativeDestination "runtime_reports\doctor_self_check.json"
         Copy-EvidenceFile -SourcePath "logs/reports/clean_machine_bootstrap.json" -RelativeDestination "runtime_reports\clean_machine_bootstrap.json"
+        Copy-EvidenceFile -SourcePath (Join-Path $gateArtifactDir "release_live_fixture.json") -RelativeDestination "gate\release_live_fixture.json"
+        Copy-EvidenceFile -SourcePath (Join-Path $gateArtifactDir "release_live_fixture.md") -RelativeDestination "gate\release_live_fixture.md"
         Copy-EvidenceFile -SourcePath (Join-Path $gateArtifactDir "gate_summary.json") -RelativeDestination "gate\gate_summary.json"
         Copy-EvidenceFile -SourcePath (Join-Path $gateArtifactDir "gate_summary.md") -RelativeDestination "gate\gate_summary.md"
         Copy-EvidenceFile -SourcePath (Join-Path $gateArtifactDir "release_live_preflight.json") -RelativeDestination "gate\release_live_preflight.json"
