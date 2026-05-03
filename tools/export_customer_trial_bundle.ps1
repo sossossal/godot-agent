@@ -329,6 +329,21 @@ try {
     } else {
         "passed"
     }
+    $readinessEvidenceFiles = @(
+        $evidenceFiles |
+            ForEach-Object {
+                [ordered]@{
+                    source = [string]$_.source
+                    path = [string]$_.path
+                    relative_path = [string]$_.relative_path
+                }
+            }
+    )
+    $readinessEvidenceFiles += [ordered]@{
+        source = $readinessSummaryPath
+        path = $readinessSummaryPath
+        relative_path = "customer_trial_readiness.json"
+    }
     $readinessSummary = [ordered]@{
         schema_version = "1.0"
         status = $bundleStatus
@@ -341,7 +356,8 @@ try {
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
         recommended_action_count = @($recommendedActions).Count
         recommended_action_items = $recommendedActionItems
-        evidence_file_count = @($evidenceFiles).Count + 1
+        evidence_file_count = @($readinessEvidenceFiles).Count
+        evidence_files = $readinessEvidenceFiles
         command_count = @($commandRecords).Count
         rerun_script_path = $rerunScriptPath
         command_manifest_path = $commandManifestPath

@@ -114,6 +114,7 @@ python -m agent_system.cli roadmap --json
 # 8.4 客户试用证据包：汇总 doctor、customer gate、readiness、命令清单和复跑脚本
 .\tools\export_customer_trial_bundle.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -GateMode preflight -ContinueOnFailure
 .\tools\export_customer_trial_bundle.ps1 -PythonCommand D:\actions-tools\Python312\python.exe -GateMode preflight -SyncPluginBeforeDoctor -PrepareReleaseFixture -RestorePreparedFixture -ContinueOnFailure
+# customer_trial_readiness.json 会内嵌 evidence_files 清单，便于只读取 readiness 时定位 gate/fixture/doctor 证据
 
 # 9. 启动 Godot 编辑器
 python -m agent_system.cli launch
