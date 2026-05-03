@@ -419,6 +419,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertEqual(payload["recommended_action_count"], len(payload["recommended_actions"]))
             self.assertEqual(payload["command_count"], len(payload["command_records"]))
             self.assertEqual(payload["command_ids"], [item["id"] for item in payload["command_records"]])
+            self.assertEqual(payload["planned_step_count"], len(payload["command_records"]))
+            self.assertEqual(payload["planned_step_ids"], payload["command_ids"])
             self.assertEqual(payload["step_count"], len(payload["results"]))
             self.assertEqual(payload["step_ids"], [item["id"] for item in payload["results"]])
             self.assertAlmostEqual(
@@ -449,6 +451,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 f"- Slowest step: {payload['slowest_step_id']} ({payload['slowest_step_seconds']}s)",
                 markdown,
             )
+            self.assertIn(f"- Planned steps: {payload['planned_step_count']}", markdown)
             self.assertIn(f"- Steps: {payload['step_count']}", markdown)
             self.assertIn(f"- Passed count: {payload['passed_count']}", markdown)
             self.assertIn(f"- Blocked count: {payload['blocked_count']}", markdown)
@@ -465,6 +468,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             gate_json = output_dir / "gate" / "gate_summary.json"
             self.assertTrue(gate_json.exists())
             gate_payload = json.loads(gate_json.read_text(encoding="utf-8-sig"))
+            self.assertGreaterEqual(gate_payload["planned_step_count"], gate_payload["step_count"])
+            self.assertEqual(gate_payload["planned_step_ids"][: gate_payload["step_count"]], gate_payload["step_ids"])
             self.assertEqual(gate_payload["step_count"], len(gate_payload["results"]))
             self.assertEqual(gate_payload["step_ids"], [item["id"] for item in gate_payload["results"]])
             self.assertAlmostEqual(
@@ -487,6 +492,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 f"- Slowest step: {gate_payload['slowest_step_id']} ({gate_payload['slowest_step_seconds']}s)",
                 gate_summary,
             )
+            self.assertIn(f"- Planned steps: {gate_payload['planned_step_count']}", gate_summary)
             self.assertIn(f"- Steps: {gate_payload['step_count']}", gate_summary)
             self.assertIn(f"- Passed count: {gate_payload['passed_count']}", gate_summary)
             self.assertIn(f"- Blocked count: {gate_payload['blocked_count']}", gate_summary)
@@ -528,6 +534,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertEqual(readiness_payload["total_duration_seconds"], payload["total_duration_seconds"])
             self.assertEqual(readiness_payload["slowest_step_id"], payload["slowest_step_id"])
             self.assertAlmostEqual(readiness_payload["slowest_step_seconds"], payload["slowest_step_seconds"])
+            self.assertEqual(readiness_payload["planned_step_count"], payload["planned_step_count"])
+            self.assertEqual(readiness_payload["planned_step_ids"], payload["planned_step_ids"])
             self.assertEqual(readiness_payload["step_count"], payload["step_count"])
             self.assertEqual(readiness_payload["step_ids"], payload["step_ids"])
             self.assertEqual(readiness_payload["passed_count"], payload["passed_count"])

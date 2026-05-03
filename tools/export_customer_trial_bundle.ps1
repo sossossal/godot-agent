@@ -174,6 +174,7 @@ foreach ($step in $steps) {
     }
 }
 $commandIds = @($commandRecords | ForEach-Object { $_.id })
+$plannedStepIds = @($steps | ForEach-Object { $_.id })
 
 if ($Preview) {
     [ordered]@{
@@ -196,7 +197,7 @@ if ($Preview) {
         command_count = @($commandRecords).Count
         step_count = @($steps).Count
         command_ids = $commandIds
-        step_ids = @($steps | ForEach-Object { $_.id })
+        step_ids = $plannedStepIds
         command_records = $commandRecords
         steps = $steps
     } | ConvertTo-Json -Depth 8
@@ -381,6 +382,8 @@ try {
         total_duration_seconds = $totalDurationSeconds
         slowest_step_id = if ($slowestStep.Count -gt 0) { [string]$slowestStep[0].id } else { "" }
         slowest_step_seconds = if ($slowestStep.Count -gt 0) { [double]$slowestStep[0].duration_seconds } else { 0.0 }
+        planned_step_count = @($steps).Count
+        planned_step_ids = $plannedStepIds
         step_count = @($results).Count
         step_ids = $stepIds
         recommended_action_count = @($recommendedActions).Count
@@ -448,6 +451,8 @@ try {
         total_duration_seconds = $totalDurationSeconds
         slowest_step_id = if ($slowestStep.Count -gt 0) { [string]$slowestStep[0].id } else { "" }
         slowest_step_seconds = if ($slowestStep.Count -gt 0) { [double]$slowestStep[0].duration_seconds } else { 0.0 }
+        planned_step_count = @($steps).Count
+        planned_step_ids = $plannedStepIds
         step_count = @($results).Count
         step_ids = $stepIds
         results = $results
@@ -475,6 +480,7 @@ try {
         "- Sync plugin before doctor: $([bool]$SyncPluginBeforeDoctor)",
         "- Total seconds: $($payload.total_duration_seconds)",
         "- Slowest step: $($payload.slowest_step_id) ($($payload.slowest_step_seconds)s)",
+        "- Planned steps: $($payload.planned_step_count)",
         "- Steps: $($payload.step_count)",
         "- Passed count: $($payload.passed_count)",
         "- Blocked count: $($payload.blocked_count)",

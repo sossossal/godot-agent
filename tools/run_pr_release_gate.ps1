@@ -309,6 +309,8 @@ if ($runLivePreflight) {
     }
 }
 
+$plannedStepIds = @($stepPlan | ForEach-Object { $_.id })
+
 if ($Preview) {
     [ordered]@{
         ok = $true
@@ -333,7 +335,7 @@ if ($Preview) {
         prepared_release_channel = $PreparedReleaseChannel
         prepared_release_fixture_scope = $preparedFixtureScope
         step_count = @($stepPlan).Count
-        step_ids = @($stepPlan | ForEach-Object { $_.id })
+        step_ids = $plannedStepIds
         steps = $stepPlan
     } | ConvertTo-Json -Depth 8
     exit 0
@@ -462,6 +464,8 @@ try {
         total_duration_seconds = $totalDurationSeconds
         slowest_step_id = if ($slowestStep.Count -gt 0) { [string]$slowestStep[0].id } else { "" }
         slowest_step_seconds = if ($slowestStep.Count -gt 0) { [double]$slowestStep[0].duration_seconds } else { 0.0 }
+        planned_step_count = @($stepPlan).Count
+        planned_step_ids = $plannedStepIds
         step_count = @($results).Count
         step_ids = $stepIds
         results = $results
@@ -485,6 +489,7 @@ try {
         "- Browser path: $BrowserPath",
         "- Total seconds: $($payload.total_duration_seconds)",
         "- Slowest step: $($payload.slowest_step_id) ($($payload.slowest_step_seconds)s)",
+        "- Planned steps: $($payload.planned_step_count)",
         "- Steps: $($payload.step_count)",
         "- Passed count: $($payload.passed_count)",
         "- Blocked count: $($payload.blocked_count)",
