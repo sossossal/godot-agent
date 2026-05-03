@@ -324,6 +324,7 @@ if ($Preview) {
         prepared_release_fixture_markdown_path = $preparedFixtureMarkdownPath
         release_live_preflight_report_path = $livePreflightReportPath
         fail_on_slow_shards = [bool]$FailOnSlowShards
+        continue_on_failure = [bool]$ContinueOnFailure
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         prepared_release_fixture_state_root = if ($PrepareReleaseFixture -and $RestorePreparedFixture) { $preparedFixtureStateRoot } else { $null }
@@ -436,6 +437,7 @@ try {
         warning_steps = @($results | Where-Object { $_.status -eq "warning" } | ForEach-Object { $_.id })
         evidence = $evidence
         results = $results
+        continue_on_failure = [bool]$ContinueOnFailure
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         prepared_release_fixture_scope = $preparedFixtureScope
         restore_prepared_fixture = [bool]$RestorePreparedFixture
@@ -452,6 +454,7 @@ try {
         "- Non-live profile: $nonLiveProfile",
         "- Blocked: $((@($payload.blocked_steps) -join ', '))",
         "- Warnings: $((@($payload.warning_steps) -join ', '))",
+        "- Continue on failure: $([bool]$ContinueOnFailure)",
         "- Prepare release fixture: $([bool]$PrepareReleaseFixture)",
         "- Prepared fixture scope: $preparedFixtureScope",
         "- Restore prepared fixture: $([bool]$RestorePreparedFixture)",

@@ -76,6 +76,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 "-FailOnSlowShards",
                 "-PrepareReleaseFixture",
                 "-RestorePreparedFixture",
+                "-ContinueOnFailure",
                 "-Preview",
             ],
             capture_output=True,
@@ -93,6 +94,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertEqual(payload["mode"], "full")
         self.assertEqual(payload["non_live_profile"], "release")
         self.assertTrue(payload["fail_on_slow_shards"])
+        self.assertTrue(payload["continue_on_failure"])
         self.assertTrue(payload["prepare_release_fixture"])
         self.assertTrue(payload["restore_prepared_fixture"])
         self.assertTrue(payload["prepared_release_fixture_state_root"].endswith("prepared_fixture_state"))
@@ -417,6 +419,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             gate_summary = gate_markdown.read_text(encoding="utf-8-sig")
             self.assertIn("## Step Diagnostics", gate_summary)
             self.assertIn("- Warnings:", gate_summary)
+            self.assertIn("- Continue on failure: True", gate_summary)
             self.assertIn("Live preflight blocked checks: release_manifest", gate_summary)
             self.assertIn("- Command:", gate_summary)
             rerun_script = output_dir / "rerun_customer_trial.ps1"
