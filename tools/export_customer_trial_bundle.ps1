@@ -411,6 +411,11 @@ try {
     }
     $payload | ConvertTo-Json -Depth 8 | Set-Content -Path $manifestPath -Encoding utf8
 
+    $missingEvidenceLabel = if (@($payload.missing_evidence_files).Count -eq 0) {
+        "None"
+    } else {
+        @($payload.missing_evidence_files) -join ", "
+    }
     $lines = @(
         "# Customer Trial Bundle",
         "",
@@ -467,6 +472,11 @@ try {
         }
     }
     $lines += @(
+        "",
+        "## Evidence Files",
+        "",
+        "- Count: $($payload.evidence_file_count)",
+        "- Missing: $missingEvidenceLabel",
         "",
         "| Evidence | Path |",
         "| --- | --- |"

@@ -400,6 +400,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertIn("## Rerun Commands", markdown)
             self.assertIn("customer_gate", markdown)
             self.assertIn("## Blocked Step Output", markdown)
+            self.assertIn("## Evidence Files", markdown)
+            self.assertIn("- Missing: None", markdown)
             gate_markdown = output_dir / "gate" / "gate_summary.md"
             self.assertTrue(gate_markdown.exists())
             gate_summary = gate_markdown.read_text(encoding="utf-8-sig")
@@ -445,6 +447,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 self.assertTrue(Path(item["path"]).exists(), item)
             self.assertIn("customer_trial_commands.json", evidence_paths)
             self.assertIn("customer_trial_readiness.json", evidence_paths)
+            self.assertIn(f"- Count: {payload['evidence_file_count']}", markdown)
         finally:
             shutil.rmtree(output_dir, ignore_errors=True)
 
