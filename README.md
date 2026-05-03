@@ -794,7 +794,7 @@ python -m uvicorn api_server.main:app --host 127.0.0.1 --port 8011
 
 - 全量非 live：`486 passed, 16 deselected`。
 - 完整 live validation：`4/4 lanes passed`，其中 Godot live sandbox + production flows 为 `16 passed`，Portal DOM、Portal click 和 Remote MCP live 均为 passed。
-- `release_live_ci_local` staging artifact 已重新导出：`ci_gate_status=passed`、`human_signoff_status=passed`、`full_live_validation_status=passed`、`distribution_bundle=passed`、`request_auth=passed`，并生成 `artifact_manifest.json`、`release_live_ci_summary.md`、`release_delivery_readiness_staging.json/.md` 与 `release_live_dispatch_preflight.json/.md`；summary 的 `report_files` 和 manifest 的 `generated_files` 均可直接发现这些 readiness/preflight 报告。
+- `release_live_ci_local` staging artifact 已重新导出：`ci_gate_status=passed`、`human_signoff_status=passed`、`full_live_validation_status=passed`、`distribution_bundle=passed`、`request_auth=passed`，并生成 `artifact_manifest.json`、`release_live_ci_summary.md`、`release_delivery_readiness_staging.json/.md` 与 `release_live_dispatch_preflight.json/.md`；summary 的 `report_files` 和 manifest 的 `generated_files` 均可直接发现这些 readiness、dispatch preflight 和 release live fixture 报告。
 - Staging delivery readiness 已收敛为 `identity=passed / workflow=blocked / distribution=passed`；`staging_internal_windows` 使用 `sha256_only` 且 `delivery_signing_required=false`，因此 `signing_handoff=skipped` 不再被当作 incomplete；readiness recommendations 也只剩 workflow unblock 入口和 GitHub token/workflow 说明。
 - P5 `release_candidate` strict readiness 在完整 evidence 下通过；P6 `codex / openai_api` compatibility smoke 通过。
 - 真正 `release -> production` 仍需外部收口：identity/session/secret rotation、固定 self-hosted Windows runner 上的真实 release-live-gates、外部分发签名/发布/receipt 回写。
