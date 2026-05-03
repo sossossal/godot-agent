@@ -284,6 +284,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 sys.executable,
                 "-GateMode",
                 "preflight",
+                "-ReleaseManifestPath",
+                "trial/release_manifest.json",
                 "-BrowserPath",
                 "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
                 "-PrepareReleaseFixture",
@@ -304,6 +306,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertTrue(payload["preview"])
         self.assertEqual(payload["gate_mode"], "preflight")
+        self.assertEqual(payload["release_manifest_path"], "trial/release_manifest.json")
         self.assertEqual(payload["browser_path"], "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe")
         self.assertTrue(payload["fail_on_needs_attention"])
         self.assertTrue(payload["prepare_release_fixture"])
@@ -324,6 +327,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertIn("-Mode", gate_step["arguments"])
         self.assertIn("preflight", gate_step["arguments"])
         self.assertIn("-ReleaseManifestPath", gate_step["arguments"])
+        self.assertIn("trial/release_manifest.json", gate_step["arguments"])
         self.assertIn("-BrowserPath", gate_step["arguments"])
         self.assertIn("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", gate_step["arguments"])
         self.assertIn("-PrepareReleaseFixture", gate_step["arguments"])
@@ -392,6 +396,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertIn("recommended_action_items", payload)
             self.assertTrue(payload["recommended_action_items"])
             self.assertEqual(payload["recommended_action_items"][0]["source"], "release_live_preflight")
+            self.assertEqual(payload["release_manifest_path"], "missing/release_manifest.json")
             markdown_path = output_dir / "customer_trial_bundle.md"
             self.assertTrue(markdown_path.exists())
             markdown = markdown_path.read_text(encoding="utf-8-sig")
@@ -426,6 +431,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             readiness_payload = json.loads(readiness_path.read_text(encoding="utf-8-sig"))
             self.assertEqual(readiness_payload["status"], "blocked")
             self.assertEqual(readiness_payload["readiness_level"], "blocked")
+            self.assertEqual(readiness_payload["release_manifest_path"], "missing/release_manifest.json")
             self.assertFalse(readiness_payload["fail_on_needs_attention"])
             self.assertFalse(readiness_payload["should_fail_on_needs_attention"])
             self.assertTrue(readiness_payload["recommended_action_items"])

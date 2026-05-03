@@ -184,6 +184,7 @@ if ($Preview) {
         rerun_script_path = $rerunScriptPath
         command_manifest_path = $commandManifestPath
         readiness_summary_path = $readinessSummaryPath
+        release_manifest_path = $ReleaseManifestPath
         gate_mode = $GateMode
         browser_path = $BrowserPath
         fail_on_needs_attention = [bool]$FailOnNeedsAttention
@@ -350,6 +351,7 @@ try {
         readiness_level = $readinessLevel
         ok = $bundleOk
         gate_mode = $GateMode
+        release_manifest_path = $ReleaseManifestPath
         browser_path = $BrowserPath
         fail_on_needs_attention = [bool]$FailOnNeedsAttention
         should_fail_on_needs_attention = $shouldFailOnNeedsAttention
@@ -392,6 +394,7 @@ try {
         command_manifest_path = $commandManifestPath
         readiness_summary_path = $readinessSummaryPath
         gate_mode = $GateMode
+        release_manifest_path = $ReleaseManifestPath
         browser_path = $BrowserPath
         fail_on_needs_attention = [bool]$FailOnNeedsAttention
         should_fail_on_needs_attention = $shouldFailOnNeedsAttention
