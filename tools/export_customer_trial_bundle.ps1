@@ -349,6 +349,7 @@ try {
         relative_path = "customer_trial_readiness.json"
     }
     $passedCount = @($results | Where-Object { $_.status -eq "passed" }).Count
+    $blockedSteps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
     $blockedCount = @($results | Where-Object { $_.status -eq "blocked" }).Count
     $statusCounts = [ordered]@{
         passed = $passedCount
@@ -365,7 +366,7 @@ try {
         fail_on_needs_attention = [bool]$FailOnNeedsAttention
         continue_on_failure = [bool]$ContinueOnFailure
         should_fail_on_needs_attention = $shouldFailOnNeedsAttention
-        blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
+        blocked_steps = $blockedSteps
         passed_count = $passedCount
         blocked_count = $blockedCount
         status_counts = $statusCounts
@@ -416,7 +417,7 @@ try {
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
-        blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
+        blocked_steps = $blockedSteps
         passed_count = $passedCount
         blocked_count = $blockedCount
         status_counts = $statusCounts

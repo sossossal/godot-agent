@@ -427,6 +427,8 @@ try {
         }
     }
     $passedCount = @($results | Where-Object { $_.status -eq "passed" }).Count
+    $blockedSteps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
+    $warningSteps = @($results | Where-Object { $_.status -eq "warning" } | ForEach-Object { $_.id })
     $blockedCount = @($results | Where-Object { $_.status -eq "blocked" }).Count
     $warningCount = @($results | Where-Object { $_.status -eq "warning" }).Count
     $statusCounts = [ordered]@{
@@ -446,8 +448,8 @@ try {
         browser_path = $BrowserPath
         generated_at = (Get-Date).ToUniversalTime().ToString("o")
         artifact_dir = $resolvedArtifactDir
-        blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
-        warning_steps = @($results | Where-Object { $_.status -eq "warning" } | ForEach-Object { $_.id })
+        blocked_steps = $blockedSteps
+        warning_steps = $warningSteps
         passed_count = $passedCount
         blocked_count = $blockedCount
         warning_count = $warningCount
