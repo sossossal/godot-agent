@@ -3206,6 +3206,11 @@ class ContractsTestCase(unittest.TestCase):
                 "channel": "staging",
                 "release_manifest_path": "api_server/static/dist/release_manifest.json",
             },
+            "report_files": {
+                "summary_markdown": "release_live_ci_summary.md",
+                "empty": "",
+                "windows_path": "reports\\release_live_fixture.md",
+            },
             "generated_files": ["release_execution_status.json", "", "release_execution_status.json"],
             "runtime_assembly": {
                 "route_kind": "ci_rehearsal",
@@ -3290,6 +3295,9 @@ class ContractsTestCase(unittest.TestCase):
             {"release_promotion_history_report_flow": "passed"},
         )
         self.assertEqual(payload["generated_files"], ["release_execution_status.json"])
+        self.assertEqual(payload["report_files"]["summary_markdown"], "release_live_ci_summary.md")
+        self.assertEqual(payload["report_files"]["windows_path"], "reports/release_live_fixture.md")
+        self.assertNotIn("empty", payload["report_files"])
 
     def test_release_capability_registry_normalizes_capabilities(self):
         registry = normalize_release_capability_registry({

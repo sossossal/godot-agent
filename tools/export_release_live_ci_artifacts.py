@@ -1205,6 +1205,7 @@ def export_live_ci_artifacts(
         "runtime_lanes": {
             "full_live_validation": runtime_lane_summaries,
         },
+        "report_files": summary_payload["report_files"],
         "generated_files": [
             str(path.relative_to(output_dir)).replace("\\", "/")
             for path in generated_files

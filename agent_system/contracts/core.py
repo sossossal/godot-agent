@@ -4116,6 +4116,16 @@ def _normalize_release_artifact_manifest_readiness(value: Any) -> Dict[str, Any]
     }
 
 
+def _normalize_report_file_map(value: Any) -> Dict[str, str]:
+    report_files: Dict[str, str] = {}
+    for raw_key, raw_value in _as_dict(value).items():
+        key = str(raw_key or "").strip()
+        path = str(raw_value or "").strip().replace("\\", "/")
+        if key and path:
+            report_files[key] = path
+    return report_files
+
+
 def normalize_release_artifact_manifest(summary: Dict[str, Any] | None) -> Dict[str, Any]:
     source = _as_dict(summary)
     runtime_lanes_raw = _as_dict(source.get("runtime_lanes"))
@@ -4160,6 +4170,7 @@ def normalize_release_artifact_manifest(summary: Dict[str, Any] | None) -> Dict[
         "runtime_lanes": {
             "full_live_validation": full_live_validation,
         },
+        "report_files": _normalize_report_file_map(source.get("report_files")),
         "generated_files": _clean_text_list(source.get("generated_files")),
     }
 
