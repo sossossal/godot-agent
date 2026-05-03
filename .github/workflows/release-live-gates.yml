@@ -86,7 +86,11 @@ jobs:
         id: prepare_release_fixture
         shell: pwsh
         run: |
-          python -c "from tools.export_release_ci_artifacts import _prepare_release_fixture, _prepare_runtime_reports; manifest = _prepare_release_fixture(channel='${{ inputs.target_channel }}'); _prepare_runtime_reports(manifest)"
+          python .\tools\prepare_release_live_fixture.py `
+            --channel "${{ inputs.target_channel }}" `
+            --scope full `
+            --report-path "${{ inputs.artifact_dir }}\release_live_fixture.json" `
+            --markdown-path "${{ inputs.artifact_dir }}\release_live_fixture.md"
 
       - name: Export release-live runner baseline
         id: export_runner_baseline

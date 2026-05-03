@@ -12,6 +12,7 @@ project_root = Path(__file__).resolve().parents[1]
 script_path = project_root / "tools" / "run_non_live_validation_shards.ps1"
 gate_script_path = project_root / "tools" / "run_pr_release_gate.ps1"
 gate_workflow_path = project_root / ".github" / "workflows" / "pr-release-gate.yml"
+release_live_workflow_path = project_root / ".github" / "workflows" / "release-live-gates.yml"
 customer_bundle_script_path = project_root / "tools" / "export_customer_trial_bundle.ps1"
 fixture_script_path = project_root / "tools" / "prepare_release_live_fixture.py"
 
@@ -253,6 +254,15 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertIn("$gateParams.PrepareReleaseFixture = $true", workflow)
         self.assertIn("Install dependencies for full gate", workflow)
         self.assertIn("if: steps.gate_inputs.outputs.mode == 'full'", workflow)
+
+    def test_release_live_workflow_uses_full_fixture_script(self):
+        workflow = release_live_workflow_path.read_text(encoding="utf-8")
+
+        self.assertIn("tools\\prepare_release_live_fixture.py", workflow)
+        self.assertIn("--scope full", workflow)
+        self.assertIn("release_live_fixture.json", workflow)
+        self.assertIn("release_live_fixture.md", workflow)
+        self.assertNotIn("python -c \"from tools.export_release_ci_artifacts", workflow)
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
     def test_customer_trial_bundle_preview_runs_doctor_and_customer_gate(self):
