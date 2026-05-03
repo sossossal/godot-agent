@@ -172,6 +172,12 @@ jobs:
               always_run = $false
             }
             @{
+              step_id = 'prepare_release_fixture'
+              label = 'Prepare staging release fixture'
+              outcome = '${{ steps.prepare_release_fixture.outcome }}'
+              always_run = $false
+            }
+            @{
               step_id = 'export_runner_baseline'
               label = 'Export release-live runner baseline'
               outcome = '${{ steps.export_runner_baseline.outcome }}'

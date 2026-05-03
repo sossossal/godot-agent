@@ -262,6 +262,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertIn("--scope full", workflow)
         self.assertIn("release_live_fixture.json", workflow)
         self.assertIn("release_live_fixture.md", workflow)
+        self.assertIn("step_id = 'prepare_release_fixture'", workflow)
+        self.assertIn("outcome = '${{ steps.prepare_release_fixture.outcome }}'", workflow)
         self.assertNotIn("python -c \"from tools.export_release_ci_artifacts", workflow)
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
