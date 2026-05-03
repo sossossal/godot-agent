@@ -457,8 +457,12 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 markdown,
             )
             self.assertIn(f"- Planned steps: {payload['planned_step_count']}", markdown)
+            self.assertIn(f"- Planned step ids: {', '.join(payload['planned_step_ids'])}", markdown)
             self.assertIn(f"- Skipped steps: {payload['skipped_step_count']}", markdown)
+            skipped_label = ", ".join(payload["skipped_step_ids"]) if payload["skipped_step_ids"] else "None"
+            self.assertIn(f"- Skipped step ids: {skipped_label}", markdown)
             self.assertIn(f"- Steps: {payload['step_count']}", markdown)
+            self.assertIn(f"- Step ids: {', '.join(payload['step_ids'])}", markdown)
             self.assertIn(f"- Passed count: {payload['passed_count']}", markdown)
             self.assertIn(f"- Blocked count: {payload['blocked_count']}", markdown)
             self.assertIn(f"- Recommended actions: {payload['recommended_action_count']}", markdown)
@@ -504,8 +508,12 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 gate_summary,
             )
             self.assertIn(f"- Planned steps: {gate_payload['planned_step_count']}", gate_summary)
+            self.assertIn(f"- Planned step ids: {', '.join(gate_payload['planned_step_ids'])}", gate_summary)
             self.assertIn(f"- Skipped steps: {gate_payload['skipped_step_count']}", gate_summary)
+            gate_skipped_label = ", ".join(gate_payload["skipped_step_ids"]) if gate_payload["skipped_step_ids"] else "None"
+            self.assertIn(f"- Skipped step ids: {gate_skipped_label}", gate_summary)
             self.assertIn(f"- Steps: {gate_payload['step_count']}", gate_summary)
+            self.assertIn(f"- Step ids: {', '.join(gate_payload['step_ids'])}", gate_summary)
             self.assertIn(f"- Passed count: {gate_payload['passed_count']}", gate_summary)
             self.assertIn(f"- Blocked count: {gate_payload['blocked_count']}", gate_summary)
             self.assertIn(f"- Warning count: {gate_payload['warning_count']}", gate_summary)

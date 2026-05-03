@@ -481,6 +481,9 @@ try {
     }
     $payload | ConvertTo-Json -Depth 8 | Set-Content -Path $jsonReportPath -Encoding utf8
 
+    $plannedStepList = if (@($payload.planned_step_ids).Count -gt 0) { @($payload.planned_step_ids) -join ", " } else { "None" }
+    $skippedStepList = if (@($payload.skipped_step_ids).Count -gt 0) { @($payload.skipped_step_ids) -join ", " } else { "None" }
+    $stepList = if (@($payload.step_ids).Count -gt 0) { @($payload.step_ids) -join ", " } else { "None" }
     $lines = @(
         "# PR Release Gate",
         "",
@@ -493,8 +496,11 @@ try {
         "- Total seconds: $($payload.total_duration_seconds)",
         "- Slowest step: $($payload.slowest_step_id) ($($payload.slowest_step_seconds)s)",
         "- Planned steps: $($payload.planned_step_count)",
+        "- Planned step ids: $plannedStepList",
         "- Skipped steps: $($payload.skipped_step_count)",
+        "- Skipped step ids: $skippedStepList",
         "- Steps: $($payload.step_count)",
+        "- Step ids: $stepList",
         "- Passed count: $($payload.passed_count)",
         "- Blocked count: $($payload.blocked_count)",
         "- Warning count: $($payload.warning_count)",
