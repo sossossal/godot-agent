@@ -431,11 +431,18 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertEqual(readiness_payload["command_count"], 2)
             readiness_evidence_paths = [item["relative_path"] for item in readiness_payload["evidence_files"]]
             self.assertEqual(readiness_payload["evidence_file_count"], len(readiness_evidence_paths))
+            self.assertEqual(readiness_payload["missing_evidence_files"], [])
+            for item in readiness_payload["evidence_files"]:
+                self.assertTrue(Path(item["path"]).exists(), item)
             self.assertIn("gate/gate_summary.json", readiness_evidence_paths)
             self.assertIn("gate/release_live_preflight.json", readiness_evidence_paths)
             self.assertIn("customer_trial_commands.json", readiness_evidence_paths)
             self.assertIn("customer_trial_readiness.json", readiness_evidence_paths)
             evidence_paths = [item["relative_path"] for item in payload["evidence_files"]]
+            self.assertEqual(payload["evidence_file_count"], len(evidence_paths))
+            self.assertEqual(payload["missing_evidence_files"], [])
+            for item in payload["evidence_files"]:
+                self.assertTrue(Path(item["path"]).exists(), item)
             self.assertIn("customer_trial_commands.json", evidence_paths)
             self.assertIn("customer_trial_readiness.json", evidence_paths)
         finally:

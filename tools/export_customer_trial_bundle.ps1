@@ -364,11 +364,22 @@ try {
         generated_at = (Get-Date).ToUniversalTime().ToString("o")
     }
     $readinessSummary | ConvertTo-Json -Depth 6 | Set-Content -Path $readinessSummaryPath -Encoding utf8
+    $readinessSummary["missing_evidence_files"] = @(
+        $readinessEvidenceFiles |
+            Where-Object { -not (Test-Path -Path ([string]$_.path)) } |
+            ForEach-Object { [string]$_.relative_path }
+    )
+    $readinessSummary | ConvertTo-Json -Depth 6 | Set-Content -Path $readinessSummaryPath -Encoding utf8
     $evidenceFiles += [ordered]@{
         source = $readinessSummaryPath
         path = $readinessSummaryPath
         relative_path = "customer_trial_readiness.json"
     }
+    $missingEvidenceFiles = @(
+        $evidenceFiles |
+            Where-Object { -not (Test-Path -Path ([string]$_.path)) } |
+            ForEach-Object { [string]$_.relative_path }
+    )
 
     $payload = [ordered]@{
         schema_version = "1.0"
@@ -393,6 +404,8 @@ try {
         readiness_level = $readinessLevel
         readiness_summary = $readinessSummary
         command_records = $commandRecords
+        evidence_file_count = @($evidenceFiles).Count
+        missing_evidence_files = $missingEvidenceFiles
         evidence_files = $evidenceFiles
         results = $results
     }
