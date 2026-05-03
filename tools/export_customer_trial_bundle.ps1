@@ -192,6 +192,8 @@ if ($Preview) {
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
+        command_count = @($commandRecords).Count
+        step_count = @($steps).Count
         command_records = $commandRecords
         steps = $steps
     } | ConvertTo-Json -Depth 8

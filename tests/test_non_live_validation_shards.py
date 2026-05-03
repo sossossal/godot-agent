@@ -111,6 +111,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["prepared_release_fixture_markdown_path"].endswith("release_live_fixture.md"))
         self.assertEqual(payload["prepared_release_fixture_scope"], "full")
         step_ids = [item["id"] for item in payload["steps"]]
+        self.assertEqual(payload["step_count"], len(step_ids))
         self.assertEqual(step_ids, ["git_diff_check", "prepare_release_fixture", "non_live_validation", "release_live_preflight"])
         fixture_step = payload["steps"][1]
         self.assertIn("--scope", fixture_step["arguments"])
@@ -333,6 +334,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["readiness_summary_path"].endswith("customer_trial_readiness.json"))
         self.assertEqual([item["id"] for item in payload["command_records"]], ["sync_plugin", "doctor", "customer_gate"])
         step_ids = [item["id"] for item in payload["steps"]]
+        self.assertEqual(payload["command_count"], len(payload["command_records"]))
+        self.assertEqual(payload["step_count"], len(step_ids))
         self.assertEqual(step_ids, ["sync_plugin", "doctor", "customer_gate"])
         sync_step = payload["steps"][0]
         self.assertIn("sync_plugin.ps1", sync_step["arguments"][4])
