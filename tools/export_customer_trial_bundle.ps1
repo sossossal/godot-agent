@@ -194,6 +194,8 @@ if ($Preview) {
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
         command_count = @($commandRecords).Count
         step_count = @($steps).Count
+        command_ids = @($commandRecords | ForEach-Object { $_.id })
+        step_ids = @($steps | ForEach-Object { $_.id })
         command_records = $commandRecords
         steps = $steps
     } | ConvertTo-Json -Depth 8

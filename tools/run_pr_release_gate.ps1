@@ -333,6 +333,7 @@ if ($Preview) {
         prepared_release_channel = $PreparedReleaseChannel
         prepared_release_fixture_scope = $preparedFixtureScope
         step_count = @($stepPlan).Count
+        step_ids = @($stepPlan | ForEach-Object { $_.id })
         steps = $stepPlan
     } | ConvertTo-Json -Depth 8
     exit 0
