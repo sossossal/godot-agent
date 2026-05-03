@@ -415,6 +415,7 @@ try {
         evidence_file_count = @($evidenceFiles).Count
         missing_evidence_files = $missingEvidenceFiles
         evidence_files = $evidenceFiles
+        step_count = @($results).Count
         results = $results
     }
     $payload | ConvertTo-Json -Depth 8 | Set-Content -Path $manifestPath -Encoding utf8
@@ -435,6 +436,7 @@ try {
         "- Prepare release fixture: $([bool]$PrepareReleaseFixture)",
         "- Restore prepared fixture: $([bool]$RestorePreparedFixture)",
         "- Sync plugin before doctor: $([bool]$SyncPluginBeforeDoctor)",
+        "- Steps: $($payload.step_count)",
         "- Blocked: $((@($payload.blocked_steps) -join ', '))",
         "- Recommended actions: $($payload.recommended_action_count)",
         "- Rerun commands: $($payload.command_count)",
