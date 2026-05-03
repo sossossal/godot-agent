@@ -351,6 +351,7 @@ try {
         relative_path = "customer_trial_readiness.json"
     }
     $passedCount = @($results | Where-Object { $_.status -eq "passed" }).Count
+    $stepIds = @($results | ForEach-Object { $_.id })
     $blockedSteps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
     $blockedCount = @($results | Where-Object { $_.status -eq "blocked" }).Count
     $statusCounts = [ordered]@{
@@ -373,6 +374,7 @@ try {
         blocked_count = $blockedCount
         status_counts = $statusCounts
         step_count = @($results).Count
+        step_ids = $stepIds
         recommended_action_count = @($recommendedActions).Count
         recommended_action_items = $recommendedActionItems
         evidence_file_count = @($readinessEvidenceFiles).Count
@@ -434,6 +436,7 @@ try {
         missing_evidence_files = $missingEvidenceFiles
         evidence_files = $evidenceFiles
         step_count = @($results).Count
+        step_ids = $stepIds
         results = $results
     }
     $payload | ConvertTo-Json -Depth 8 | Set-Content -Path $manifestPath -Encoding utf8

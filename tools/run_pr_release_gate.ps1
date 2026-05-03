@@ -428,6 +428,7 @@ try {
         }
     }
     $passedCount = @($results | Where-Object { $_.status -eq "passed" }).Count
+    $stepIds = @($results | ForEach-Object { $_.id })
     $blockedSteps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
     $warningSteps = @($results | Where-Object { $_.status -eq "warning" } | ForEach-Object { $_.id })
     $blockedCount = @($results | Where-Object { $_.status -eq "blocked" }).Count
@@ -457,6 +458,7 @@ try {
         status_counts = $statusCounts
         evidence = $evidence
         step_count = @($results).Count
+        step_ids = $stepIds
         results = $results
         continue_on_failure = [bool]$ContinueOnFailure
         prepare_release_fixture = [bool]$PrepareReleaseFixture
