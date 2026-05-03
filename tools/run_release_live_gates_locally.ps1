@@ -21,6 +21,7 @@ param(
     [string]$InvocationSource = "local_replay",
     [string]$ExecutedBy = "local_release_runner",
     [string]$Note = "local release-live-gates replay",
+    [switch]$PrepareReleaseFixture,
     [switch]$FailOnWarnings,
     [switch]$Preflight,
     [switch]$Preview
@@ -270,6 +271,14 @@ if ($FailOnWarnings) {
     $liveCiArgs += "--fail-on-warnings"
 }
 
+$prepareFixtureArgs = @(
+    (Join-Path $toolRepoRoot "tools\prepare_release_live_fixture.py"),
+    "--channel", $TargetChannel,
+    "--scope", "full",
+    "--report-path", (Join-Path $resolvedRuntimeRoot "logs\reports\release_live_fixture.json"),
+    "--markdown-path", (Join-Path $resolvedRuntimeRoot "logs\reports\release_live_fixture.md")
+)
+
 $liveValidationArgs = @(
     "-NoProfile",
     "-ExecutionPolicy", "Bypass",
@@ -280,7 +289,11 @@ if (-not [string]::IsNullOrWhiteSpace($BrowserPath)) {
     $liveValidationArgs += @("-BrowserPath", $BrowserPath)
 }
 
-$steps = @(
+$steps = @()
+if ($PrepareReleaseFixture) {
+    $steps += Get-StepDefinition -Id "prepare_release_fixture" -Label "Prepare staging release fixture" -Command $resolvedPythonCommand -Arguments $prepareFixtureArgs
+}
+$steps += @(
     (Get-StepDefinition -Id "export_runner_baseline" -Label "Export release-live runner baseline" -Command $resolvedPythonCommand -Arguments $baselineArgs),
     (Get-StepDefinition -Id "build_distribution_handoff" -Label "Build verified release distribution handoff" -Command $resolvedPythonCommand -Arguments $handoffArgs),
     (Get-StepDefinition -Id "build_distribution_signing_handoff" -Label "Build external signing handoff package" -Command $resolvedPythonCommand -Arguments $signingHandoffArgs),
@@ -328,6 +341,8 @@ $preflightChecks += if (Test-Path $resolvedLiveValidationScriptPath) {
 }
 $preflightChecks += if (Test-Path $resolvedReleaseManifestPath) {
     New-PreflightCheck -Id "release_manifest" -Status "passed" -Message "release manifest exists" -Path $resolvedReleaseManifestPath
+} elseif ($PrepareReleaseFixture) {
+    New-PreflightCheck -Id "release_manifest" -Status "warning" -Message "release manifest is missing; fixture preparation is planned" -Path $resolvedReleaseManifestPath -Remediation "Run without -Preflight so -PrepareReleaseFixture can create the synthetic release manifest."
 } else {
     New-PreflightCheck -Id "release_manifest" -Status "blocked" -Message "release manifest is missing" -Path $resolvedReleaseManifestPath -Remediation "Create a release manifest first, or pass -ReleaseManifestPath to an existing api_server/static/dist/.../release_manifest.json."
 }

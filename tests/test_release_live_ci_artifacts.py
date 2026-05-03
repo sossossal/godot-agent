@@ -1126,6 +1126,26 @@ foreach ($root in @($runtimeRoot, $projectRoot)) {
         self.assertTrue(payload["step_summary_path"].endswith("release_live_ci_step_summary.md"))
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
+    def test_run_release_live_gates_locally_preview_can_prepare_fixture_first(self):
+        self._prepare_runtime()
+        fake_browser = self._prepare_local_replay_files()
+
+        payload = self._run_local_replay(
+            "-ArtifactDir",
+            str(self.output_dir),
+            "-BrowserPath",
+            str(fake_browser),
+            "-PrepareReleaseFixture",
+            "-Preview",
+        )
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["steps"][0]["id"], "prepare_release_fixture")
+        self.assertIn("prepare_release_live_fixture.py", payload["steps"][0]["arguments"][0])
+        self.assertIn("--scope", payload["steps"][0]["arguments"])
+        self.assertIn("full", payload["steps"][0]["arguments"])
+
+    @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
     def test_run_release_live_gates_locally_preflight_blocks_missing_manifest(self):
         self._prepare_runtime()
         fake_browser = self._prepare_local_replay_files()
@@ -1170,6 +1190,45 @@ foreach ($root in @($runtimeRoot, $projectRoot)) {
         self.assertIn("-ReleaseManifestPath", manifest_check["remediation"])
         self.assertTrue(Path(payload["preflight_report_path"]).exists())
         self.assertTrue(Path(payload["preflight_markdown_path"]).exists())
+
+    @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
+    def test_run_release_live_gates_locally_preflight_allows_missing_manifest_when_fixture_planned(self):
+        self._prepare_runtime()
+        fake_browser = self._prepare_local_replay_files()
+        (self.runtime_dir / "api_server" / "static" / "dist" / "release_manifest.json").unlink()
+
+        completed = subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(local_replay_script_path),
+                "-ProjectRoot",
+                str(self.project_dir),
+                "-RuntimeRoot",
+                str(self.runtime_dir),
+                "-PythonCommand",
+                sys.executable,
+                "-ArtifactDir",
+                str(self.output_dir),
+                "-BrowserPath",
+                str(fake_browser),
+                "-PrepareReleaseFixture",
+                "-Preflight",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        payload = json.loads(completed.stdout)
+        self.assertNotIn("release_manifest", payload["preflight_checks"]["blocking_checks"])
+        self.assertIn("release_manifest", payload["preflight_checks"]["warning_checks"])
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
     def test_run_release_live_gates_locally_executes_release_replay_and_writes_step_summary(self):

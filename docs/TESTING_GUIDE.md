@@ -62,10 +62,11 @@ python .\tools\export_release_live_ci_artifacts.py `
   -RuntimeRoot . `
   -ArtifactDir logs/reports/release_live_ci_local `
   -RunnerLabels '["self-hosted","windows","godot"]' `
+  -PrepareReleaseFixture `
   -FailOnWarnings
 ```
 
-这个 replay 脚本会按 workflow 顺序执行 runner baseline、distribution handoff、distribution signing handoff、distribution publish handoff、request-auth identity handoff、full live validation 和 live CI artifact export，并额外写出 `release_live_ci_step_summary.md`。`release_live_ci_summary.json` 现在会记录 `invocation.source=local_replay`；真实 GitHub workflow 则会记录 `invocation.source=github_workflow`，方便对比“本地重放通过”与“Actions 实跑失败”的差异。脚本自己的 JSON 返回值也会附带 `summary_excerpt.runtime_assembly` 与 `summary_excerpt.runtime_lanes`，本地调用方不必再手动打开 summary 文件就能同时读到 route/runner/identity 装配快照和 `portal_click_smoke` 的 lane / sub-flow 诊断。现在即使 replay 在 baseline / distribution / live validation 某一步先失败，脚本也会继续尝试导出 `release_live_ci_summary.json/.md`，并把 pre-export `workflow_steps` 诊断带进 summary，方便直接看哪一步 failed / skipped。
+这个 replay 脚本会按 workflow 顺序执行 fixture 准备、runner baseline、distribution handoff、distribution signing handoff、distribution publish handoff、request-auth identity handoff、full live validation 和 live CI artifact export，并额外写出 `release_live_ci_step_summary.md`。`-PrepareReleaseFixture` 会先生成和真实 GitHub workflow 对齐的 full release fixture；`release_live_ci_summary.json` 现在会记录 `invocation.source=local_replay`；真实 GitHub workflow 则会记录 `invocation.source=github_workflow`，方便对比“本地重放通过”与“Actions 实跑失败”的差异。脚本自己的 JSON 返回值也会附带 `summary_excerpt.runtime_assembly` 与 `summary_excerpt.runtime_lanes`，本地调用方不必再手动打开 summary 文件就能同时读到 route/runner/identity 装配快照和 `portal_click_smoke` 的 lane / sub-flow 诊断。现在即使 replay 在 baseline / distribution / live validation 某一步先失败，脚本也会继续尝试导出 `release_live_ci_summary.json/.md`，并把 pre-export `workflow_steps` 诊断带进 summary，方便直接看哪一步 failed / skipped。
 
 `2026-04-22` 已在固定 Windows self-hosted 机器上实测通过一轮 `staging` local replay：`run_full_live_validation.ps1` 的四条 live lane 全部 `passed`，`run_release_live_gates_locally.ps1` 顶层结果为 `ok=true`。当前自动化 gate 还保留 `full_live_validation_lane` 绑定摘要 warning 与人工 signoff warning，但不再存在 browser/live lane 级失败。
 
