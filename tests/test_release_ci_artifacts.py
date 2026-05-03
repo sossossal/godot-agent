@@ -350,6 +350,11 @@ class ReleaseCiArtifactsTestCase(unittest.TestCase):
             artifact_manifest_payload["report_files"]["event_stream"],
             "release_live_ci_events.json",
         )
+        self.assertIn("artifact_manifest.json", artifact_manifest_payload["generated_files"])
+        self.assertLessEqual(
+            set(artifact_manifest_payload["report_files"].values()),
+            set(artifact_manifest_payload["generated_files"]),
+        )
         self.assertIn(
             artifact_manifest_payload["execution_delivery_readiness"]["status"],
             {"passed", "warning", "blocked"},

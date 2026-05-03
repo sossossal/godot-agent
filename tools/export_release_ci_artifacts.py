@@ -1222,6 +1222,12 @@ def export_artifacts(output_dir: Path) -> list[Path]:
             "event_stream": "release_live_ci_events.json",
             "artifact_manifest": "artifact_manifest.json",
         }
+        generated_file_paths = [
+            str(path.relative_to(output_dir)).replace("\\", "/")
+            for path in generated_files
+            if path.exists()
+        ]
+        generated_file_paths.append("artifact_manifest.json")
         _write_json(
             artifact_manifest_path,
             normalize_release_artifact_manifest({
@@ -1240,11 +1246,7 @@ def export_artifacts(output_dir: Path) -> list[Path]:
                 "event_stream": event_stream,
                 "execution_delivery_readiness": execution_readiness_summary,
                 "report_files": report_files,
-                "generated_files": [
-                    str(path.relative_to(output_dir)).replace("\\", "/")
-                    for path in generated_files
-                    if path.exists()
-                ],
+                "generated_files": generated_file_paths,
                 "runtime_lanes": {
                     "full_live_validation": runtime_lane_summaries,
                 },

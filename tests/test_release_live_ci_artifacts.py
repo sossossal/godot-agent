@@ -961,6 +961,10 @@ foreach ($root in @($runtimeRoot, $projectRoot)) {
         self.assertIn("release_delivery_readiness_release.md", artifact_manifest["generated_files"])
         self.assertIn("release_live_fixture.json", artifact_manifest["generated_files"])
         self.assertIn("release_live_fixture.md", artifact_manifest["generated_files"])
+        self.assertLessEqual(
+            set(artifact_manifest["report_files"].values()),
+            set(artifact_manifest["generated_files"]),
+        )
         self.assertIn(artifact_manifest["execution_delivery_readiness"]["status"], {"passed", "warning", "blocked"})
         self.assertIn(
             "external_distribution_delivery",
