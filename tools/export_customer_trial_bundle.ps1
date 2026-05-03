@@ -173,6 +173,7 @@ foreach ($step in $steps) {
         command_line = $commandLine
     }
 }
+$commandIds = @($commandRecords | ForEach-Object { $_.id })
 
 if ($Preview) {
     [ordered]@{
@@ -194,7 +195,7 @@ if ($Preview) {
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
         command_count = @($commandRecords).Count
         step_count = @($steps).Count
-        command_ids = @($commandRecords | ForEach-Object { $_.id })
+        command_ids = $commandIds
         step_ids = @($steps | ForEach-Object { $_.id })
         command_records = $commandRecords
         steps = $steps
@@ -251,6 +252,8 @@ try {
         project_root = $repoRoot
         gate_mode = $GateMode
         browser_path = $BrowserPath
+        command_count = @($commandRecords).Count
+        command_ids = $commandIds
         commands = $commandRecords
     } | ConvertTo-Json -Depth 8 | Set-Content -Path $commandManifestPath -Encoding utf8
     $evidenceFiles += [ordered]@{
@@ -385,6 +388,7 @@ try {
         evidence_file_count = @($readinessEvidenceFiles).Count
         evidence_files = $readinessEvidenceFiles
         command_count = @($commandRecords).Count
+        command_ids = $commandIds
         rerun_script_path = $rerunScriptPath
         command_manifest_path = $commandManifestPath
         generated_at = (Get-Date).ToUniversalTime().ToString("o")
@@ -436,6 +440,7 @@ try {
         readiness_level = $readinessLevel
         readiness_summary = $readinessSummary
         command_count = @($commandRecords).Count
+        command_ids = $commandIds
         command_records = $commandRecords
         evidence_file_count = @($evidenceFiles).Count
         missing_evidence_files = $missingEvidenceFiles

@@ -418,6 +418,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertTrue(payload["recommended_action_items"])
             self.assertEqual(payload["recommended_action_count"], len(payload["recommended_actions"]))
             self.assertEqual(payload["command_count"], len(payload["command_records"]))
+            self.assertEqual(payload["command_ids"], [item["id"] for item in payload["command_records"]])
             self.assertEqual(payload["step_count"], len(payload["results"]))
             self.assertEqual(payload["step_ids"], [item["id"] for item in payload["results"]])
             self.assertAlmostEqual(
@@ -507,6 +508,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertTrue(command_manifest.exists())
             command_payload = json.loads(command_manifest.read_text(encoding="utf-8-sig"))
             self.assertEqual(command_payload["schema_version"], "1.0")
+            self.assertEqual(command_payload["command_count"], len(command_payload["commands"]))
+            self.assertEqual(command_payload["command_ids"], [item["id"] for item in command_payload["commands"]])
             self.assertEqual(command_payload["commands"][-1]["id"], "customer_gate")
             self.assertIn("-ReleaseManifestPath missing/release_manifest.json", command_payload["commands"][-1]["command_line"])
             readiness_path = output_dir / "customer_trial_readiness.json"
@@ -531,6 +534,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertEqual(readiness_payload["blocked_count"], payload["blocked_count"])
             self.assertEqual(readiness_payload["status_counts"], payload["status_counts"])
             self.assertEqual(readiness_payload["command_count"], payload["command_count"])
+            self.assertEqual(readiness_payload["command_ids"], payload["command_ids"])
             readiness_evidence_paths = [item["relative_path"] for item in readiness_payload["evidence_files"]]
             self.assertEqual(readiness_payload["evidence_file_count"], len(readiness_evidence_paths))
             self.assertEqual(readiness_payload["missing_evidence_files"], [])
