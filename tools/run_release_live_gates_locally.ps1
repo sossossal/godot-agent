@@ -561,6 +561,9 @@ try {
         project_root = $resolvedProjectRoot
         runtime_root = $resolvedRuntimeRoot
         artifact_dir = $resolvedArtifactDir
+        prepare_release_fixture = [bool]$PrepareReleaseFixture
+        release_live_fixture_report_path = $resolvedFixtureReportPath
+        release_live_fixture_markdown_path = $resolvedFixtureMarkdownPath
         summary_path = $summaryJsonPath
         summary_markdown_path = $summaryMarkdownPath
         step_summary_path = $resolvedStepSummaryPath
@@ -606,6 +609,9 @@ try {
         project_root = $resolvedProjectRoot
         runtime_root = $resolvedRuntimeRoot
         artifact_dir = $resolvedArtifactDir
+        prepare_release_fixture = [bool]$PrepareReleaseFixture
+        release_live_fixture_report_path = $resolvedFixtureReportPath
+        release_live_fixture_markdown_path = $resolvedFixtureMarkdownPath
         summary_path = $summaryJsonPath
         summary_markdown_path = $summaryMarkdownPath
         step_summary_path = $resolvedStepSummaryPath

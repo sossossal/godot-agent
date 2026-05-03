@@ -97,6 +97,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["restore_prepared_fixture"])
         self.assertTrue(payload["prepared_release_fixture_state_root"].endswith("prepared_fixture_state"))
         self.assertTrue(payload["prepared_release_fixture_report_path"].endswith("release_live_fixture.json"))
+        self.assertTrue(payload["prepared_release_fixture_markdown_path"].endswith("release_live_fixture.md"))
         self.assertEqual(payload["prepared_release_fixture_scope"], "full")
         step_ids = [item["id"] for item in payload["steps"]]
         self.assertEqual(step_ids, ["git_diff_check", "prepare_release_fixture", "non_live_validation", "release_live_preflight"])
@@ -254,6 +255,9 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertIn("$gateParams.PrepareReleaseFixture = $true", workflow)
         self.assertIn("Install dependencies for full gate", workflow)
         self.assertIn("if: steps.gate_inputs.outputs.mode == 'full'", workflow)
+        gate_script = gate_script_path.read_text(encoding="utf-8")
+        self.assertIn("- Prepared fixture report:", gate_script)
+        self.assertIn("- Prepared fixture markdown:", gate_script)
 
     def test_release_live_workflow_uses_full_fixture_script(self):
         workflow = release_live_workflow_path.read_text(encoding="utf-8")

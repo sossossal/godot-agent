@@ -321,6 +321,7 @@ if ($Preview) {
         markdown_path = $markdownReportPath
         non_live_report_path = $nonLiveReportPath
         prepared_release_fixture_report_path = $preparedFixtureReportPath
+        prepared_release_fixture_markdown_path = $preparedFixtureMarkdownPath
         release_live_preflight_report_path = $livePreflightReportPath
         fail_on_slow_shards = [bool]$FailOnSlowShards
         prepare_release_fixture = [bool]$PrepareReleaseFixture
@@ -455,6 +456,8 @@ try {
         "- Restore prepared fixture: $([bool]$RestorePreparedFixture)",
         "- Prepared fixture restored: $preparedFixtureRestored",
         "- Prepared fixture: $($evidence.prepared_release_fixture.status)",
+        "- Prepared fixture report: $($evidence.prepared_release_fixture.report_path)",
+        "- Prepared fixture markdown: $($evidence.prepared_release_fixture.markdown_path)",
         "- Fail on slow shards: $([bool]$FailOnSlowShards)",
         "- Non-live slow shard gate: $($evidence.non_live.slow_shard_gate)",
         "- Non-live failed shards: $((@($evidence.non_live.failed_shards) -join ', '))",
