@@ -379,6 +379,7 @@ def _build_release_live_ci_summary_markdown(summary: dict[str, Any]) -> str:
     artifact_manifest = dict(summary.get("artifact_manifest") or {})
     manifest_readiness = dict(artifact_manifest.get("execution_delivery_readiness") or {})
     manifest_lanes = list(dict(artifact_manifest.get("runtime_lanes") or {}).get("full_live_validation") or [])
+    manifest_report_files = dict(artifact_manifest.get("report_files") or {})
     report_files = dict(summary.get("report_files") or {})
     snapshot_paths = dict(summary.get("snapshot_paths") or {})
 
@@ -441,6 +442,7 @@ def _build_release_live_ci_summary_markdown(summary: dict[str, Any]) -> str:
                 f"- Generated Files: {len(list(artifact_manifest.get('generated_files') or []))} / "
                 f"full_live_validation_lanes={len(manifest_lanes)}"
             ),
+            f"- Report Files: {_render_list(list(manifest_report_files.values()))}",
             (
                 f"- Execution Delivery Readiness: status={manifest_readiness.get('status') or '-'} / "
                 f"next_actions={manifest_readiness.get('next_action_count') if manifest_readiness.get('next_action_count') is not None else len(list(manifest_readiness.get('next_action_ids') or []))} / "
@@ -576,8 +578,8 @@ def _build_release_live_ci_summary_markdown(summary: dict[str, Any]) -> str:
     lines.extend([
         "",
         "## Artifact Bundle",
-        f"- Reports: {_render_list(report_files.values())}",
-        f"- Snapshots: {_render_list(snapshot_paths.values())}",
+        f"- Reports: {_render_list(list(report_files.values()))}",
+        f"- Snapshots: {_render_list(list(snapshot_paths.values()))}",
     ])
     return "\n".join(lines) + "\n"
 

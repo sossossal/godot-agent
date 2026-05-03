@@ -1802,6 +1802,10 @@ class TestAPI(unittest.TestCase):
                             "next_action_ids": ["external_distribution_delivery"],
                         },
                         "runtime_lanes": {"full_live_validation": [{"lane_id": "portal_click_smoke", "status": "passed"}]},
+                        "report_files": {
+                            "summary_markdown": "release_live_ci_summary.md",
+                            "release_delivery_readiness": "release_delivery_readiness_release.json",
+                        },
                         "generated_files": ["release_live_ci_summary.json"],
                     },
                     ensure_ascii=False,
@@ -1886,11 +1890,16 @@ class TestAPI(unittest.TestCase):
             self.assertEqual(payload["summary"]["workflow_steps"][1]["status"], "blocked")
             self.assertEqual(payload["summary"]["dispatch_audit"]["path"], "logs/reports/release_live_ci/release_live_dispatch.json")
             self.assertEqual(payload["summary"]["artifact_manifest"]["release_build_id"], "web-release-001")
+            self.assertEqual(
+                payload["summary"]["artifact_manifest"]["report_files"]["summary_markdown"],
+                "release_live_ci_summary.md",
+            )
             self.assertIn("# Release Live CI Summary", payload["report_content"])
             self.assertIn("## Runtime Assembly", payload["report_content"])
             self.assertIn("## Event Stream", payload["report_content"])
             self.assertIn("## Workflow Dispatch Audit", payload["report_content"])
             self.assertIn("## Artifact Manifest", payload["report_content"])
+            self.assertIn("Report Files: release_live_ci_summary.md, release_delivery_readiness_release.json", payload["report_content"])
             self.assertIn("Execution Delivery Readiness: status=warning", payload["report_content"])
             self.assertIn("Dispatch Summary: workflow_dispatch accepted for sossossal/cim-comm-soc@main", payload["report_content"])
             self.assertIn("Path: release_live_ci_events.json / source=live_ci_export", payload["report_content"])
@@ -2127,6 +2136,11 @@ class TestAPI(unittest.TestCase):
                                 {"lane_id": "portal_click_smoke", "status": "passed"}
                             ]
                         },
+                        "report_files": {
+                            "summary_markdown": "release_live_ci_summary.md",
+                            "windows_path": "reports\\release_live_fixture.md",
+                            "empty": "",
+                        },
                         "generated_files": ["release_live_ci_summary.json"],
                     },
                     ensure_ascii=False,
@@ -2156,6 +2170,9 @@ class TestAPI(unittest.TestCase):
                 payload["execution_delivery_readiness"]["next_action_ids"],
                 ["external_distribution_delivery"],
             )
+            self.assertEqual(payload["report_files"]["summary_markdown"], "release_live_ci_summary.md")
+            self.assertEqual(payload["report_files"]["windows_path"], "reports/release_live_fixture.md")
+            self.assertNotIn("empty", payload["report_files"])
             self.assertEqual(payload["runtime_lanes"]["full_live_validation"][0]["lane_id"], "portal_click_smoke")
             self.assertEqual(payload["manifest_path"], "logs/reports/release_live_ci/artifact_manifest.json")
             self.assertTrue(payload["manifest_exists"])
