@@ -425,6 +425,7 @@ try {
         "- Status: $($payload.status)",
         "- Readiness: $readinessLevel",
         "- Gate mode: $GateMode",
+        "- Release manifest: $ReleaseManifestPath",
         "- Prepare release fixture: $([bool]$PrepareReleaseFixture)",
         "- Restore prepared fixture: $([bool]$RestorePreparedFixture)",
         "- Sync plugin before doctor: $([bool]$SyncPluginBeforeDoctor)",

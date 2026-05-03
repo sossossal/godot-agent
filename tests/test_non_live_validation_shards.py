@@ -401,6 +401,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertTrue(markdown_path.exists())
             markdown = markdown_path.read_text(encoding="utf-8-sig")
             self.assertIn("## Recommended Actions", markdown)
+            self.assertIn("- Release manifest: missing/release_manifest.json", markdown)
             self.assertIn("[release_live_preflight/", markdown)
             self.assertIn("## Rerun Commands", markdown)
             self.assertIn("customer_gate", markdown)
