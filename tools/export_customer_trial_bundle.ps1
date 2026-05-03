@@ -348,6 +348,12 @@ try {
         path = $readinessSummaryPath
         relative_path = "customer_trial_readiness.json"
     }
+    $passedCount = @($results | Where-Object { $_.status -eq "passed" }).Count
+    $blockedCount = @($results | Where-Object { $_.status -eq "blocked" }).Count
+    $statusCounts = [ordered]@{
+        passed = $passedCount
+        blocked = $blockedCount
+    }
     $readinessSummary = [ordered]@{
         schema_version = "1.0"
         status = $bundleStatus
@@ -360,12 +366,9 @@ try {
         continue_on_failure = [bool]$ContinueOnFailure
         should_fail_on_needs_attention = $shouldFailOnNeedsAttention
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
-        passed_count = @($results | Where-Object { $_.status -eq "passed" }).Count
-        blocked_count = @($results | Where-Object { $_.status -eq "blocked" }).Count
-        status_counts = [ordered]@{
-            passed = @($results | Where-Object { $_.status -eq "passed" }).Count
-            blocked = @($results | Where-Object { $_.status -eq "blocked" }).Count
-        }
+        passed_count = $passedCount
+        blocked_count = $blockedCount
+        status_counts = $statusCounts
         step_count = @($results).Count
         recommended_action_count = @($recommendedActions).Count
         recommended_action_items = $recommendedActionItems
@@ -414,12 +417,9 @@ try {
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
-        passed_count = @($results | Where-Object { $_.status -eq "passed" }).Count
-        blocked_count = @($results | Where-Object { $_.status -eq "blocked" }).Count
-        status_counts = [ordered]@{
-            passed = @($results | Where-Object { $_.status -eq "passed" }).Count
-            blocked = @($results | Where-Object { $_.status -eq "blocked" }).Count
-        }
+        passed_count = $passedCount
+        blocked_count = $blockedCount
+        status_counts = $statusCounts
         recommended_action_count = @($recommendedActions).Count
         recommended_actions = $recommendedActions
         recommended_action_items = $recommendedActionItems

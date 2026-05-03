@@ -426,6 +426,14 @@ try {
             $null
         }
     }
+    $passedCount = @($results | Where-Object { $_.status -eq "passed" }).Count
+    $blockedCount = @($results | Where-Object { $_.status -eq "blocked" }).Count
+    $warningCount = @($results | Where-Object { $_.status -eq "warning" }).Count
+    $statusCounts = [ordered]@{
+        passed = $passedCount
+        blocked = $blockedCount
+        warning = $warningCount
+    }
 
     $payload = [ordered]@{
         schema_version = "1.0"
@@ -440,14 +448,10 @@ try {
         artifact_dir = $resolvedArtifactDir
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
         warning_steps = @($results | Where-Object { $_.status -eq "warning" } | ForEach-Object { $_.id })
-        passed_count = @($results | Where-Object { $_.status -eq "passed" }).Count
-        blocked_count = @($results | Where-Object { $_.status -eq "blocked" }).Count
-        warning_count = @($results | Where-Object { $_.status -eq "warning" }).Count
-        status_counts = [ordered]@{
-            passed = @($results | Where-Object { $_.status -eq "passed" }).Count
-            blocked = @($results | Where-Object { $_.status -eq "blocked" }).Count
-            warning = @($results | Where-Object { $_.status -eq "warning" }).Count
-        }
+        passed_count = $passedCount
+        blocked_count = $blockedCount
+        warning_count = $warningCount
+        status_counts = $statusCounts
         evidence = $evidence
         step_count = @($results).Count
         results = $results
