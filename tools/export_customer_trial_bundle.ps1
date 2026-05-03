@@ -188,6 +188,7 @@ if ($Preview) {
         gate_mode = $GateMode
         browser_path = $BrowserPath
         fail_on_needs_attention = [bool]$FailOnNeedsAttention
+        continue_on_failure = [bool]$ContinueOnFailure
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
@@ -354,6 +355,7 @@ try {
         release_manifest_path = $ReleaseManifestPath
         browser_path = $BrowserPath
         fail_on_needs_attention = [bool]$FailOnNeedsAttention
+        continue_on_failure = [bool]$ContinueOnFailure
         should_fail_on_needs_attention = $shouldFailOnNeedsAttention
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
         recommended_action_count = @($recommendedActions).Count
@@ -397,6 +399,7 @@ try {
         release_manifest_path = $ReleaseManifestPath
         browser_path = $BrowserPath
         fail_on_needs_attention = [bool]$FailOnNeedsAttention
+        continue_on_failure = [bool]$ContinueOnFailure
         should_fail_on_needs_attention = $shouldFailOnNeedsAttention
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         restore_prepared_fixture = [bool]$RestorePreparedFixture
@@ -426,6 +429,7 @@ try {
         "- Readiness: $readinessLevel",
         "- Gate mode: $GateMode",
         "- Release manifest: $ReleaseManifestPath",
+        "- Continue on failure: $([bool]$ContinueOnFailure)",
         "- Prepare release fixture: $([bool]$PrepareReleaseFixture)",
         "- Restore prepared fixture: $([bool]$RestorePreparedFixture)",
         "- Sync plugin before doctor: $([bool]$SyncPluginBeforeDoctor)",

@@ -292,6 +292,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 "-RestorePreparedFixture",
                 "-SyncPluginBeforeDoctor",
                 "-FailOnNeedsAttention",
+                "-ContinueOnFailure",
                 "-Preview",
             ],
             capture_output=True,
@@ -309,6 +310,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertEqual(payload["release_manifest_path"], "trial/release_manifest.json")
         self.assertEqual(payload["browser_path"], "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe")
         self.assertTrue(payload["fail_on_needs_attention"])
+        self.assertTrue(payload["continue_on_failure"])
         self.assertTrue(payload["prepare_release_fixture"])
         self.assertTrue(payload["restore_prepared_fixture"])
         self.assertTrue(payload["sync_plugin_before_doctor"])
@@ -397,11 +399,13 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertTrue(payload["recommended_action_items"])
             self.assertEqual(payload["recommended_action_items"][0]["source"], "release_live_preflight")
             self.assertEqual(payload["release_manifest_path"], "missing/release_manifest.json")
+            self.assertTrue(payload["continue_on_failure"])
             markdown_path = output_dir / "customer_trial_bundle.md"
             self.assertTrue(markdown_path.exists())
             markdown = markdown_path.read_text(encoding="utf-8-sig")
             self.assertIn("## Recommended Actions", markdown)
             self.assertIn("- Release manifest: missing/release_manifest.json", markdown)
+            self.assertIn("- Continue on failure: True", markdown)
             self.assertIn("[release_live_preflight/", markdown)
             self.assertIn("## Rerun Commands", markdown)
             self.assertIn("customer_gate", markdown)
@@ -433,6 +437,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertEqual(readiness_payload["status"], "blocked")
             self.assertEqual(readiness_payload["readiness_level"], "blocked")
             self.assertEqual(readiness_payload["release_manifest_path"], "missing/release_manifest.json")
+            self.assertTrue(readiness_payload["continue_on_failure"])
             self.assertFalse(readiness_payload["fail_on_needs_attention"])
             self.assertFalse(readiness_payload["should_fail_on_needs_attention"])
             self.assertTrue(readiness_payload["recommended_action_items"])
