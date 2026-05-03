@@ -356,6 +356,7 @@ try {
     }
     $passedCount = @($results | Where-Object { $_.status -eq "passed" }).Count
     $stepIds = @($results | ForEach-Object { $_.id })
+    $skippedStepIds = @($plannedStepIds | Where-Object { $stepIds -notcontains $_ })
     $blockedSteps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
     $blockedCount = @($results | Where-Object { $_.status -eq "blocked" }).Count
     $totalDurationSeconds = [Math]::Round((@($results | ForEach-Object { [double]$_.duration_seconds }) | Measure-Object -Sum).Sum, 2)
@@ -384,6 +385,8 @@ try {
         slowest_step_seconds = if ($slowestStep.Count -gt 0) { [double]$slowestStep[0].duration_seconds } else { 0.0 }
         planned_step_count = @($steps).Count
         planned_step_ids = $plannedStepIds
+        skipped_step_count = @($skippedStepIds).Count
+        skipped_step_ids = $skippedStepIds
         step_count = @($results).Count
         step_ids = $stepIds
         recommended_action_count = @($recommendedActions).Count
@@ -453,6 +456,8 @@ try {
         slowest_step_seconds = if ($slowestStep.Count -gt 0) { [double]$slowestStep[0].duration_seconds } else { 0.0 }
         planned_step_count = @($steps).Count
         planned_step_ids = $plannedStepIds
+        skipped_step_count = @($skippedStepIds).Count
+        skipped_step_ids = $skippedStepIds
         step_count = @($results).Count
         step_ids = $stepIds
         results = $results
@@ -481,6 +486,7 @@ try {
         "- Total seconds: $($payload.total_duration_seconds)",
         "- Slowest step: $($payload.slowest_step_id) ($($payload.slowest_step_seconds)s)",
         "- Planned steps: $($payload.planned_step_count)",
+        "- Skipped steps: $($payload.skipped_step_count)",
         "- Steps: $($payload.step_count)",
         "- Passed count: $($payload.passed_count)",
         "- Blocked count: $($payload.blocked_count)",

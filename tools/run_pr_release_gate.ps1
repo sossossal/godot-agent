@@ -431,6 +431,7 @@ try {
     }
     $passedCount = @($results | Where-Object { $_.status -eq "passed" }).Count
     $stepIds = @($results | ForEach-Object { $_.id })
+    $skippedStepIds = @($plannedStepIds | Where-Object { $stepIds -notcontains $_ })
     $blockedSteps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
     $warningSteps = @($results | Where-Object { $_.status -eq "warning" } | ForEach-Object { $_.id })
     $blockedCount = @($results | Where-Object { $_.status -eq "blocked" }).Count
@@ -466,6 +467,8 @@ try {
         slowest_step_seconds = if ($slowestStep.Count -gt 0) { [double]$slowestStep[0].duration_seconds } else { 0.0 }
         planned_step_count = @($stepPlan).Count
         planned_step_ids = $plannedStepIds
+        skipped_step_count = @($skippedStepIds).Count
+        skipped_step_ids = $skippedStepIds
         step_count = @($results).Count
         step_ids = $stepIds
         results = $results
@@ -490,6 +493,7 @@ try {
         "- Total seconds: $($payload.total_duration_seconds)",
         "- Slowest step: $($payload.slowest_step_id) ($($payload.slowest_step_seconds)s)",
         "- Planned steps: $($payload.planned_step_count)",
+        "- Skipped steps: $($payload.skipped_step_count)",
         "- Steps: $($payload.step_count)",
         "- Passed count: $($payload.passed_count)",
         "- Blocked count: $($payload.blocked_count)",
