@@ -443,6 +443,11 @@ try {
         passed_count = @($results | Where-Object { $_.status -eq "passed" }).Count
         blocked_count = @($results | Where-Object { $_.status -eq "blocked" }).Count
         warning_count = @($results | Where-Object { $_.status -eq "warning" }).Count
+        status_counts = [ordered]@{
+            passed = @($results | Where-Object { $_.status -eq "passed" }).Count
+            blocked = @($results | Where-Object { $_.status -eq "blocked" }).Count
+            warning = @($results | Where-Object { $_.status -eq "warning" }).Count
+        }
         evidence = $evidence
         step_count = @($results).Count
         results = $results

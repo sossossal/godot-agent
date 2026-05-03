@@ -362,6 +362,10 @@ try {
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
         passed_count = @($results | Where-Object { $_.status -eq "passed" }).Count
         blocked_count = @($results | Where-Object { $_.status -eq "blocked" }).Count
+        status_counts = [ordered]@{
+            passed = @($results | Where-Object { $_.status -eq "passed" }).Count
+            blocked = @($results | Where-Object { $_.status -eq "blocked" }).Count
+        }
         step_count = @($results).Count
         recommended_action_count = @($recommendedActions).Count
         recommended_action_items = $recommendedActionItems
@@ -412,6 +416,10 @@ try {
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
         passed_count = @($results | Where-Object { $_.status -eq "passed" }).Count
         blocked_count = @($results | Where-Object { $_.status -eq "blocked" }).Count
+        status_counts = [ordered]@{
+            passed = @($results | Where-Object { $_.status -eq "passed" }).Count
+            blocked = @($results | Where-Object { $_.status -eq "blocked" }).Count
+        }
         recommended_action_count = @($recommendedActions).Count
         recommended_actions = $recommendedActions
         recommended_action_items = $recommendedActionItems
