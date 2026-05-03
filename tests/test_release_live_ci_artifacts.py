@@ -1140,6 +1140,9 @@ foreach ($root in @($runtimeRoot, $projectRoot)) {
         )
 
         self.assertTrue(payload["ok"])
+        self.assertTrue(payload["prepare_release_fixture"])
+        self.assertTrue(payload["release_live_fixture_report_path"].endswith("release_live_fixture.json"))
+        self.assertTrue(payload["release_live_fixture_markdown_path"].endswith("release_live_fixture.md"))
         self.assertEqual(payload["steps"][0]["id"], "prepare_release_fixture")
         self.assertIn("prepare_release_live_fixture.py", payload["steps"][0]["arguments"][0])
         self.assertIn("--scope", payload["steps"][0]["arguments"])
@@ -1227,6 +1230,8 @@ foreach ($root in @($runtimeRoot, $projectRoot)) {
 
         self.assertEqual(completed.returncode, 0, completed.stderr)
         payload = json.loads(completed.stdout)
+        self.assertTrue(payload["prepare_release_fixture"])
+        self.assertTrue(payload["release_live_fixture_report_path"].endswith("release_live_fixture.json"))
         self.assertNotIn("release_manifest", payload["preflight_checks"]["blocking_checks"])
         self.assertIn("release_manifest", payload["preflight_checks"]["warning_checks"])
 

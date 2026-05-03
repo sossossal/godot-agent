@@ -169,6 +169,8 @@ $resolvedArtifactDir = Resolve-OptionalPath -BasePath $resolvedRuntimeRoot -RawP
 $resolvedLiveValidationScriptPath = Resolve-OptionalPath -BasePath $resolvedProjectRoot -RawPath $LiveValidationScriptPath
 $resolvedPreflightReportPath = Resolve-OptionalPath -BasePath $resolvedRuntimeRoot -RawPath $PreflightReportPath
 $resolvedPreflightMarkdownPath = Resolve-OptionalPath -BasePath $resolvedRuntimeRoot -RawPath $PreflightMarkdownPath
+$resolvedFixtureReportPath = Join-Path $resolvedRuntimeRoot "logs\reports\release_live_fixture.json"
+$resolvedFixtureMarkdownPath = Join-Path $resolvedRuntimeRoot "logs\reports\release_live_fixture.md"
 $resolvedStepSummaryPath = if ([string]::IsNullOrWhiteSpace($StepSummaryPath)) {
     Join-Path $resolvedArtifactDir "release_live_ci_step_summary.md"
 } else {
@@ -275,8 +277,8 @@ $prepareFixtureArgs = @(
     (Join-Path $toolRepoRoot "tools\prepare_release_live_fixture.py"),
     "--channel", $TargetChannel,
     "--scope", "full",
-    "--report-path", (Join-Path $resolvedRuntimeRoot "logs\reports\release_live_fixture.json"),
-    "--markdown-path", (Join-Path $resolvedRuntimeRoot "logs\reports\release_live_fixture.md")
+    "--report-path", $resolvedFixtureReportPath,
+    "--markdown-path", $resolvedFixtureMarkdownPath
 )
 
 $liveValidationArgs = @(
@@ -414,6 +416,9 @@ if ($Preview -or $Preflight) {
         project_root = $resolvedProjectRoot
         runtime_root = $resolvedRuntimeRoot
         artifact_dir = $resolvedArtifactDir
+        prepare_release_fixture = [bool]$PrepareReleaseFixture
+        release_live_fixture_report_path = $resolvedFixtureReportPath
+        release_live_fixture_markdown_path = $resolvedFixtureMarkdownPath
         step_summary_path = $resolvedStepSummaryPath
         preflight_report_path = $resolvedPreflightReportPath
         preflight_markdown_path = $resolvedPreflightMarkdownPath
