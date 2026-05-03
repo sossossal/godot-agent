@@ -79,6 +79,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
                 "-FailOnSlowShards",
                 "-PrepareReleaseFixture",
+                "-PreparedReleaseChannel",
+                "staging",
                 "-RestorePreparedFixture",
                 "-ContinueOnFailure",
                 "-Preview",
@@ -103,6 +105,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["continue_on_failure"])
         self.assertTrue(payload["prepare_release_fixture"])
         self.assertTrue(payload["restore_prepared_fixture"])
+        self.assertEqual(payload["prepared_release_channel"], "staging")
         self.assertTrue(payload["prepared_release_fixture_state_root"].endswith("prepared_fixture_state"))
         self.assertTrue(payload["prepared_release_fixture_report_path"].endswith("release_live_fixture.json"))
         self.assertTrue(payload["prepared_release_fixture_markdown_path"].endswith("release_live_fixture.md"))
@@ -112,6 +115,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         fixture_step = payload["steps"][1]
         self.assertIn("--scope", fixture_step["arguments"])
         self.assertIn("full", fixture_step["arguments"])
+        self.assertIn("--channel", fixture_step["arguments"])
+        self.assertIn("staging", fixture_step["arguments"])
         self.assertIn("--report-path", fixture_step["arguments"])
         non_live_step = payload["steps"][2]
         self.assertIn("-FailOnSlowShards", non_live_step["arguments"])
@@ -428,6 +433,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertIn("- Browser path:", gate_summary)
             self.assertIn("- Warnings:", gate_summary)
             self.assertIn("- Continue on failure: True", gate_summary)
+            self.assertIn("- Prepared release channel: release", gate_summary)
             self.assertIn("Live preflight blocked checks: release_manifest", gate_summary)
             self.assertIn("- Command:", gate_summary)
             rerun_script = output_dir / "rerun_customer_trial.ps1"

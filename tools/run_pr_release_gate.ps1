@@ -443,6 +443,7 @@ try {
         results = $results
         continue_on_failure = [bool]$ContinueOnFailure
         prepare_release_fixture = [bool]$PrepareReleaseFixture
+        prepared_release_channel = $PreparedReleaseChannel
         prepared_release_fixture_scope = $preparedFixtureScope
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         prepared_fixture_restored = $preparedFixtureRestored
@@ -462,6 +463,7 @@ try {
         "- Warnings: $((@($payload.warning_steps) -join ', '))",
         "- Continue on failure: $([bool]$ContinueOnFailure)",
         "- Prepare release fixture: $([bool]$PrepareReleaseFixture)",
+        "- Prepared release channel: $PreparedReleaseChannel",
         "- Prepared fixture scope: $preparedFixtureScope",
         "- Restore prepared fixture: $([bool]$RestorePreparedFixture)",
         "- Prepared fixture restored: $preparedFixtureRestored",
