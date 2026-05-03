@@ -858,6 +858,13 @@ foreach ($root in @($runtimeRoot, $projectRoot)) {
             ),
             encoding="utf-8",
         )
+        fixture_dir = self.runtime_dir / "logs" / "reports"
+        fixture_dir.mkdir(parents=True, exist_ok=True)
+        (fixture_dir / "release_live_fixture.json").write_text(
+            json.dumps({"schema_version": "1.0", "fixture_scope": "full"}, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        (fixture_dir / "release_live_fixture.md").write_text("# Release Live Fixture\n", encoding="utf-8")
 
         result = export_live_ci_artifacts(
             self.output_dir,
@@ -934,6 +941,8 @@ foreach ($root in @($runtimeRoot, $projectRoot)) {
         self.assertEqual(exported_summary["report_files"]["summary_markdown"], "release_live_ci_summary.md")
         self.assertEqual(exported_summary["report_files"]["promotion_history_report"], "release_promotion_history.md")
         self.assertEqual(exported_summary["report_files"]["workflow_step_results"], "release_live_ci_workflow_steps.json")
+        self.assertEqual(exported_summary["report_files"]["release_live_fixture"], "release_live_fixture.json")
+        self.assertEqual(exported_summary["report_files"]["release_live_fixture_report"], "release_live_fixture.md")
         self.assertEqual(exported_summary["report_files"]["event_stream"], "release_live_ci_events.json")
         self.assertEqual(exported_summary["report_files"]["dispatch_preflight"], "release_live_dispatch_preflight.json")
         self.assertEqual(exported_summary["report_files"]["dispatch_preflight_report"], "release_live_dispatch_preflight.md")
@@ -947,6 +956,8 @@ foreach ($root in @($runtimeRoot, $projectRoot)) {
         self.assertIn(artifact_manifest["release_delivery_readiness"]["status"], {"passed", "warning", "blocked"})
         self.assertIn("release_delivery_readiness_release.json", artifact_manifest["generated_files"])
         self.assertIn("release_delivery_readiness_release.md", artifact_manifest["generated_files"])
+        self.assertIn("release_live_fixture.json", artifact_manifest["generated_files"])
+        self.assertIn("release_live_fixture.md", artifact_manifest["generated_files"])
         self.assertIn(artifact_manifest["execution_delivery_readiness"]["status"], {"passed", "warning", "blocked"})
         self.assertIn(
             "external_distribution_delivery",

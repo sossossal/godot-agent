@@ -928,6 +928,17 @@ def export_live_ci_artifacts(
             output_dir / "release_live_ci_workflow_steps.json",
             generated_files,
         )
+    for source_path, destination in (
+        (
+            resolved_runtime_root / "logs" / "reports" / "release_live_fixture.json",
+            output_dir / "release_live_fixture.json",
+        ),
+        (
+            resolved_runtime_root / "logs" / "reports" / "release_live_fixture.md",
+            output_dir / "release_live_fixture.md",
+        ),
+    ):
+        _copy_if_exists(source_path, destination, generated_files)
 
     ci_gate = _collect_automated_gate(
         plan,
@@ -1095,6 +1106,8 @@ def export_live_ci_artifacts(
             "summary_markdown": "release_live_ci_summary.md",
             "event_stream": "release_live_ci_events.json",
             "workflow_step_results": "release_live_ci_workflow_steps.json" if workflow_steps else "",
+            "release_live_fixture": "release_live_fixture.json" if (output_dir / "release_live_fixture.json").exists() else "",
+            "release_live_fixture_report": "release_live_fixture.md" if (output_dir / "release_live_fixture.md").exists() else "",
             "dispatch_audit": "release_live_dispatch.json" if dispatch_audit else "",
             "dispatch_preflight": dispatch_preflight_report,
             "dispatch_preflight_report": dispatch_preflight_markdown,

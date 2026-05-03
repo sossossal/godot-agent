@@ -89,8 +89,8 @@ jobs:
           python .\tools\prepare_release_live_fixture.py `
             --channel "${{ inputs.target_channel }}" `
             --scope full `
-            --report-path "${{ inputs.artifact_dir }}\release_live_fixture.json" `
-            --markdown-path "${{ inputs.artifact_dir }}\release_live_fixture.md"
+            --report-path "logs\reports\release_live_fixture.json" `
+            --markdown-path "logs\reports\release_live_fixture.md"
 
       - name: Export release-live runner baseline
         id: export_runner_baseline
