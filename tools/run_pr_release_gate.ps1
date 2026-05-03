@@ -440,6 +440,7 @@ try {
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
         warning_steps = @($results | Where-Object { $_.status -eq "warning" } | ForEach-Object { $_.id })
         evidence = $evidence
+        step_count = @($results).Count
         results = $results
         continue_on_failure = [bool]$ContinueOnFailure
         prepare_release_fixture = [bool]$PrepareReleaseFixture
@@ -459,6 +460,7 @@ try {
         "- Non-live profile: $nonLiveProfile",
         "- Release manifest: $ReleaseManifestPath",
         "- Browser path: $BrowserPath",
+        "- Steps: $($payload.step_count)",
         "- Blocked: $((@($payload.blocked_steps) -join ', '))",
         "- Warnings: $((@($payload.warning_steps) -join ', '))",
         "- Continue on failure: $([bool]$ContinueOnFailure)",

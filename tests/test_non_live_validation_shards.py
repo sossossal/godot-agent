@@ -431,8 +431,13 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertIn("- Missing: None", markdown)
             gate_markdown = output_dir / "gate" / "gate_summary.md"
             self.assertTrue(gate_markdown.exists())
+            gate_json = output_dir / "gate" / "gate_summary.json"
+            self.assertTrue(gate_json.exists())
+            gate_payload = json.loads(gate_json.read_text(encoding="utf-8-sig"))
+            self.assertEqual(gate_payload["step_count"], len(gate_payload["results"]))
             gate_summary = gate_markdown.read_text(encoding="utf-8-sig")
             self.assertIn("## Step Diagnostics", gate_summary)
+            self.assertIn(f"- Steps: {gate_payload['step_count']}", gate_summary)
             self.assertIn("- Release manifest: missing/release_manifest.json", gate_summary)
             self.assertIn("- Browser path:", gate_summary)
             self.assertIn("- Warnings:", gate_summary)
