@@ -360,6 +360,7 @@ try {
         continue_on_failure = [bool]$ContinueOnFailure
         should_fail_on_needs_attention = $shouldFailOnNeedsAttention
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
+        passed_count = @($results | Where-Object { $_.status -eq "passed" }).Count
         blocked_count = @($results | Where-Object { $_.status -eq "blocked" }).Count
         step_count = @($results).Count
         recommended_action_count = @($recommendedActions).Count
@@ -409,6 +410,7 @@ try {
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
+        passed_count = @($results | Where-Object { $_.status -eq "passed" }).Count
         blocked_count = @($results | Where-Object { $_.status -eq "blocked" }).Count
         recommended_action_count = @($recommendedActions).Count
         recommended_actions = $recommendedActions
@@ -445,6 +447,7 @@ try {
         "- Restore prepared fixture: $([bool]$RestorePreparedFixture)",
         "- Sync plugin before doctor: $([bool]$SyncPluginBeforeDoctor)",
         "- Steps: $($payload.step_count)",
+        "- Passed count: $($payload.passed_count)",
         "- Blocked count: $($payload.blocked_count)",
         "- Blocked: $((@($payload.blocked_steps) -join ', '))",
         "- Recommended actions: $($payload.recommended_action_count)",
