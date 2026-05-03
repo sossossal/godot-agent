@@ -354,6 +354,7 @@ try {
     $stepIds = @($results | ForEach-Object { $_.id })
     $blockedSteps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
     $blockedCount = @($results | Where-Object { $_.status -eq "blocked" }).Count
+    $totalDurationSeconds = [Math]::Round((@($results | ForEach-Object { [double]$_.duration_seconds }) | Measure-Object -Sum).Sum, 2)
     $statusCounts = [ordered]@{
         passed = $passedCount
         blocked = $blockedCount
@@ -373,6 +374,7 @@ try {
         passed_count = $passedCount
         blocked_count = $blockedCount
         status_counts = $statusCounts
+        total_duration_seconds = $totalDurationSeconds
         step_count = @($results).Count
         step_ids = $stepIds
         recommended_action_count = @($recommendedActions).Count
@@ -435,6 +437,7 @@ try {
         evidence_file_count = @($evidenceFiles).Count
         missing_evidence_files = $missingEvidenceFiles
         evidence_files = $evidenceFiles
+        total_duration_seconds = $totalDurationSeconds
         step_count = @($results).Count
         step_ids = $stepIds
         results = $results
@@ -460,6 +463,7 @@ try {
         "- Prepare release fixture: $([bool]$PrepareReleaseFixture)",
         "- Restore prepared fixture: $([bool]$RestorePreparedFixture)",
         "- Sync plugin before doctor: $([bool]$SyncPluginBeforeDoctor)",
+        "- Total seconds: $($payload.total_duration_seconds)",
         "- Steps: $($payload.step_count)",
         "- Passed count: $($payload.passed_count)",
         "- Blocked count: $($payload.blocked_count)",
