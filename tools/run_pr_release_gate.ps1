@@ -434,6 +434,7 @@ try {
     $blockedCount = @($results | Where-Object { $_.status -eq "blocked" }).Count
     $warningCount = @($results | Where-Object { $_.status -eq "warning" }).Count
     $totalDurationSeconds = [Math]::Round((@($results | ForEach-Object { [double]$_.duration_seconds }) | Measure-Object -Sum).Sum, 2)
+    $slowestStep = @($results | Sort-Object { [double]$_.duration_seconds } -Descending | Select-Object -First 1)
     $statusCounts = [ordered]@{
         passed = $passedCount
         blocked = $blockedCount
@@ -459,6 +460,8 @@ try {
         status_counts = $statusCounts
         evidence = $evidence
         total_duration_seconds = $totalDurationSeconds
+        slowest_step_id = if ($slowestStep.Count -gt 0) { [string]$slowestStep[0].id } else { "" }
+        slowest_step_seconds = if ($slowestStep.Count -gt 0) { [double]$slowestStep[0].duration_seconds } else { 0.0 }
         step_count = @($results).Count
         step_ids = $stepIds
         results = $results
@@ -481,6 +484,7 @@ try {
         "- Release manifest: $ReleaseManifestPath",
         "- Browser path: $BrowserPath",
         "- Total seconds: $($payload.total_duration_seconds)",
+        "- Slowest step: $($payload.slowest_step_id) ($($payload.slowest_step_seconds)s)",
         "- Steps: $($payload.step_count)",
         "- Passed count: $($payload.passed_count)",
         "- Blocked count: $($payload.blocked_count)",
