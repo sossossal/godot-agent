@@ -481,6 +481,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertEqual(readiness_payload["recommended_action_count"], payload["recommended_action_count"])
             self.assertEqual(readiness_payload["recommended_action_items"][0]["action"], payload["recommended_actions"][0])
             self.assertIn("customer_gate", readiness_payload["blocked_steps"])
+            self.assertEqual(readiness_payload["step_count"], payload["step_count"])
+            self.assertEqual(readiness_payload["blocked_count"], payload["blocked_count"])
             self.assertEqual(readiness_payload["command_count"], payload["command_count"])
             readiness_evidence_paths = [item["relative_path"] for item in readiness_payload["evidence_files"]]
             self.assertEqual(readiness_payload["evidence_file_count"], len(readiness_evidence_paths))

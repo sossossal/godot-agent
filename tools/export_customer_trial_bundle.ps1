@@ -360,6 +360,8 @@ try {
         continue_on_failure = [bool]$ContinueOnFailure
         should_fail_on_needs_attention = $shouldFailOnNeedsAttention
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
+        blocked_count = @($results | Where-Object { $_.status -eq "blocked" }).Count
+        step_count = @($results).Count
         recommended_action_count = @($recommendedActions).Count
         recommended_action_items = $recommendedActionItems
         evidence_file_count = @($readinessEvidenceFiles).Count
