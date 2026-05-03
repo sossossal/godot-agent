@@ -405,6 +405,7 @@ try {
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
+        blocked_count = @($results | Where-Object { $_.status -eq "blocked" }).Count
         recommended_action_count = @($recommendedActions).Count
         recommended_actions = $recommendedActions
         recommended_action_items = $recommendedActionItems
@@ -437,6 +438,7 @@ try {
         "- Restore prepared fixture: $([bool]$RestorePreparedFixture)",
         "- Sync plugin before doctor: $([bool]$SyncPluginBeforeDoctor)",
         "- Steps: $($payload.step_count)",
+        "- Blocked count: $($payload.blocked_count)",
         "- Blocked: $((@($payload.blocked_steps) -join ', '))",
         "- Recommended actions: $($payload.recommended_action_count)",
         "- Rerun commands: $($payload.command_count)",

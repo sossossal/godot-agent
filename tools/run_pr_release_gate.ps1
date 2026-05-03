@@ -439,6 +439,8 @@ try {
         artifact_dir = $resolvedArtifactDir
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
         warning_steps = @($results | Where-Object { $_.status -eq "warning" } | ForEach-Object { $_.id })
+        blocked_count = @($results | Where-Object { $_.status -eq "blocked" }).Count
+        warning_count = @($results | Where-Object { $_.status -eq "warning" }).Count
         evidence = $evidence
         step_count = @($results).Count
         results = $results
@@ -461,6 +463,8 @@ try {
         "- Release manifest: $ReleaseManifestPath",
         "- Browser path: $BrowserPath",
         "- Steps: $($payload.step_count)",
+        "- Blocked count: $($payload.blocked_count)",
+        "- Warning count: $($payload.warning_count)",
         "- Blocked: $((@($payload.blocked_steps) -join ', '))",
         "- Warnings: $((@($payload.warning_steps) -join ', '))",
         "- Continue on failure: $([bool]$ContinueOnFailure)",
