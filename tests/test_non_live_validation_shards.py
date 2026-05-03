@@ -406,6 +406,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertTrue(gate_markdown.exists())
             gate_summary = gate_markdown.read_text(encoding="utf-8-sig")
             self.assertIn("## Step Diagnostics", gate_summary)
+            self.assertIn("- Warnings:", gate_summary)
             self.assertIn("Live preflight blocked checks: release_manifest", gate_summary)
             self.assertIn("- Command:", gate_summary)
             rerun_script = output_dir / "rerun_customer_trial.ps1"

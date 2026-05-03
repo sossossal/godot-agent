@@ -451,6 +451,7 @@ try {
         "- Status: $($payload.status)",
         "- Non-live profile: $nonLiveProfile",
         "- Blocked: $((@($payload.blocked_steps) -join ', '))",
+        "- Warnings: $((@($payload.warning_steps) -join ', '))",
         "- Prepare release fixture: $([bool]$PrepareReleaseFixture)",
         "- Prepared fixture scope: $preparedFixtureScope",
         "- Restore prepared fixture: $([bool]$RestorePreparedFixture)",
