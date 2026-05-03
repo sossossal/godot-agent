@@ -73,6 +73,10 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 "full",
                 "-PythonCommand",
                 sys.executable,
+                "-ReleaseManifestPath",
+                "trial/release_manifest.json",
+                "-BrowserPath",
+                "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
                 "-FailOnSlowShards",
                 "-PrepareReleaseFixture",
                 "-RestorePreparedFixture",
@@ -93,6 +97,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertEqual(payload["stage"], "release")
         self.assertEqual(payload["mode"], "full")
         self.assertEqual(payload["non_live_profile"], "release")
+        self.assertEqual(payload["release_manifest_path"], "trial/release_manifest.json")
+        self.assertEqual(payload["browser_path"], "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe")
         self.assertTrue(payload["fail_on_slow_shards"])
         self.assertTrue(payload["continue_on_failure"])
         self.assertTrue(payload["prepare_release_fixture"])
@@ -418,6 +424,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertTrue(gate_markdown.exists())
             gate_summary = gate_markdown.read_text(encoding="utf-8-sig")
             self.assertIn("## Step Diagnostics", gate_summary)
+            self.assertIn("- Release manifest: missing/release_manifest.json", gate_summary)
+            self.assertIn("- Browser path:", gate_summary)
             self.assertIn("- Warnings:", gate_summary)
             self.assertIn("- Continue on failure: True", gate_summary)
             self.assertIn("Live preflight blocked checks: release_manifest", gate_summary)

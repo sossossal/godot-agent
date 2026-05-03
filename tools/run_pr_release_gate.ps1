@@ -323,6 +323,8 @@ if ($Preview) {
         prepared_release_fixture_report_path = $preparedFixtureReportPath
         prepared_release_fixture_markdown_path = $preparedFixtureMarkdownPath
         release_live_preflight_report_path = $livePreflightReportPath
+        release_manifest_path = $ReleaseManifestPath
+        browser_path = $BrowserPath
         fail_on_slow_shards = [bool]$FailOnSlowShards
         continue_on_failure = [bool]$ContinueOnFailure
         prepare_release_fixture = [bool]$PrepareReleaseFixture
@@ -431,6 +433,8 @@ try {
         stage = $Stage
         mode = $Mode
         non_live_profile = $nonLiveProfile
+        release_manifest_path = $ReleaseManifestPath
+        browser_path = $BrowserPath
         generated_at = (Get-Date).ToUniversalTime().ToString("o")
         artifact_dir = $resolvedArtifactDir
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
@@ -452,6 +456,8 @@ try {
         "- Mode: $Mode",
         "- Status: $($payload.status)",
         "- Non-live profile: $nonLiveProfile",
+        "- Release manifest: $ReleaseManifestPath",
+        "- Browser path: $BrowserPath",
         "- Blocked: $((@($payload.blocked_steps) -join ', '))",
         "- Warnings: $((@($payload.warning_steps) -join ', '))",
         "- Continue on failure: $([bool]$ContinueOnFailure)",
