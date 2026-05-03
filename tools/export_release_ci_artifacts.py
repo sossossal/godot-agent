@@ -1208,6 +1208,20 @@ def export_artifacts(output_dir: Path) -> list[Path]:
         generated_files.append(event_stream_path)
 
         artifact_manifest_path = output_dir / "artifact_manifest.json"
+        report_files = {
+            "bootstrap_preview": "bootstrap_clean_machine_preview.json",
+            "promotion_plan": "release_promotion_plan.json",
+            "evidence_bundle": "release_promotion_evidence_bundle.md",
+            "review_bundle": "release_review_bundle.md",
+            "deployment_rehearsal": "release_promotion_deployment_rehearsal.md",
+            "rollback_rehearsal": "release_promotion_rollback_rehearsal.md",
+            "promotion_history": "release_promotion_history.json",
+            "promotion_history_report": "release_promotion_history.md",
+            "execution_status": "release_execution_status.json",
+            "execution_report": "release_execution_report.md",
+            "event_stream": "release_live_ci_events.json",
+            "artifact_manifest": "artifact_manifest.json",
+        }
         _write_json(
             artifact_manifest_path,
             normalize_release_artifact_manifest({
@@ -1225,6 +1239,7 @@ def export_artifacts(output_dir: Path) -> list[Path]:
                 "runtime_assembly": runtime_assembly,
                 "event_stream": event_stream,
                 "execution_delivery_readiness": execution_readiness_summary,
+                "report_files": report_files,
                 "generated_files": [
                     str(path.relative_to(output_dir)).replace("\\", "/")
                     for path in generated_files

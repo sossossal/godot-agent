@@ -338,6 +338,18 @@ class ReleaseCiArtifactsTestCase(unittest.TestCase):
         self.assertEqual(artifact_manifest_payload["event_stream"]["route_kind"], "ci_rehearsal")
         self.assertEqual(artifact_manifest_payload["event_stream"]["path"], "release_live_ci_events.json")
         self.assertEqual(artifact_manifest_payload["event_stream"]["latest_event_type"], "run_finished")
+        self.assertEqual(
+            artifact_manifest_payload["report_files"]["promotion_plan"],
+            "release_promotion_plan.json",
+        )
+        self.assertEqual(
+            artifact_manifest_payload["report_files"]["execution_report"],
+            "release_execution_report.md",
+        )
+        self.assertEqual(
+            artifact_manifest_payload["report_files"]["event_stream"],
+            "release_live_ci_events.json",
+        )
         self.assertIn(
             artifact_manifest_payload["execution_delivery_readiness"]["status"],
             {"passed", "warning", "blocked"},
