@@ -405,10 +405,12 @@ try {
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
         blocked_steps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
+        recommended_action_count = @($recommendedActions).Count
         recommended_actions = $recommendedActions
         recommended_action_items = $recommendedActionItems
         readiness_level = $readinessLevel
         readiness_summary = $readinessSummary
+        command_count = @($commandRecords).Count
         command_records = $commandRecords
         evidence_file_count = @($evidenceFiles).Count
         missing_evidence_files = $missingEvidenceFiles
@@ -434,6 +436,8 @@ try {
         "- Restore prepared fixture: $([bool]$RestorePreparedFixture)",
         "- Sync plugin before doctor: $([bool]$SyncPluginBeforeDoctor)",
         "- Blocked: $((@($payload.blocked_steps) -join ', '))",
+        "- Recommended actions: $($payload.recommended_action_count)",
+        "- Rerun commands: $($payload.command_count)",
         "",
         "## Recommended Actions",
         ""
