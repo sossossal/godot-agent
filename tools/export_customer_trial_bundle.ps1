@@ -132,6 +132,32 @@ function Get-EvidenceCompleteness {
     }
 }
 
+function Get-NonLiveSummary {
+    param([object]$GateReport)
+
+    if ($null -eq $GateReport -or $null -eq $GateReport.evidence -or $null -eq $GateReport.evidence.non_live) {
+        return $null
+    }
+    $nonLive = $GateReport.evidence.non_live
+    return [ordered]@{
+        status = [string]$nonLive.status
+        report_state = [string]$nonLive.report_state
+        profile = [string]$nonLive.profile
+        planned_shard_count = [int]$nonLive.planned_shard_count
+        completed_shard_count = [int]$nonLive.completed_shard_count
+        pending_shard_count = [int]$nonLive.pending_shard_count
+        pending_shards = @($nonLive.pending_shards)
+        passed_count = [int]$nonLive.passed_count
+        blocked_count = [int]$nonLive.blocked_count
+        timeout_count = [int]$nonLive.timeout_count
+        status_counts = $nonLive.status_counts
+        failed_shards = @($nonLive.failed_shards)
+        slow_shards = @($nonLive.slow_shards)
+        report_path = [string]$nonLive.report_path
+        markdown_path = [string]$nonLive.markdown_path
+    }
+}
+
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $resolvedOutputDir = Resolve-RepoPath $OutputDir
 $resolvedPython = if (-not [string]::IsNullOrWhiteSpace($PythonCommand)) {
@@ -231,6 +257,7 @@ if ($Preview) {
         report_path = Join-Path $gateArtifactDir "release_live_preflight.json"
         markdown_path = Join-Path $gateArtifactDir "release_live_preflight.md"
     }
+    $previewNonLiveSummary = $null
     $previewReadinessSummary = [ordered]@{
         schema_version = "1.0"
         status = "preview"
@@ -262,6 +289,7 @@ if ($Preview) {
         recommended_actions = @()
         recommended_action_items = @()
         live_preflight_summary = $previewLivePreflightSummary
+        non_live_summary = $previewNonLiveSummary
         evidence_file_count = 0
         evidence_present_count = 0
         missing_evidence_count = 0
@@ -312,6 +340,7 @@ if ($Preview) {
         recommended_action_items = @()
         readiness_summary = $previewReadinessSummary
         live_preflight_summary = $previewLivePreflightSummary
+        non_live_summary = $previewNonLiveSummary
         evidence_file_count = 0
         evidence_present_count = 0
         missing_evidence_count = 0
@@ -404,6 +433,7 @@ try {
     }
 
     $doctorReport = Read-JsonFile -Path (Resolve-RepoPath "logs/reports/doctor_self_check.json")
+    $gateReport = Read-JsonFile -Path (Join-Path $gateArtifactDir "gate_summary.json")
     $livePreflightReport = Read-JsonFile -Path (Join-Path $gateArtifactDir "release_live_preflight.json")
     $recommendedActionItems = @()
     if ($livePreflightReport) {
@@ -478,6 +508,7 @@ try {
     } else {
         $null
     }
+    $nonLiveSummary = Get-NonLiveSummary -GateReport $gateReport
     $readinessLevel = if (-not $overallOk) {
         "blocked"
     } elseif (@($recommendedActions).Count -gt 0) {
@@ -551,6 +582,7 @@ try {
         recommended_actions = $recommendedActions
         recommended_action_items = $recommendedActionItems
         live_preflight_summary = $livePreflightSummary
+        non_live_summary = $nonLiveSummary
         evidence_file_count = $readinessEvidenceCompleteness.evidence_file_count
         evidence_present_count = $readinessEvidenceCompleteness.evidence_present_count
         missing_evidence_count = $readinessEvidenceCompleteness.missing_evidence_count
@@ -600,6 +632,7 @@ try {
         readiness_level = $readinessLevel
         readiness_summary = $readinessSummary
         live_preflight_summary = $livePreflightSummary
+        non_live_summary = $nonLiveSummary
         command_count = @($commandRecords).Count
         command_ids = $commandIds
         command_records = $commandRecords
@@ -627,6 +660,10 @@ try {
     $skippedStepList = Format-ListOrNone @($payload.skipped_step_ids)
     $stepList = Format-ListOrNone @($payload.step_ids)
     $blockedStepList = Format-ListOrNone @($payload.blocked_steps)
+    $nonLiveLabel = if ($null -eq $nonLiveSummary) { "None" } else { [string]$nonLiveSummary.status }
+    $nonLiveReportState = if ($null -eq $nonLiveSummary) { "None" } else { [string]$nonLiveSummary.report_state }
+    $nonLiveCompleted = if ($null -eq $nonLiveSummary) { 0 } else { [int]$nonLiveSummary.completed_shard_count }
+    $nonLivePending = if ($null -eq $nonLiveSummary) { 0 } else { [int]$nonLiveSummary.pending_shard_count }
     $lines = @(
         "# Customer Trial Bundle",
         "",
@@ -657,6 +694,10 @@ try {
         "- Live preflight checks: $($livePreflightSummary.check_count)",
         "- Live preflight blocking count: $($livePreflightSummary.blocking_count)",
         "- Live preflight warning count: $($livePreflightSummary.warning_count)",
+        "- Non-live validation: $nonLiveLabel",
+        "- Non-live report state: $nonLiveReportState",
+        "- Non-live completed shards: $nonLiveCompleted",
+        "- Non-live pending shards: $nonLivePending",
         "- Rerun commands: $($payload.command_count)",
         "",
         "## Recommended Actions",
