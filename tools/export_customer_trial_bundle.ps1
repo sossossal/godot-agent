@@ -212,6 +212,11 @@ if ($Preview) {
         slowest_step_seconds = 0.0
         fail_on_needs_attention = [bool]$FailOnNeedsAttention
         continue_on_failure = [bool]$ContinueOnFailure
+        should_fail_on_needs_attention = $false
+        readiness_level = "preview"
+        recommended_action_count = 0
+        recommended_actions = @()
+        recommended_action_items = @()
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
