@@ -338,6 +338,16 @@ if ($Preview) {
         release_live_preflight_report_path = $livePreflightReportPath
         release_manifest_path = $ReleaseManifestPath
         browser_path = $BrowserPath
+        blocked_steps = @()
+        warning_steps = @()
+        passed_count = 0
+        blocked_count = 0
+        warning_count = 0
+        status_counts = [ordered]@{
+            passed = 0
+            blocked = 0
+            warning = 0
+        }
         fail_on_slow_shards = [bool]$FailOnSlowShards
         continue_on_failure = [bool]$ContinueOnFailure
         prepare_release_fixture = [bool]$PrepareReleaseFixture

@@ -200,6 +200,13 @@ if ($Preview) {
         release_manifest_path = $ReleaseManifestPath
         gate_mode = $GateMode
         browser_path = $BrowserPath
+        blocked_steps = @()
+        passed_count = 0
+        blocked_count = 0
+        status_counts = [ordered]@{
+            passed = 0
+            blocked = 0
+        }
         fail_on_needs_attention = [bool]$FailOnNeedsAttention
         continue_on_failure = [bool]$ContinueOnFailure
         prepare_release_fixture = [bool]$PrepareReleaseFixture
