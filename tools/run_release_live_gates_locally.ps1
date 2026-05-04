@@ -424,6 +424,8 @@ if ($Preflight) {
 
 if ($Preview -or $Preflight) {
     [ordered]@{
+        schema_version = "1.0"
+        generated_at = (Get-Date).ToUniversalTime().ToString("o")
         ok = if ($Preview -and -not $Preflight) { $true } else { ($preflightStatus -ne "blocked") }
         preview = $true
         preflight = [bool]$Preflight

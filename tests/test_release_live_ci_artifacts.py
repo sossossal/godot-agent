@@ -1112,6 +1112,8 @@ foreach ($root in @($runtimeRoot, $projectRoot)) {
         )
 
         self.assertTrue(payload["ok"])
+        self.assertEqual(payload["schema_version"], "1.0")
+        self.assertTrue(payload["generated_at"])
         self.assertTrue(payload["preview"])
         self.assertFalse(payload["preflight"])
         self.assertIn(payload["preflight_status"], {"passed", "warning"})
@@ -1209,6 +1211,8 @@ foreach ($root in @($runtimeRoot, $projectRoot)) {
         self.assertEqual(completed.returncode, 1)
         payload = json.loads(completed.stdout)
         self.assertFalse(payload["ok"])
+        self.assertEqual(payload["schema_version"], "1.0")
+        self.assertTrue(payload["generated_at"])
         self.assertTrue(payload["preflight"])
         self.assertEqual(payload["preflight_status"], "blocked")
         self.assertIn("release_manifest", payload["preflight_checks"]["blocking_checks"])
