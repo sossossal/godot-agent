@@ -356,7 +356,12 @@ if ($Preview) {
             non_live = if ($runNonLive) {
                 [ordered]@{
                     status = "preview"
+                    report_state = "preview"
                     profile = $nonLiveProfile
+                    planned_shard_count = 0
+                    completed_shard_count = 0
+                    pending_shard_count = 0
+                    pending_shards = @()
                     shard_count = 0
                     passed_count = 0
                     blocked_count = 0
@@ -495,7 +500,12 @@ try {
         non_live = if ($nonLiveReport) {
             [ordered]@{
                 status = [string]$nonLiveReport.status
+                report_state = [string]$nonLiveReport.report_state
                 profile = [string]$nonLiveReport.profile
+                planned_shard_count = [int]$nonLiveReport.planned_shard_count
+                completed_shard_count = [int]$nonLiveReport.completed_shard_count
+                pending_shard_count = [int]$nonLiveReport.pending_shard_count
+                pending_shards = @($nonLiveReport.pending_shards)
                 shard_count = [int]$nonLiveReport.shard_count
                 passed_count = [int]$nonLiveReport.passed_count
                 blocked_count = [int]$nonLiveReport.blocked_count
@@ -626,6 +636,10 @@ try {
         "- Prepared fixture report: $($evidence.prepared_release_fixture.report_path)",
         "- Prepared fixture markdown: $($evidence.prepared_release_fixture.markdown_path)",
         "- Fail on slow shards: $([bool]$FailOnSlowShards)",
+        "- Non-live report state: $($evidence.non_live.report_state)",
+        "- Non-live planned shards: $($evidence.non_live.planned_shard_count)",
+        "- Non-live completed shards: $($evidence.non_live.completed_shard_count)",
+        "- Non-live pending shards: $($evidence.non_live.pending_shard_count)",
         "- Non-live passed count: $($evidence.non_live.passed_count)",
         "- Non-live blocked count: $($evidence.non_live.blocked_count)",
         "- Non-live timeout count: $($evidence.non_live.timeout_count)",
