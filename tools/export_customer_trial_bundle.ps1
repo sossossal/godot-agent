@@ -187,6 +187,62 @@ $commandIds = @($commandRecords | ForEach-Object { $_.id })
 $plannedStepIds = @($steps | ForEach-Object { $_.id })
 
 if ($Preview) {
+    $previewLivePreflightSummary = [ordered]@{
+        status = "preview"
+        check_count = 0
+        passed_count = 0
+        blocking_count = 0
+        warning_count = 0
+        status_counts = [ordered]@{
+            passed = 0
+            blocked = 0
+            warning = 0
+        }
+        blocking_checks = @()
+        warning_checks = @()
+        report_path = Join-Path $gateArtifactDir "release_live_preflight.json"
+        markdown_path = Join-Path $gateArtifactDir "release_live_preflight.md"
+    }
+    $previewReadinessSummary = [ordered]@{
+        schema_version = "1.0"
+        status = "preview"
+        readiness_level = "preview"
+        ok = $true
+        gate_mode = $GateMode
+        release_manifest_path = $ReleaseManifestPath
+        browser_path = $BrowserPath
+        fail_on_needs_attention = [bool]$FailOnNeedsAttention
+        continue_on_failure = [bool]$ContinueOnFailure
+        should_fail_on_needs_attention = $false
+        blocked_steps = @()
+        passed_count = 0
+        blocked_count = 0
+        status_counts = [ordered]@{
+            passed = 0
+            blocked = 0
+        }
+        total_duration_seconds = 0.0
+        slowest_step_id = ""
+        slowest_step_seconds = 0.0
+        planned_step_count = @($steps).Count
+        planned_step_ids = $plannedStepIds
+        skipped_step_count = 0
+        skipped_step_ids = @()
+        step_count = @($steps).Count
+        step_ids = $plannedStepIds
+        recommended_action_count = 0
+        recommended_actions = @()
+        recommended_action_items = @()
+        live_preflight_summary = $previewLivePreflightSummary
+        evidence_file_count = 0
+        evidence_files = @()
+        missing_evidence_files = @()
+        command_count = @($commandRecords).Count
+        command_ids = $commandIds
+        rerun_script_path = $rerunScriptPath
+        command_manifest_path = $commandManifestPath
+        generated_at = ""
+    }
     [ordered]@{
         ok = $true
         preview = $true
@@ -217,22 +273,8 @@ if ($Preview) {
         recommended_action_count = 0
         recommended_actions = @()
         recommended_action_items = @()
-        live_preflight_summary = [ordered]@{
-            status = "preview"
-            check_count = 0
-            passed_count = 0
-            blocking_count = 0
-            warning_count = 0
-            status_counts = [ordered]@{
-                passed = 0
-                blocked = 0
-                warning = 0
-            }
-            blocking_checks = @()
-            warning_checks = @()
-            report_path = Join-Path $gateArtifactDir "release_live_preflight.json"
-            markdown_path = Join-Path $gateArtifactDir "release_live_preflight.md"
-        }
+        readiness_summary = $previewReadinessSummary
+        live_preflight_summary = $previewLivePreflightSummary
         evidence_file_count = 0
         evidence_files = @()
         missing_evidence_files = @()
