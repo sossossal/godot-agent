@@ -55,6 +55,12 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["generated_at"])
         self.assertEqual(payload["slow_shard_threshold_seconds"], 1)
         self.assertTrue(payload["fail_on_slow_shards"])
+        self.assertEqual(payload["total_duration_seconds"], 0.0)
+        self.assertEqual(payload["slow_shard_gate"], "preview")
+        self.assertEqual(payload["slow_shards"], [])
+        self.assertEqual(payload["recommended_followup_shards"], [])
+        self.assertEqual(payload["failed_shards"], [])
+        self.assertEqual(payload["results"], [])
         shard_ids = [item["id"] for item in payload["shards"]]
         self.assertEqual(payload["shard_count"], len(shard_ids))
         self.assertIn("release_live_ci", shard_ids)

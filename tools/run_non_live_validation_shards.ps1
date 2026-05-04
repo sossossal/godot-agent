@@ -130,6 +130,12 @@ if ($Preview) {
         slow_shard_threshold_seconds = $SlowShardSeconds
         fail_on_slow_shards = [bool]$FailOnSlowShards
         shard_count = @($shards).Count
+        total_duration_seconds = 0.0
+        slow_shard_gate = "preview"
+        slow_shards = @()
+        recommended_followup_shards = @()
+        failed_shards = @()
+        results = @()
         shards = $shards
     } | ConvertTo-Json -Depth 8
     exit 0
