@@ -323,12 +323,14 @@ $plannedStepIds = @($stepPlan | ForEach-Object { $_.id })
 
 if ($Preview) {
     [ordered]@{
+        schema_version = "1.0"
         ok = $true
         preview = $true
         status = "preview"
         stage = $Stage
         mode = $Mode
         non_live_profile = $nonLiveProfile
+        generated_at = (Get-Date).ToUniversalTime().ToString("o")
         artifact_dir = $resolvedArtifactDir
         report_path = $jsonReportPath
         markdown_path = $markdownReportPath

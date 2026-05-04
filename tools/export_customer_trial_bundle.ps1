@@ -244,9 +244,12 @@ if ($Preview) {
         generated_at = ""
     }
     [ordered]@{
+        schema_version = "1.0"
         ok = $true
         preview = $true
         status = "preview"
+        generated_at = (Get-Date).ToUniversalTime().ToString("o")
+        project_root = $repoRoot
         output_dir = $resolvedOutputDir
         manifest_path = $manifestPath
         markdown_path = $markdownPath
