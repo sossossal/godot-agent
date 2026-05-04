@@ -77,6 +77,64 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertNotIn("api", shard_ids)
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
+    def test_quick_profile_keeps_fast_ci_surface_and_standard_keeps_full_pr_surface(self):
+        quick = subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(script_path),
+                "-PythonCommand",
+                sys.executable,
+                "-Profile",
+                "quick",
+                "-Preview",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+        standard = subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(script_path),
+                "-PythonCommand",
+                sys.executable,
+                "-Profile",
+                "standard",
+                "-Preview",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+
+        self.assertEqual(quick.returncode, 0, quick.stderr)
+        self.assertEqual(standard.returncode, 0, standard.stderr)
+        quick_payload = json.loads(quick.stdout)
+        standard_payload = json.loads(standard.stdout)
+        quick_ids = [item["id"] for item in quick_payload["shards"]]
+        standard_ids = [item["id"] for item in standard_payload["shards"]]
+        self.assertEqual(quick_payload["profile"], "quick")
+        self.assertEqual(quick_ids, ["api", "telemetry_templates", "agent_mcp"])
+        self.assertNotIn("p19_cli_contracts", quick_ids)
+        self.assertNotIn("resource_quality", quick_ids)
+        self.assertEqual(standard_payload["profile"], "standard")
+        self.assertIn("p19_cli_contracts", standard_ids)
+        self.assertIn("resource_quality", standard_ids)
+        self.assertGreater(standard_payload["planned_shard_count"], quick_payload["planned_shard_count"])
+
+    @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
     def test_single_shard_report_exposes_status_counts(self):
         output_dir = project_root / "tests" / ".tmp_non_live_shards"
         report_path = output_dir / "non_live_validation_shards.json"

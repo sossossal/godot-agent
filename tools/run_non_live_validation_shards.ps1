@@ -1,7 +1,7 @@
 param(
     [string]$PythonCommand = "",
     [string]$PythonPath = "",
-    [ValidateSet("all", "quick", "release", "customer")]
+    [ValidateSet("all", "quick", "standard", "release", "customer")]
     [string]$Profile = "all",
     [string]$Shard = "",
     [string]$ReportPath = "logs/reports/non_live_validation_shards.json",
@@ -200,7 +200,8 @@ $shards = @(
 )
 
 $profileShardIds = @{
-    quick = @("api", "p19_cli_contracts", "resource_quality", "telemetry_templates", "agent_mcp")
+    quick = @("api", "telemetry_templates", "agent_mcp")
+    standard = @("api", "p19_cli_contracts", "resource_quality", "telemetry_templates", "agent_mcp")
     release = @("release_foundation", "release_ci_support", "release_live_ci", "release_execution", "promotion_core", "promotion_api_export", "promotion_history", "promotion_target", "promotion_redacted")
     customer = @("api", "p19_cli_contracts", "resource_quality", "agent_mcp", "release_foundation")
 }
