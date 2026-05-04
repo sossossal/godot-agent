@@ -306,6 +306,64 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertIn("-FailOnSlowShards", non_live_step["arguments"])
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
+    def test_pr_release_gate_maps_pr_to_quick_and_merge_to_standard_profiles(self):
+        pr = subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(gate_script_path),
+                "-Stage",
+                "pr",
+                "-Mode",
+                "full",
+                "-PythonCommand",
+                sys.executable,
+                "-Preview",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+        merge = subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(gate_script_path),
+                "-Stage",
+                "merge",
+                "-Mode",
+                "full",
+                "-PythonCommand",
+                sys.executable,
+                "-Preview",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+
+        self.assertEqual(pr.returncode, 0, pr.stderr)
+        self.assertEqual(merge.returncode, 0, merge.stderr)
+        pr_payload = json.loads(pr.stdout)
+        merge_payload = json.loads(merge.stdout)
+        self.assertEqual(pr_payload["non_live_profile"], "quick")
+        self.assertEqual(merge_payload["non_live_profile"], "standard")
+        pr_non_live = next(item for item in pr_payload["steps"] if item["id"] == "non_live_validation")
+        merge_non_live = next(item for item in merge_payload["steps"] if item["id"] == "non_live_validation")
+        self.assertIn("quick", pr_non_live["arguments"])
+        self.assertIn("standard", merge_non_live["arguments"])
+
+    @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
     def test_pr_release_gate_preflight_mode_skips_non_live_shards(self):
         completed = subprocess.run(
             [
@@ -369,6 +427,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertEqual(completed.returncode, 0, completed.stderr)
         payload = json.loads(completed.stdout)
         self.assertEqual(payload["prepared_release_fixture_scope"], "preflight")
+        self.assertEqual(payload["non_live_profile"], "standard")
         self.assertEqual(payload["evidence"]["prepared_release_fixture"]["fixture_scope"], "preflight")
         self.assertIsNone(payload["evidence"]["non_live"])
         fixture_step = payload["steps"][1]

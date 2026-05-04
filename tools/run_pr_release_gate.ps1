@@ -241,7 +241,7 @@ $resolvedPython = if (-not [string]::IsNullOrWhiteSpace($PythonCommand)) {
 }
 $nonLiveProfile = switch ($Stage) {
     "pr" { "quick" }
-    "merge" { "quick" }
+    "merge" { "standard" }
     "release" { "release" }
     "customer" { "customer" }
 }
