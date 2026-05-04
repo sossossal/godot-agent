@@ -120,6 +120,22 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["prepared_release_fixture_report_path"].endswith("release_live_fixture.json"))
         self.assertTrue(payload["prepared_release_fixture_markdown_path"].endswith("release_live_fixture.md"))
         self.assertEqual(payload["prepared_release_fixture_scope"], "full")
+        evidence = payload["evidence"]
+        self.assertEqual(evidence["prepared_release_fixture"]["status"], "preview")
+        self.assertEqual(evidence["prepared_release_fixture"]["fixture_scope"], "full")
+        self.assertEqual(evidence["prepared_release_fixture"]["channel"], "staging")
+        self.assertEqual(evidence["prepared_release_fixture"]["manifest_path"], "trial/release_manifest.json")
+        self.assertTrue(evidence["prepared_release_fixture"]["report_path"].endswith("release_live_fixture.json"))
+        self.assertTrue(evidence["prepared_release_fixture"]["markdown_path"].endswith("release_live_fixture.md"))
+        self.assertEqual(evidence["non_live"]["status"], "preview")
+        self.assertEqual(evidence["non_live"]["profile"], "release")
+        self.assertEqual(evidence["non_live"]["failed_shards"], [])
+        self.assertEqual(evidence["non_live"]["slow_shards"], [])
+        self.assertTrue(evidence["non_live"]["report_path"].endswith("non_live_validation_shards.json"))
+        self.assertEqual(evidence["release_live_preflight"]["status"], "preview")
+        self.assertEqual(evidence["release_live_preflight"]["blocking_checks"], [])
+        self.assertEqual(evidence["release_live_preflight"]["warning_checks"], [])
+        self.assertTrue(evidence["release_live_preflight"]["report_path"].endswith("release_live_preflight.json"))
         step_ids = [item["id"] for item in payload["steps"]]
         self.assertEqual(payload["planned_step_count"], len(step_ids))
         self.assertEqual(payload["planned_step_ids"], step_ids)
@@ -169,6 +185,9 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertEqual(payload["non_live_profile"], "customer")
         step_ids = [item["id"] for item in payload["steps"]]
         self.assertEqual(step_ids, ["release_live_preflight"])
+        self.assertIsNone(payload["evidence"]["prepared_release_fixture"])
+        self.assertIsNone(payload["evidence"]["non_live"])
+        self.assertEqual(payload["evidence"]["release_live_preflight"]["status"], "preview")
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
     def test_pr_release_gate_preflight_fixture_uses_lightweight_scope(self):
@@ -199,6 +218,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertEqual(completed.returncode, 0, completed.stderr)
         payload = json.loads(completed.stdout)
         self.assertEqual(payload["prepared_release_fixture_scope"], "preflight")
+        self.assertEqual(payload["evidence"]["prepared_release_fixture"]["fixture_scope"], "preflight")
+        self.assertIsNone(payload["evidence"]["non_live"])
         fixture_step = payload["steps"][1]
         self.assertEqual(fixture_step["id"], "prepare_release_fixture")
         self.assertIn("--scope", fixture_step["arguments"])

@@ -336,6 +336,49 @@ if ($Preview) {
         prepared_release_fixture_report_path = $preparedFixtureReportPath
         prepared_release_fixture_markdown_path = $preparedFixtureMarkdownPath
         release_live_preflight_report_path = $livePreflightReportPath
+        evidence = [ordered]@{
+            prepared_release_fixture = if ($PrepareReleaseFixture) {
+                [ordered]@{
+                    status = "preview"
+                    fixture_scope = $preparedFixtureScope
+                    channel = $PreparedReleaseChannel
+                    build_id = ""
+                    version = ""
+                    manifest_path = $ReleaseManifestPath
+                    report_path = $preparedFixtureReportPath
+                    markdown_path = $preparedFixtureMarkdownPath
+                }
+            } else {
+                $null
+            }
+            non_live = if ($runNonLive) {
+                [ordered]@{
+                    status = "preview"
+                    profile = $nonLiveProfile
+                    shard_count = 0
+                    total_duration_seconds = 0.0
+                    slow_shard_gate = ""
+                    fail_on_slow_shards = [bool]$FailOnSlowShards
+                    failed_shards = @()
+                    slow_shards = @()
+                    report_path = $nonLiveReportPath
+                    markdown_path = $nonLiveMarkdownPath
+                }
+            } else {
+                $null
+            }
+            release_live_preflight = if ($runLivePreflight) {
+                [ordered]@{
+                    status = "preview"
+                    blocking_checks = @()
+                    warning_checks = @()
+                    report_path = $livePreflightReportPath
+                    markdown_path = $livePreflightMarkdownPath
+                }
+            } else {
+                $null
+            }
+        }
         release_manifest_path = $ReleaseManifestPath
         browser_path = $BrowserPath
         blocked_steps = @()
