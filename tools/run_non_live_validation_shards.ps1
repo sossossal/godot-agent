@@ -78,6 +78,110 @@ $resolvedPythonPath = if (-not [string]::IsNullOrWhiteSpace($PythonPath)) {
 } else {
     ($defaultPythonPathEntries -join [System.IO.Path]::PathSeparator)
 }
+
+function Write-NonLiveValidationReport {
+    param(
+        [object[]]$Results,
+        [bool]$OverallOk,
+        [string]$StartedAt,
+        [string]$ReportState
+    )
+
+    $completedIds = @($Results | ForEach-Object { $_.id })
+    $pendingShardIds = @($shards | Where-Object { $completedIds -notcontains $_.id } | ForEach-Object { $_.id })
+    $totalDurationSeconds = [Math]::Round((@($Results) | Measure-Object -Property duration_seconds -Sum).Sum, 2)
+    $passedCount = @($Results | Where-Object { $_.status -eq "passed" }).Count
+    $blockedCount = @($Results | Where-Object { $_.status -eq "blocked" }).Count
+    $timeoutCount = @($Results | Where-Object { $_.status -eq "timeout" }).Count
+    $statusCounts = [ordered]@{
+        passed = $passedCount
+        blocked = $blockedCount
+        timeout = $timeoutCount
+    }
+    $slowShards = @(
+        $Results |
+            Where-Object { [double]$_.duration_seconds -ge [double]$SlowShardSeconds } |
+            Sort-Object -Property duration_seconds -Descending |
+            ForEach-Object {
+                [ordered]@{
+                    id = $_.id
+                    label = $_.label
+                    duration_seconds = $_.duration_seconds
+                    status = $_.status
+                }
+            }
+    )
+    $effectiveOk = $OverallOk
+    if ($FailOnSlowShards -and $slowShards.Count -gt 0) {
+        $effectiveOk = $false
+    }
+    if ($ReportState -ne "complete") {
+        $effectiveOk = $false
+    }
+
+    $payload = [ordered]@{
+        schema_version = "1.0"
+        ok = $effectiveOk
+        status = if ($ReportState -ne "complete") { "running" } elseif ($effectiveOk) { "passed" } else { "blocked" }
+        report_state = $ReportState
+        profile = $Profile
+        started_at = $StartedAt
+        finished_at = (Get-Date).ToUniversalTime().ToString("o")
+        python_command = $resolvedPython
+        python_path = $env:PYTHONPATH
+        planned_shard_count = @($shards).Count
+        completed_shard_count = @($Results).Count
+        pending_shard_count = @($pendingShardIds).Count
+        pending_shards = $pendingShardIds
+        shard_count = @($Results).Count
+        passed_count = $passedCount
+        blocked_count = $blockedCount
+        timeout_count = $timeoutCount
+        status_counts = $statusCounts
+        total_duration_seconds = $totalDurationSeconds
+        slow_shard_threshold_seconds = $SlowShardSeconds
+        fail_on_slow_shards = [bool]$FailOnSlowShards
+        slow_shard_gate = if ($FailOnSlowShards -and $slowShards.Count -gt 0) { "blocked" } elseif ($slowShards.Count -gt 0) { "warning" } else { "passed" }
+        slow_shards = $slowShards
+        recommended_followup_shards = @($slowShards | ForEach-Object { $_.id })
+        failed_shards = @($Results | Where-Object { $_.status -ne "passed" } | ForEach-Object { $_.id })
+        results = $Results
+    }
+
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $resolvedReportPath) | Out-Null
+    $payload | ConvertTo-Json -Depth 8 | Set-Content -Path $resolvedReportPath -Encoding utf8
+
+    $lines = @(
+        "# Non-Live Validation Shards",
+        "",
+        "- Status: $($payload.status)",
+        "- Report state: $($payload.report_state)",
+        "- Profile: $($payload.profile)",
+        "- Planned shards: $($payload.planned_shard_count)",
+        "- Completed shards: $($payload.completed_shard_count)",
+        "- Pending shards: $($payload.pending_shard_count)",
+        "- Pending shard ids: $((@($payload.pending_shards) -join ', '))",
+        "- Shards: $($payload.shard_count)",
+        "- Passed count: $($payload.passed_count)",
+        "- Blocked count: $($payload.blocked_count)",
+        "- Timeout count: $($payload.timeout_count)",
+        "- Total seconds: $($payload.total_duration_seconds)",
+        "- Slow threshold seconds: $($payload.slow_shard_threshold_seconds)",
+        "- Slow shard gate: $($payload.slow_shard_gate)",
+        "- Slow shards: $((@($payload.recommended_followup_shards) -join ', '))",
+        "- Failed: $((@($payload.failed_shards) -join ', '))",
+        "",
+        "| Shard | Status | Seconds |",
+        "| --- | --- | --- |"
+    )
+    foreach ($result in @($Results | Sort-Object -Property duration_seconds -Descending)) {
+        $lines += "| $($result.id) | $($result.status) | $($result.duration_seconds) |"
+    }
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $resolvedMarkdownPath) | Out-Null
+    $lines | Set-Content -Path $resolvedMarkdownPath -Encoding utf8
+
+    return $payload
+}
 $shards = @(
     (New-Shard -Id "api" -Label "API endpoints and Portal surface" -PytestArgs @("tests/test_api.py")),
     (New-Shard -Id "p19_cli_contracts" -Label "P19 replay, CLI, contracts, and Godot CLI" -PytestArgs @("tests/test_godot_cli.py", "tests/test_game_creation_wizard.py", "tests/test_contracts.py", "tests/test_cli.py")),
@@ -120,6 +224,7 @@ if ($Preview) {
         ok = $true
         preview = $true
         status = "preview"
+        report_state = "preview"
         profile = $Profile
         generated_at = (Get-Date).ToUniversalTime().ToString("o")
         python_command = $resolvedPython
@@ -129,6 +234,10 @@ if ($Preview) {
         shard_timeout_seconds = $ShardTimeoutSeconds
         slow_shard_threshold_seconds = $SlowShardSeconds
         fail_on_slow_shards = [bool]$FailOnSlowShards
+        planned_shard_count = @($shards).Count
+        completed_shard_count = 0
+        pending_shard_count = @($shards).Count
+        pending_shards = @($shards | ForEach-Object { $_.id })
         shard_count = @($shards).Count
         passed_count = 0
         blocked_count = 0
@@ -177,8 +286,8 @@ try {
         }
         $process.Refresh()
         $duration = [Math]::Round(((Get-Date) - $start).TotalSeconds, 2)
-        $stdout = if (Test-Path $stdoutPath) { [string](Get-Content -LiteralPath $stdoutPath -Raw) } else { "" }
-        $stderr = if (Test-Path $stderrPath) { [string](Get-Content -LiteralPath $stderrPath -Raw) } else { "" }
+        $stdout = if (Test-Path $stdoutPath) { [System.IO.File]::ReadAllText($stdoutPath) } else { "" }
+        $stderr = if (Test-Path $stderrPath) { [System.IO.File]::ReadAllText($stderrPath) } else { "" }
         $exitCode = if ($completed) { [int]$process.ExitCode } else { 124 }
         $passed = ($completed -and $exitCode -eq 0)
         if (-not $passed) {
@@ -194,90 +303,15 @@ try {
             stdout_tail = if ($stdout.Length -gt 4000) { $stdout.Substring($stdout.Length - 4000) } else { $stdout }
             stderr_tail = if ($stderr.Length -gt 4000) { $stderr.Substring($stderr.Length - 4000) } else { $stderr }
         }
+        Write-NonLiveValidationReport -Results $results -OverallOk $overallOk -StartedAt $startedAt -ReportState "running" | Out-Null
         if (-not $passed -and -not $ContinueOnFailure) {
             break
         }
     }
 
-    $totalDurationSeconds = [Math]::Round((@($results) | Measure-Object -Property duration_seconds -Sum).Sum, 2)
-    $passedCount = @($results | Where-Object { $_.status -eq "passed" }).Count
-    $blockedCount = @($results | Where-Object { $_.status -eq "blocked" }).Count
-    $timeoutCount = @($results | Where-Object { $_.status -eq "timeout" }).Count
-    $statusCounts = [ordered]@{
-        passed = $passedCount
-        blocked = $blockedCount
-        timeout = $timeoutCount
-    }
-    $slowShards = @(
-        $results |
-            Where-Object { [double]$_.duration_seconds -ge [double]$SlowShardSeconds } |
-            Sort-Object -Property duration_seconds -Descending |
-            ForEach-Object {
-                [ordered]@{
-                    id = $_.id
-                    label = $_.label
-                    duration_seconds = $_.duration_seconds
-                    status = $_.status
-                }
-            }
-    )
-    if ($FailOnSlowShards -and $slowShards.Count -gt 0) {
-        $overallOk = $false
-    }
-
-    $payload = [ordered]@{
-        schema_version = "1.0"
-        ok = $overallOk
-        status = if ($overallOk) { "passed" } else { "blocked" }
-        profile = $Profile
-        started_at = $startedAt
-        finished_at = (Get-Date).ToUniversalTime().ToString("o")
-        python_command = $resolvedPython
-        python_path = $env:PYTHONPATH
-        shard_count = $results.Count
-        passed_count = $passedCount
-        blocked_count = $blockedCount
-        timeout_count = $timeoutCount
-        status_counts = $statusCounts
-        total_duration_seconds = $totalDurationSeconds
-        slow_shard_threshold_seconds = $SlowShardSeconds
-        fail_on_slow_shards = [bool]$FailOnSlowShards
-        slow_shard_gate = if ($FailOnSlowShards -and $slowShards.Count -gt 0) { "blocked" } elseif ($slowShards.Count -gt 0) { "warning" } else { "passed" }
-        slow_shards = $slowShards
-        recommended_followup_shards = @($slowShards | ForEach-Object { $_.id })
-        failed_shards = @($results | Where-Object { $_.status -ne "passed" } | ForEach-Object { $_.id })
-        results = $results
-    }
-
-    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $resolvedReportPath) | Out-Null
-    $payload | ConvertTo-Json -Depth 8 | Set-Content -Path $resolvedReportPath -Encoding utf8
-
-    $lines = @(
-        "# Non-Live Validation Shards",
-        "",
-        "- Status: $($payload.status)",
-        "- Profile: $($payload.profile)",
-        "- Shards: $($payload.shard_count)",
-        "- Passed count: $($payload.passed_count)",
-        "- Blocked count: $($payload.blocked_count)",
-        "- Timeout count: $($payload.timeout_count)",
-        "- Total seconds: $($payload.total_duration_seconds)",
-        "- Slow threshold seconds: $($payload.slow_shard_threshold_seconds)",
-        "- Slow shard gate: $($payload.slow_shard_gate)",
-        "- Slow shards: $((@($payload.recommended_followup_shards) -join ', '))",
-        "- Failed: $((@($payload.failed_shards) -join ', '))",
-        "",
-        "| Shard | Status | Seconds |",
-        "| --- | --- | --- |"
-    )
-    foreach ($result in @($results | Sort-Object -Property duration_seconds -Descending)) {
-        $lines += "| $($result.id) | $($result.status) | $($result.duration_seconds) |"
-    }
-    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $resolvedMarkdownPath) | Out-Null
-    $lines | Set-Content -Path $resolvedMarkdownPath -Encoding utf8
-
+    $payload = Write-NonLiveValidationReport -Results $results -OverallOk $overallOk -StartedAt $startedAt -ReportState "complete"
     $payload | ConvertTo-Json -Depth 8
-    if (-not $overallOk) {
+    if (-not $payload.ok) {
         exit 1
     }
 } finally {
