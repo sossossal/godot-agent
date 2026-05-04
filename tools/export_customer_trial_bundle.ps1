@@ -217,6 +217,9 @@ if ($Preview) {
         recommended_action_count = 0
         recommended_actions = @()
         recommended_action_items = @()
+        evidence_file_count = 0
+        evidence_files = @()
+        missing_evidence_files = @()
         prepare_release_fixture = [bool]$PrepareReleaseFixture
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
