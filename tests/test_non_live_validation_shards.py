@@ -111,6 +111,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["prepared_release_fixture_markdown_path"].endswith("release_live_fixture.md"))
         self.assertEqual(payload["prepared_release_fixture_scope"], "full")
         step_ids = [item["id"] for item in payload["steps"]]
+        self.assertEqual(payload["planned_step_count"], len(step_ids))
+        self.assertEqual(payload["planned_step_ids"], step_ids)
         self.assertEqual(payload["step_count"], len(step_ids))
         self.assertEqual(payload["step_ids"], step_ids)
         self.assertEqual(step_ids, ["git_diff_check", "prepare_release_fixture", "non_live_validation", "release_live_preflight"])
@@ -336,6 +338,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertEqual([item["id"] for item in payload["command_records"]], ["sync_plugin", "doctor", "customer_gate"])
         step_ids = [item["id"] for item in payload["steps"]]
         self.assertEqual(payload["command_count"], len(payload["command_records"]))
+        self.assertEqual(payload["planned_step_count"], len(step_ids))
+        self.assertEqual(payload["planned_step_ids"], step_ids)
         self.assertEqual(payload["step_count"], len(step_ids))
         self.assertEqual(payload["command_ids"], [item["id"] for item in payload["command_records"]])
         self.assertEqual(payload["step_ids"], step_ids)

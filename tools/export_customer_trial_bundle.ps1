@@ -205,6 +205,8 @@ if ($Preview) {
         restore_prepared_fixture = [bool]$RestorePreparedFixture
         sync_plugin_before_doctor = [bool]$SyncPluginBeforeDoctor
         command_count = @($commandRecords).Count
+        planned_step_count = @($steps).Count
+        planned_step_ids = $plannedStepIds
         step_count = @($steps).Count
         command_ids = $commandIds
         step_ids = $plannedStepIds

@@ -344,6 +344,8 @@ if ($Preview) {
         prepared_release_fixture_state_root = if ($PrepareReleaseFixture -and $RestorePreparedFixture) { $preparedFixtureStateRoot } else { $null }
         prepared_release_channel = $PreparedReleaseChannel
         prepared_release_fixture_scope = $preparedFixtureScope
+        planned_step_count = @($stepPlan).Count
+        planned_step_ids = $plannedStepIds
         step_count = @($stepPlan).Count
         step_ids = $plannedStepIds
         steps = $stepPlan
