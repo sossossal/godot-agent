@@ -130,6 +130,14 @@ if ($Preview) {
         slow_shard_threshold_seconds = $SlowShardSeconds
         fail_on_slow_shards = [bool]$FailOnSlowShards
         shard_count = @($shards).Count
+        passed_count = 0
+        blocked_count = 0
+        timeout_count = 0
+        status_counts = [ordered]@{
+            passed = 0
+            blocked = 0
+            timeout = 0
+        }
         total_duration_seconds = 0.0
         slow_shard_gate = "preview"
         slow_shards = @()
@@ -167,15 +175,16 @@ try {
             Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
             $process.WaitForExit()
         }
+        $process.Refresh()
         $duration = [Math]::Round(((Get-Date) - $start).TotalSeconds, 2)
-        $stdout = if (Test-Path $stdoutPath) { Get-Content -Raw $stdoutPath } else { "" }
-        $stderr = if (Test-Path $stderrPath) { Get-Content -Raw $stderrPath } else { "" }
-        $exitCode = if ($completed) { $process.ExitCode } else { 124 }
+        $stdout = if (Test-Path $stdoutPath) { [string](Get-Content -LiteralPath $stdoutPath -Raw) } else { "" }
+        $stderr = if (Test-Path $stderrPath) { [string](Get-Content -LiteralPath $stderrPath -Raw) } else { "" }
+        $exitCode = if ($completed) { [int]$process.ExitCode } else { 124 }
         $passed = ($completed -and $exitCode -eq 0)
         if (-not $passed) {
             $overallOk = $false
         }
-        $results += [ordered]@{
+        $results += [pscustomobject][ordered]@{
             id = $entry.id
             label = $entry.label
             status = if ($passed) { "passed" } elseif (-not $completed) { "timeout" } else { "blocked" }
@@ -191,6 +200,14 @@ try {
     }
 
     $totalDurationSeconds = [Math]::Round((@($results) | Measure-Object -Property duration_seconds -Sum).Sum, 2)
+    $passedCount = @($results | Where-Object { $_.status -eq "passed" }).Count
+    $blockedCount = @($results | Where-Object { $_.status -eq "blocked" }).Count
+    $timeoutCount = @($results | Where-Object { $_.status -eq "timeout" }).Count
+    $statusCounts = [ordered]@{
+        passed = $passedCount
+        blocked = $blockedCount
+        timeout = $timeoutCount
+    }
     $slowShards = @(
         $results |
             Where-Object { [double]$_.duration_seconds -ge [double]$SlowShardSeconds } |
@@ -218,6 +235,10 @@ try {
         python_command = $resolvedPython
         python_path = $env:PYTHONPATH
         shard_count = $results.Count
+        passed_count = $passedCount
+        blocked_count = $blockedCount
+        timeout_count = $timeoutCount
+        status_counts = $statusCounts
         total_duration_seconds = $totalDurationSeconds
         slow_shard_threshold_seconds = $SlowShardSeconds
         fail_on_slow_shards = [bool]$FailOnSlowShards
@@ -237,6 +258,9 @@ try {
         "- Status: $($payload.status)",
         "- Profile: $($payload.profile)",
         "- Shards: $($payload.shard_count)",
+        "- Passed count: $($payload.passed_count)",
+        "- Blocked count: $($payload.blocked_count)",
+        "- Timeout count: $($payload.timeout_count)",
         "- Total seconds: $($payload.total_duration_seconds)",
         "- Slow threshold seconds: $($payload.slow_shard_threshold_seconds)",
         "- Slow shard gate: $($payload.slow_shard_gate)",

@@ -55,6 +55,10 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["generated_at"])
         self.assertEqual(payload["slow_shard_threshold_seconds"], 1)
         self.assertTrue(payload["fail_on_slow_shards"])
+        self.assertEqual(payload["passed_count"], 0)
+        self.assertEqual(payload["blocked_count"], 0)
+        self.assertEqual(payload["timeout_count"], 0)
+        self.assertEqual(payload["status_counts"], {"passed": 0, "blocked": 0, "timeout": 0})
         self.assertEqual(payload["total_duration_seconds"], 0.0)
         self.assertEqual(payload["slow_shard_gate"], "preview")
         self.assertEqual(payload["slow_shards"], [])
@@ -66,6 +70,58 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertIn("release_live_ci", shard_ids)
         self.assertIn("promotion_history", shard_ids)
         self.assertNotIn("api", shard_ids)
+
+    @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
+    def test_single_shard_report_exposes_status_counts(self):
+        output_dir = project_root / "tests" / ".tmp_non_live_shards"
+        report_path = output_dir / "non_live_validation_shards.json"
+        markdown_path = output_dir / "non_live_validation_shards.md"
+        shutil.rmtree(output_dir, ignore_errors=True)
+        try:
+            completed = subprocess.run(
+                [
+                    "powershell",
+                    "-NoProfile",
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-File",
+                    str(script_path),
+                    "-PythonCommand",
+                    sys.executable,
+                    "-Shard",
+                    "promotion_redacted",
+                    "-ReportPath",
+                    str(report_path),
+                    "-MarkdownPath",
+                    str(markdown_path),
+                    "-SlowShardSeconds",
+                    "0",
+                    "-ContinueOnFailure",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                check=False,
+            )
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            payload = json.loads(report_path.read_text(encoding="utf-8-sig"))
+            results = payload["results"]
+            self.assertEqual(payload["shard_count"], len(results))
+            self.assertEqual(payload["passed_count"], len([item for item in results if item["status"] == "passed"]))
+            self.assertEqual(payload["blocked_count"], len([item for item in results if item["status"] == "blocked"]))
+            self.assertEqual(payload["timeout_count"], len([item for item in results if item["status"] == "timeout"]))
+            self.assertEqual(payload["status_counts"]["passed"], payload["passed_count"])
+            self.assertEqual(payload["status_counts"]["blocked"], payload["blocked_count"])
+            self.assertEqual(payload["status_counts"]["timeout"], payload["timeout_count"])
+
+            markdown = markdown_path.read_text(encoding="utf-8-sig")
+            self.assertIn(f"- Passed count: {payload['passed_count']}", markdown)
+            self.assertIn(f"- Blocked count: {payload['blocked_count']}", markdown)
+            self.assertIn(f"- Timeout count: {payload['timeout_count']}", markdown)
+        finally:
+            shutil.rmtree(output_dir, ignore_errors=True)
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
     def test_pr_release_gate_preview_maps_stages_to_profiles(self):
