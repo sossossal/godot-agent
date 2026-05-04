@@ -47,12 +47,16 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
 
         self.assertEqual(completed.returncode, 0, completed.stderr)
         payload = json.loads(completed.stdout)
+        self.assertEqual(payload["schema_version"], "1.0")
         self.assertTrue(payload["ok"])
         self.assertTrue(payload["preview"])
+        self.assertEqual(payload["status"], "preview")
         self.assertEqual(payload["profile"], "release")
+        self.assertTrue(payload["generated_at"])
         self.assertEqual(payload["slow_shard_threshold_seconds"], 1)
         self.assertTrue(payload["fail_on_slow_shards"])
         shard_ids = [item["id"] for item in payload["shards"]]
+        self.assertEqual(payload["shard_count"], len(shard_ids))
         self.assertIn("release_live_ci", shard_ids)
         self.assertIn("promotion_history", shard_ids)
         self.assertNotIn("api", shard_ids)

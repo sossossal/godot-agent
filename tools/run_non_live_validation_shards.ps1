@@ -116,9 +116,12 @@ if (-not [string]::IsNullOrWhiteSpace($Shard)) {
 
 if ($Preview) {
     [ordered]@{
+        schema_version = "1.0"
         ok = $true
         preview = $true
+        status = "preview"
         profile = $Profile
+        generated_at = (Get-Date).ToUniversalTime().ToString("o")
         python_command = $resolvedPython
         python_path = $resolvedPythonPath
         report_path = $resolvedReportPath
@@ -126,6 +129,7 @@ if ($Preview) {
         shard_timeout_seconds = $ShardTimeoutSeconds
         slow_shard_threshold_seconds = $SlowShardSeconds
         fail_on_slow_shards = [bool]$FailOnSlowShards
+        shard_count = @($shards).Count
         shards = $shards
     } | ConvertTo-Json -Depth 8
     exit 0
