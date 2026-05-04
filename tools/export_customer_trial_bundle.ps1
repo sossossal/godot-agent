@@ -207,6 +207,8 @@ if ($Preview) {
         command_count = @($commandRecords).Count
         planned_step_count = @($steps).Count
         planned_step_ids = $plannedStepIds
+        skipped_step_count = 0
+        skipped_step_ids = @()
         step_count = @($steps).Count
         command_ids = $commandIds
         step_ids = $plannedStepIds

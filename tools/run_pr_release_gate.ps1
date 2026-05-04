@@ -346,6 +346,8 @@ if ($Preview) {
         prepared_release_fixture_scope = $preparedFixtureScope
         planned_step_count = @($stepPlan).Count
         planned_step_ids = $plannedStepIds
+        skipped_step_count = 0
+        skipped_step_ids = @()
         step_count = @($stepPlan).Count
         step_ids = $plannedStepIds
         steps = $stepPlan
