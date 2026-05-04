@@ -664,6 +664,12 @@ try {
     $nonLiveReportState = if ($null -eq $nonLiveSummary) { "None" } else { [string]$nonLiveSummary.report_state }
     $nonLiveCompleted = if ($null -eq $nonLiveSummary) { 0 } else { [int]$nonLiveSummary.completed_shard_count }
     $nonLivePending = if ($null -eq $nonLiveSummary) { 0 } else { [int]$nonLiveSummary.pending_shard_count }
+    $nonLivePassed = if ($null -eq $nonLiveSummary) { 0 } else { [int]$nonLiveSummary.passed_count }
+    $nonLiveBlocked = if ($null -eq $nonLiveSummary) { 0 } else { [int]$nonLiveSummary.blocked_count }
+    $nonLiveTimeout = if ($null -eq $nonLiveSummary) { 0 } else { [int]$nonLiveSummary.timeout_count }
+    $nonLivePendingList = if ($null -eq $nonLiveSummary) { "None" } else { Format-ListOrNone @($nonLiveSummary.pending_shards) }
+    $nonLiveFailedList = if ($null -eq $nonLiveSummary) { "None" } else { Format-ListOrNone @($nonLiveSummary.failed_shards) }
+    $nonLiveSlowList = if ($null -eq $nonLiveSummary) { "None" } else { Format-ListOrNone @($nonLiveSummary.slow_shards) }
     $lines = @(
         "# Customer Trial Bundle",
         "",
@@ -698,6 +704,12 @@ try {
         "- Non-live report state: $nonLiveReportState",
         "- Non-live completed shards: $nonLiveCompleted",
         "- Non-live pending shards: $nonLivePending",
+        "- Non-live passed shards: $nonLivePassed",
+        "- Non-live blocked shards: $nonLiveBlocked",
+        "- Non-live timeout shards: $nonLiveTimeout",
+        "- Non-live pending shard ids: $nonLivePendingList",
+        "- Non-live failed shard ids: $nonLiveFailedList",
+        "- Non-live slow shard ids: $nonLiveSlowList",
         "- Rerun commands: $($payload.command_count)",
         "",
         "## Recommended Actions",
