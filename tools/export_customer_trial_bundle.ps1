@@ -357,6 +357,26 @@ try {
             }
     )
     $recommendedActions = @($recommendedActionItems | ForEach-Object { [string]$_.action })
+    $livePreflightSummary = if ($livePreflightReport) {
+        [ordered]@{
+            status = [string]$livePreflightReport.status
+            check_count = [int]$livePreflightReport.check_count
+            passed_count = [int]$livePreflightReport.passed_count
+            blocking_count = [int]$livePreflightReport.blocking_count
+            warning_count = [int]$livePreflightReport.warning_count
+            status_counts = [ordered]@{
+                passed = [int]$livePreflightReport.status_counts.passed
+                blocked = [int]$livePreflightReport.status_counts.blocked
+                warning = [int]$livePreflightReport.status_counts.warning
+            }
+            blocking_checks = @($livePreflightReport.blocking_checks)
+            warning_checks = @($livePreflightReport.warning_checks)
+            report_path = Join-Path $gateArtifactDir "release_live_preflight.json"
+            markdown_path = Join-Path $gateArtifactDir "release_live_preflight.md"
+        }
+    } else {
+        $null
+    }
     $readinessLevel = if (-not $overallOk) {
         "blocked"
     } elseif (@($recommendedActions).Count -gt 0) {
@@ -426,6 +446,7 @@ try {
         recommended_action_count = @($recommendedActions).Count
         recommended_actions = $recommendedActions
         recommended_action_items = $recommendedActionItems
+        live_preflight_summary = $livePreflightSummary
         evidence_file_count = @($readinessEvidenceFiles).Count
         evidence_files = $readinessEvidenceFiles
         command_count = @($commandRecords).Count
@@ -480,6 +501,7 @@ try {
         recommended_action_items = $recommendedActionItems
         readiness_level = $readinessLevel
         readiness_summary = $readinessSummary
+        live_preflight_summary = $livePreflightSummary
         command_count = @($commandRecords).Count
         command_ids = $commandIds
         command_records = $commandRecords
@@ -530,6 +552,10 @@ try {
         "- Blocked count: $($payload.blocked_count)",
         "- Blocked: $blockedStepList",
         "- Recommended actions: $($payload.recommended_action_count)",
+        "- Live preflight: $($livePreflightSummary.status)",
+        "- Live preflight checks: $($livePreflightSummary.check_count)",
+        "- Live preflight blocking count: $($livePreflightSummary.blocking_count)",
+        "- Live preflight warning count: $($livePreflightSummary.warning_count)",
         "- Rerun commands: $($payload.command_count)",
         "",
         "## Recommended Actions",
