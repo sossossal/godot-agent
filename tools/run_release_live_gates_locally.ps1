@@ -374,12 +374,24 @@ $preflightChecks += if ($missingRunnerLabels.Count -eq 0) {
     New-PreflightCheck -Id "runner_labels" -Status "warning" -Message ("runner labels missing: " + ($missingRunnerLabels -join ", ")) -Path $normalizedRunnerLabels -Remediation "Use runner labels that include self-hosted, windows, and godot for release-live-gates."
 }
 $preflightStatus = Get-PreflightStatus -Checks $preflightChecks
+$preflightPassedCount = @($preflightChecks | Where-Object { $_.status -eq "passed" }).Count
+$preflightBlockingCount = @($preflightChecks | Where-Object { $_.status -eq "blocked" }).Count
+$preflightWarningCount = @($preflightChecks | Where-Object { $_.status -eq "warning" }).Count
 $preflightPayload = [ordered]@{
     schema_version = "1.0"
     status = $preflightStatus
     generated_at = (Get-Date).ToUniversalTime().ToString("o")
     project_root = $resolvedProjectRoot
     runtime_root = $resolvedRuntimeRoot
+    check_count = @($preflightChecks).Count
+    passed_count = $preflightPassedCount
+    blocking_count = $preflightBlockingCount
+    warning_count = $preflightWarningCount
+    status_counts = [ordered]@{
+        passed = $preflightPassedCount
+        blocked = $preflightBlockingCount
+        warning = $preflightWarningCount
+    }
     blocking_checks = @($preflightChecks | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
     warning_checks = @($preflightChecks | Where-Object { $_.status -eq "warning" } | ForEach-Object { $_.id })
     checks = $preflightChecks
@@ -393,6 +405,10 @@ if ($Preflight) {
         "# Release Live Local Preflight",
         "",
         "- Status: $($preflightPayload.status)",
+        "- Checks: $($preflightPayload.check_count)",
+        "- Passed count: $($preflightPayload.passed_count)",
+        "- Blocking count: $($preflightPayload.blocking_count)",
+        "- Warning count: $($preflightPayload.warning_count)",
         "- Blocking: $((@($preflightPayload.blocking_checks) -join ', '))",
         "- Warning: $((@($preflightPayload.warning_checks) -join ', '))",
         "",

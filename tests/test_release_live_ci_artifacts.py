@@ -1116,6 +1116,24 @@ foreach ($root in @($runtimeRoot, $projectRoot)) {
         self.assertFalse(payload["preflight"])
         self.assertIn(payload["preflight_status"], {"passed", "warning"})
         self.assertEqual(payload["preflight_checks"]["blocking_checks"], [])
+        self.assertEqual(payload["preflight_checks"]["check_count"], len(payload["preflight_checks"]["checks"]))
+        self.assertEqual(payload["preflight_checks"]["blocking_count"], 0)
+        self.assertEqual(
+            payload["preflight_checks"]["passed_count"],
+            len([item for item in payload["preflight_checks"]["checks"] if item["status"] == "passed"]),
+        )
+        self.assertEqual(
+            payload["preflight_checks"]["warning_count"],
+            len(payload["preflight_checks"]["warning_checks"]),
+        )
+        self.assertEqual(
+            payload["preflight_checks"]["status_counts"],
+            {
+                "passed": payload["preflight_checks"]["passed_count"],
+                "blocked": payload["preflight_checks"]["blocking_count"],
+                "warning": payload["preflight_checks"]["warning_count"],
+            },
+        )
         self.assertNotIn("release_manifest", payload["preflight_checks"]["blocking_checks"])
         self.assertEqual(payload["invocation_source"], "local_replay")
         self.assertEqual(
@@ -1194,12 +1212,18 @@ foreach ($root in @($runtimeRoot, $projectRoot)) {
         self.assertTrue(payload["preflight"])
         self.assertEqual(payload["preflight_status"], "blocked")
         self.assertIn("release_manifest", payload["preflight_checks"]["blocking_checks"])
+        self.assertEqual(payload["preflight_checks"]["blocking_count"], len(payload["preflight_checks"]["blocking_checks"]))
+        self.assertEqual(payload["preflight_checks"]["warning_count"], len(payload["preflight_checks"]["warning_checks"]))
         manifest_check = next(
             item for item in payload["preflight_checks"]["checks"] if item["id"] == "release_manifest"
         )
         self.assertIn("-ReleaseManifestPath", manifest_check["remediation"])
         self.assertTrue(Path(payload["preflight_report_path"]).exists())
         self.assertTrue(Path(payload["preflight_markdown_path"]).exists())
+        markdown = Path(payload["preflight_markdown_path"]).read_text(encoding="utf-8-sig")
+        self.assertIn(f"- Checks: {payload['preflight_checks']['check_count']}", markdown)
+        self.assertIn(f"- Blocking count: {payload['preflight_checks']['blocking_count']}", markdown)
+        self.assertIn(f"- Warning count: {payload['preflight_checks']['warning_count']}", markdown)
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
     def test_run_release_live_gates_locally_preflight_allows_missing_manifest_when_fixture_planned(self):
@@ -1241,6 +1265,8 @@ foreach ($root in @($runtimeRoot, $projectRoot)) {
         self.assertTrue(payload["release_live_fixture_report_path"].endswith("release_live_fixture.json"))
         self.assertNotIn("release_manifest", payload["preflight_checks"]["blocking_checks"])
         self.assertIn("release_manifest", payload["preflight_checks"]["warning_checks"])
+        self.assertEqual(payload["preflight_checks"]["blocking_count"], 0)
+        self.assertGreaterEqual(payload["preflight_checks"]["warning_count"], 1)
 
     @unittest.skipUnless(sys.platform.startswith("win"), "requires PowerShell")
     def test_run_release_live_gates_locally_executes_release_replay_and_writes_step_summary(self):
