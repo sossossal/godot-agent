@@ -494,6 +494,8 @@ try {
     $plannedStepList = Format-ListOrNone @($payload.planned_step_ids)
     $skippedStepList = Format-ListOrNone @($payload.skipped_step_ids)
     $stepList = Format-ListOrNone @($payload.step_ids)
+    $blockedStepList = Format-ListOrNone @($payload.blocked_steps)
+    $warningStepList = Format-ListOrNone @($payload.warning_steps)
     $lines = @(
         "# PR Release Gate",
         "",
@@ -514,8 +516,8 @@ try {
         "- Passed count: $($payload.passed_count)",
         "- Blocked count: $($payload.blocked_count)",
         "- Warning count: $($payload.warning_count)",
-        "- Blocked: $((@($payload.blocked_steps) -join ', '))",
-        "- Warnings: $((@($payload.warning_steps) -join ', '))",
+        "- Blocked: $blockedStepList",
+        "- Warnings: $warningStepList",
         "- Continue on failure: $([bool]$ContinueOnFailure)",
         "- Prepare release fixture: $([bool]$PrepareReleaseFixture)",
         "- Prepared release channel: $PreparedReleaseChannel",

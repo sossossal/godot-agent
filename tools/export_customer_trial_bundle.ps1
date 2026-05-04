@@ -478,6 +478,7 @@ try {
     $plannedStepList = Format-ListOrNone @($payload.planned_step_ids)
     $skippedStepList = Format-ListOrNone @($payload.skipped_step_ids)
     $stepList = Format-ListOrNone @($payload.step_ids)
+    $blockedStepList = Format-ListOrNone @($payload.blocked_steps)
     $lines = @(
         "# Customer Trial Bundle",
         "",
@@ -502,7 +503,7 @@ try {
         "- Step ids: $stepList",
         "- Passed count: $($payload.passed_count)",
         "- Blocked count: $($payload.blocked_count)",
-        "- Blocked: $((@($payload.blocked_steps) -join ', '))",
+        "- Blocked: $blockedStepList",
         "- Recommended actions: $($payload.recommended_action_count)",
         "- Rerun commands: $($payload.command_count)",
         "",

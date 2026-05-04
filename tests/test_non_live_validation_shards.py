@@ -465,6 +465,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertIn(f"- Step ids: {', '.join(payload['step_ids'])}", markdown)
             self.assertIn(f"- Passed count: {payload['passed_count']}", markdown)
             self.assertIn(f"- Blocked count: {payload['blocked_count']}", markdown)
+            payload_blocked_label = ", ".join(payload["blocked_steps"]) if payload["blocked_steps"] else "None"
+            self.assertIn(f"- Blocked: {payload_blocked_label}", markdown)
             self.assertIn(f"- Recommended actions: {payload['recommended_action_count']}", markdown)
             self.assertIn(f"- Rerun commands: {payload['command_count']}", markdown)
             self.assertIn("[release_live_preflight/", markdown)
@@ -517,6 +519,10 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertIn(f"- Passed count: {gate_payload['passed_count']}", gate_summary)
             self.assertIn(f"- Blocked count: {gate_payload['blocked_count']}", gate_summary)
             self.assertIn(f"- Warning count: {gate_payload['warning_count']}", gate_summary)
+            gate_blocked_label = ", ".join(gate_payload["blocked_steps"]) if gate_payload["blocked_steps"] else "None"
+            gate_warning_label = ", ".join(gate_payload["warning_steps"]) if gate_payload["warning_steps"] else "None"
+            self.assertIn(f"- Blocked: {gate_blocked_label}", gate_summary)
+            self.assertIn(f"- Warnings: {gate_warning_label}", gate_summary)
             self.assertIn("- Release manifest: missing/release_manifest.json", gate_summary)
             self.assertIn("- Browser path:", gate_summary)
             self.assertIn("- Warnings:", gate_summary)
