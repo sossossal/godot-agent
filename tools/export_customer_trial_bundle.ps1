@@ -217,6 +217,22 @@ if ($Preview) {
         recommended_action_count = 0
         recommended_actions = @()
         recommended_action_items = @()
+        live_preflight_summary = [ordered]@{
+            status = "preview"
+            check_count = 0
+            passed_count = 0
+            blocking_count = 0
+            warning_count = 0
+            status_counts = [ordered]@{
+                passed = 0
+                blocked = 0
+                warning = 0
+            }
+            blocking_checks = @()
+            warning_checks = @()
+            report_path = Join-Path $gateArtifactDir "release_live_preflight.json"
+            markdown_path = Join-Path $gateArtifactDir "release_live_preflight.md"
+        }
         evidence_file_count = 0
         evidence_files = @()
         missing_evidence_files = @()
