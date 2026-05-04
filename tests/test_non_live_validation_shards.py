@@ -459,6 +459,10 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertEqual(payload["readiness_summary"]["step_ids"], payload["step_ids"])
         self.assertEqual(payload["readiness_summary"]["recommended_actions"], [])
         self.assertEqual(payload["readiness_summary"]["evidence_files"], [])
+        self.assertEqual(payload["readiness_summary"]["evidence_file_count"], 0)
+        self.assertEqual(payload["readiness_summary"]["evidence_present_count"], 0)
+        self.assertEqual(payload["readiness_summary"]["missing_evidence_count"], 0)
+        self.assertEqual(payload["readiness_summary"]["evidence_status_counts"], {"present": 0, "missing": 0})
         self.assertEqual(payload["readiness_summary"]["missing_evidence_files"], [])
         self.assertEqual(payload["readiness_summary"]["command_ids"], payload["command_ids"])
         self.assertEqual(payload["readiness_summary"]["generated_at"], "")
@@ -473,6 +477,9 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(payload["live_preflight_summary"]["report_path"].endswith("release_live_preflight.json"))
         self.assertEqual(payload["readiness_summary"]["live_preflight_summary"], payload["live_preflight_summary"])
         self.assertEqual(payload["evidence_file_count"], 0)
+        self.assertEqual(payload["evidence_present_count"], 0)
+        self.assertEqual(payload["missing_evidence_count"], 0)
+        self.assertEqual(payload["evidence_status_counts"], {"present": 0, "missing": 0})
         self.assertEqual(payload["evidence_files"], [])
         self.assertEqual(payload["missing_evidence_files"], [])
         self.assertEqual(payload["release_manifest_path"], "trial/release_manifest.json")
@@ -753,6 +760,10 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertEqual(readiness_payload["command_ids"], payload["command_ids"])
             readiness_evidence_paths = [item["relative_path"] for item in readiness_payload["evidence_files"]]
             self.assertEqual(readiness_payload["evidence_file_count"], len(readiness_evidence_paths))
+            self.assertEqual(readiness_payload["evidence_present_count"], readiness_payload["evidence_file_count"])
+            self.assertEqual(readiness_payload["missing_evidence_count"], 0)
+            self.assertEqual(readiness_payload["evidence_status_counts"]["present"], readiness_payload["evidence_present_count"])
+            self.assertEqual(readiness_payload["evidence_status_counts"]["missing"], readiness_payload["missing_evidence_count"])
             self.assertEqual(readiness_payload["missing_evidence_files"], [])
             for item in readiness_payload["evidence_files"]:
                 self.assertTrue(Path(item["path"]).exists(), item)
@@ -762,6 +773,10 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertIn("customer_trial_readiness.json", readiness_evidence_paths)
             evidence_paths = [item["relative_path"] for item in payload["evidence_files"]]
             self.assertEqual(payload["evidence_file_count"], len(evidence_paths))
+            self.assertEqual(payload["evidence_present_count"], payload["evidence_file_count"])
+            self.assertEqual(payload["missing_evidence_count"], 0)
+            self.assertEqual(payload["evidence_status_counts"]["present"], payload["evidence_present_count"])
+            self.assertEqual(payload["evidence_status_counts"]["missing"], payload["missing_evidence_count"])
             self.assertEqual(payload["missing_evidence_files"], [])
             for item in payload["evidence_files"]:
                 self.assertTrue(Path(item["path"]).exists(), item)

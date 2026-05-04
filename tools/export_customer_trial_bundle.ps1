@@ -104,6 +104,34 @@ function Format-ListOrNone {
     return $values -join ", "
 }
 
+function Get-EvidenceCompleteness {
+    param(
+        [object[]]$EvidenceFiles,
+        [string[]]$AssumePresentPaths = @()
+    )
+
+    $assumed = @($AssumePresentPaths | ForEach-Object { [System.IO.Path]::GetFullPath([string]$_) })
+    $missing = @(
+        $EvidenceFiles |
+            Where-Object {
+                $path = [System.IO.Path]::GetFullPath([string]$_.path)
+                ($assumed -notcontains $path) -and -not (Test-Path -LiteralPath $path)
+            } |
+            ForEach-Object { [string]$_.relative_path }
+    )
+    $count = @($EvidenceFiles).Count
+    return [ordered]@{
+        evidence_file_count = $count
+        evidence_present_count = $count - @($missing).Count
+        missing_evidence_count = @($missing).Count
+        missing_evidence_files = $missing
+        evidence_status_counts = [ordered]@{
+            present = $count - @($missing).Count
+            missing = @($missing).Count
+        }
+    }
+}
+
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $resolvedOutputDir = Resolve-RepoPath $OutputDir
 $resolvedPython = if (-not [string]::IsNullOrWhiteSpace($PythonCommand)) {
@@ -235,6 +263,12 @@ if ($Preview) {
         recommended_action_items = @()
         live_preflight_summary = $previewLivePreflightSummary
         evidence_file_count = 0
+        evidence_present_count = 0
+        missing_evidence_count = 0
+        evidence_status_counts = [ordered]@{
+            present = 0
+            missing = 0
+        }
         evidence_files = @()
         missing_evidence_files = @()
         command_count = @($commandRecords).Count
@@ -279,6 +313,12 @@ if ($Preview) {
         readiness_summary = $previewReadinessSummary
         live_preflight_summary = $previewLivePreflightSummary
         evidence_file_count = 0
+        evidence_present_count = 0
+        missing_evidence_count = 0
+        evidence_status_counts = [ordered]@{
+            present = 0
+            missing = 0
+        }
         evidence_files = @()
         missing_evidence_files = @()
         prepare_release_fixture = [bool]$PrepareReleaseFixture
@@ -469,6 +509,9 @@ try {
         path = $readinessSummaryPath
         relative_path = "customer_trial_readiness.json"
     }
+    $readinessEvidenceCompleteness = Get-EvidenceCompleteness `
+        -EvidenceFiles $readinessEvidenceFiles `
+        -AssumePresentPaths @($readinessSummaryPath)
     $passedCount = @($results | Where-Object { $_.status -eq "passed" }).Count
     $stepIds = @($results | ForEach-Object { $_.id })
     $skippedStepIds = @($plannedStepIds | Where-Object { $stepIds -notcontains $_ })
@@ -508,8 +551,12 @@ try {
         recommended_actions = $recommendedActions
         recommended_action_items = $recommendedActionItems
         live_preflight_summary = $livePreflightSummary
-        evidence_file_count = @($readinessEvidenceFiles).Count
+        evidence_file_count = $readinessEvidenceCompleteness.evidence_file_count
+        evidence_present_count = $readinessEvidenceCompleteness.evidence_present_count
+        missing_evidence_count = $readinessEvidenceCompleteness.missing_evidence_count
+        evidence_status_counts = $readinessEvidenceCompleteness.evidence_status_counts
         evidence_files = $readinessEvidenceFiles
+        missing_evidence_files = $readinessEvidenceCompleteness.missing_evidence_files
         command_count = @($commandRecords).Count
         command_ids = $commandIds
         rerun_script_path = $rerunScriptPath
@@ -517,22 +564,12 @@ try {
         generated_at = (Get-Date).ToUniversalTime().ToString("o")
     }
     $readinessSummary | ConvertTo-Json -Depth 6 | Set-Content -Path $readinessSummaryPath -Encoding utf8
-    $readinessSummary["missing_evidence_files"] = @(
-        $readinessEvidenceFiles |
-            Where-Object { -not (Test-Path -Path ([string]$_.path)) } |
-            ForEach-Object { [string]$_.relative_path }
-    )
-    $readinessSummary | ConvertTo-Json -Depth 6 | Set-Content -Path $readinessSummaryPath -Encoding utf8
     $evidenceFiles += [ordered]@{
         source = $readinessSummaryPath
         path = $readinessSummaryPath
         relative_path = "customer_trial_readiness.json"
     }
-    $missingEvidenceFiles = @(
-        $evidenceFiles |
-            Where-Object { -not (Test-Path -Path ([string]$_.path)) } |
-            ForEach-Object { [string]$_.relative_path }
-    )
+    $evidenceCompleteness = Get-EvidenceCompleteness -EvidenceFiles $evidenceFiles
 
     $payload = [ordered]@{
         schema_version = "1.0"
@@ -566,8 +603,11 @@ try {
         command_count = @($commandRecords).Count
         command_ids = $commandIds
         command_records = $commandRecords
-        evidence_file_count = @($evidenceFiles).Count
-        missing_evidence_files = $missingEvidenceFiles
+        evidence_file_count = $evidenceCompleteness.evidence_file_count
+        evidence_present_count = $evidenceCompleteness.evidence_present_count
+        missing_evidence_count = $evidenceCompleteness.missing_evidence_count
+        evidence_status_counts = $evidenceCompleteness.evidence_status_counts
+        missing_evidence_files = $evidenceCompleteness.missing_evidence_files
         evidence_files = $evidenceFiles
         total_duration_seconds = $totalDurationSeconds
         slowest_step_id = if ($slowestStep.Count -gt 0) { [string]$slowestStep[0].id } else { "" }
