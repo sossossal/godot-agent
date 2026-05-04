@@ -358,6 +358,14 @@ if ($Preview) {
                     status = "preview"
                     profile = $nonLiveProfile
                     shard_count = 0
+                    passed_count = 0
+                    blocked_count = 0
+                    timeout_count = 0
+                    status_counts = [ordered]@{
+                        passed = 0
+                        blocked = 0
+                        timeout = 0
+                    }
                     total_duration_seconds = 0.0
                     slow_shard_gate = ""
                     fail_on_slow_shards = [bool]$FailOnSlowShards
@@ -489,6 +497,14 @@ try {
                 status = [string]$nonLiveReport.status
                 profile = [string]$nonLiveReport.profile
                 shard_count = [int]$nonLiveReport.shard_count
+                passed_count = [int]$nonLiveReport.passed_count
+                blocked_count = [int]$nonLiveReport.blocked_count
+                timeout_count = [int]$nonLiveReport.timeout_count
+                status_counts = [ordered]@{
+                    passed = [int]$nonLiveReport.status_counts.passed
+                    blocked = [int]$nonLiveReport.status_counts.blocked
+                    timeout = [int]$nonLiveReport.status_counts.timeout
+                }
                 total_duration_seconds = [double]$nonLiveReport.total_duration_seconds
                 slow_shard_gate = [string]$nonLiveReport.slow_shard_gate
                 fail_on_slow_shards = [bool]$nonLiveReport.fail_on_slow_shards
@@ -610,6 +626,9 @@ try {
         "- Prepared fixture report: $($evidence.prepared_release_fixture.report_path)",
         "- Prepared fixture markdown: $($evidence.prepared_release_fixture.markdown_path)",
         "- Fail on slow shards: $([bool]$FailOnSlowShards)",
+        "- Non-live passed count: $($evidence.non_live.passed_count)",
+        "- Non-live blocked count: $($evidence.non_live.blocked_count)",
+        "- Non-live timeout count: $($evidence.non_live.timeout_count)",
         "- Non-live slow shard gate: $($evidence.non_live.slow_shard_gate)",
         "- Non-live failed shards: $((@($evidence.non_live.failed_shards) -join ', '))",
         "- Non-live slow shards: $((@($evidence.non_live.slow_shards) -join ', '))",

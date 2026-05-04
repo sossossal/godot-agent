@@ -197,6 +197,10 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertTrue(evidence["prepared_release_fixture"]["markdown_path"].endswith("release_live_fixture.md"))
         self.assertEqual(evidence["non_live"]["status"], "preview")
         self.assertEqual(evidence["non_live"]["profile"], "release")
+        self.assertEqual(evidence["non_live"]["passed_count"], 0)
+        self.assertEqual(evidence["non_live"]["blocked_count"], 0)
+        self.assertEqual(evidence["non_live"]["timeout_count"], 0)
+        self.assertEqual(evidence["non_live"]["status_counts"], {"passed": 0, "blocked": 0, "timeout": 0})
         self.assertEqual(evidence["non_live"]["failed_shards"], [])
         self.assertEqual(evidence["non_live"]["slow_shards"], [])
         self.assertTrue(evidence["non_live"]["report_path"].endswith("non_live_validation_shards.json"))
@@ -381,6 +385,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertIn("if: steps.gate_inputs.outputs.mode == 'full'", workflow)
         gate_script = gate_script_path.read_text(encoding="utf-8")
         self.assertIn("- Prepared fixture report:", gate_script)
+        self.assertIn("- Non-live passed count:", gate_script)
+        self.assertIn("- Non-live timeout count:", gate_script)
         self.assertIn("- Prepared fixture markdown:", gate_script)
 
     def test_release_live_workflow_uses_full_fixture_script(self):
