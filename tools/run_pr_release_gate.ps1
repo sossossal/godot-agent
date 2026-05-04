@@ -325,6 +325,7 @@ if ($Preview) {
     [ordered]@{
         ok = $true
         preview = $true
+        status = "preview"
         stage = $Stage
         mode = $Mode
         non_live_profile = $nonLiveProfile

@@ -190,6 +190,7 @@ if ($Preview) {
     [ordered]@{
         ok = $true
         preview = $true
+        status = "preview"
         output_dir = $resolvedOutputDir
         manifest_path = $manifestPath
         markdown_path = $markdownPath
