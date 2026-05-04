@@ -158,6 +158,37 @@ function Get-NonLiveSummary {
     }
 }
 
+function Get-GateSummary {
+    param([object]$GateReport)
+
+    if ($null -eq $GateReport) {
+        return $null
+    }
+    return [ordered]@{
+        status = [string]$GateReport.status
+        stage = [string]$GateReport.stage
+        mode = [string]$GateReport.mode
+        non_live_profile = [string]$GateReport.non_live_profile
+        blocked_steps = @($GateReport.blocked_steps)
+        warning_steps = @($GateReport.warning_steps)
+        planned_step_count = [int]$GateReport.planned_step_count
+        planned_step_ids = @($GateReport.planned_step_ids)
+        skipped_step_count = [int]$GateReport.skipped_step_count
+        skipped_step_ids = @($GateReport.skipped_step_ids)
+        step_count = [int]$GateReport.step_count
+        step_ids = @($GateReport.step_ids)
+        passed_count = [int]$GateReport.passed_count
+        blocked_count = [int]$GateReport.blocked_count
+        warning_count = [int]$GateReport.warning_count
+        status_counts = $GateReport.status_counts
+        total_duration_seconds = [double]$GateReport.total_duration_seconds
+        slowest_step_id = [string]$GateReport.slowest_step_id
+        slowest_step_seconds = [double]$GateReport.slowest_step_seconds
+        report_path = Join-Path $gateArtifactDir "gate_summary.json"
+        markdown_path = Join-Path $gateArtifactDir "gate_summary.md"
+    }
+}
+
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $resolvedOutputDir = Resolve-RepoPath $OutputDir
 $resolvedPython = if (-not [string]::IsNullOrWhiteSpace($PythonCommand)) {
@@ -257,6 +288,7 @@ if ($Preview) {
         report_path = Join-Path $gateArtifactDir "release_live_preflight.json"
         markdown_path = Join-Path $gateArtifactDir "release_live_preflight.md"
     }
+    $previewGateSummary = $null
     $previewNonLiveSummary = $null
     $previewReadinessSummary = [ordered]@{
         schema_version = "1.0"
@@ -288,6 +320,7 @@ if ($Preview) {
         recommended_action_count = 0
         recommended_actions = @()
         recommended_action_items = @()
+        gate_summary = $previewGateSummary
         live_preflight_summary = $previewLivePreflightSummary
         non_live_summary = $previewNonLiveSummary
         evidence_file_count = 0
@@ -339,6 +372,7 @@ if ($Preview) {
         recommended_actions = @()
         recommended_action_items = @()
         readiness_summary = $previewReadinessSummary
+        gate_summary = $previewGateSummary
         live_preflight_summary = $previewLivePreflightSummary
         non_live_summary = $previewNonLiveSummary
         evidence_file_count = 0
@@ -508,6 +542,7 @@ try {
     } else {
         $null
     }
+    $gateSummary = Get-GateSummary -GateReport $gateReport
     $nonLiveSummary = Get-NonLiveSummary -GateReport $gateReport
     $readinessLevel = if (-not $overallOk) {
         "blocked"
@@ -581,6 +616,7 @@ try {
         recommended_action_count = @($recommendedActions).Count
         recommended_actions = $recommendedActions
         recommended_action_items = $recommendedActionItems
+        gate_summary = $gateSummary
         live_preflight_summary = $livePreflightSummary
         non_live_summary = $nonLiveSummary
         evidence_file_count = $readinessEvidenceCompleteness.evidence_file_count
@@ -631,6 +667,7 @@ try {
         recommended_action_items = $recommendedActionItems
         readiness_level = $readinessLevel
         readiness_summary = $readinessSummary
+        gate_summary = $gateSummary
         live_preflight_summary = $livePreflightSummary
         non_live_summary = $nonLiveSummary
         command_count = @($commandRecords).Count
@@ -670,6 +707,9 @@ try {
     $nonLivePendingList = if ($null -eq $nonLiveSummary) { "None" } else { Format-ListOrNone @($nonLiveSummary.pending_shards) }
     $nonLiveFailedList = if ($null -eq $nonLiveSummary) { "None" } else { Format-ListOrNone @($nonLiveSummary.failed_shards) }
     $nonLiveSlowList = if ($null -eq $nonLiveSummary) { "None" } else { Format-ListOrNone @($nonLiveSummary.slow_shards) }
+    $gateLabel = if ($null -eq $gateSummary) { "None" } else { [string]$gateSummary.status }
+    $gateBlockedList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.blocked_steps) }
+    $gateWarningList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.warning_steps) }
     $lines = @(
         "# Customer Trial Bundle",
         "",
@@ -696,6 +736,9 @@ try {
         "- Blocked count: $($payload.blocked_count)",
         "- Blocked: $blockedStepList",
         "- Recommended actions: $($payload.recommended_action_count)",
+        "- Gate summary: $gateLabel",
+        "- Gate blocked steps: $gateBlockedList",
+        "- Gate warning steps: $gateWarningList",
         "- Live preflight: $($livePreflightSummary.status)",
         "- Live preflight checks: $($livePreflightSummary.check_count)",
         "- Live preflight blocking count: $($livePreflightSummary.blocking_count)",
