@@ -370,6 +370,15 @@ if ($Preview) {
             release_live_preflight = if ($runLivePreflight) {
                 [ordered]@{
                     status = "preview"
+                    check_count = 0
+                    passed_count = 0
+                    blocking_count = 0
+                    warning_count = 0
+                    status_counts = [ordered]@{
+                        passed = 0
+                        blocked = 0
+                        warning = 0
+                    }
                     blocking_checks = @()
                     warning_checks = @()
                     report_path = $livePreflightReportPath
@@ -492,6 +501,15 @@ try {
         release_live_preflight = if ($livePreflightReport) {
             [ordered]@{
                 status = [string]$livePreflightReport.status
+                check_count = [int]$livePreflightReport.check_count
+                passed_count = [int]$livePreflightReport.passed_count
+                blocking_count = [int]$livePreflightReport.blocking_count
+                warning_count = [int]$livePreflightReport.warning_count
+                status_counts = [ordered]@{
+                    passed = [int]$livePreflightReport.status_counts.passed
+                    blocked = [int]$livePreflightReport.status_counts.blocked
+                    warning = [int]$livePreflightReport.status_counts.warning
+                }
                 blocking_checks = @($livePreflightReport.blocking_checks)
                 warning_checks = @($livePreflightReport.warning_checks)
                 report_path = $livePreflightReportPath
@@ -594,6 +612,9 @@ try {
         "- Non-live failed shards: $((@($evidence.non_live.failed_shards) -join ', '))",
         "- Non-live slow shards: $((@($evidence.non_live.slow_shards) -join ', '))",
         "- Live preflight: $($evidence.release_live_preflight.status)",
+        "- Live preflight checks: $($evidence.release_live_preflight.check_count)",
+        "- Live preflight blocking count: $($evidence.release_live_preflight.blocking_count)",
+        "- Live preflight warning count: $($evidence.release_live_preflight.warning_count)",
         "",
         "| Step | Status | Seconds |",
         "| --- | --- | --- |"
