@@ -127,6 +127,16 @@ function Restore-PreparedFixtureState {
     }
 }
 
+function Format-ListOrNone {
+    param([object[]]$Items)
+
+    $values = @($Items)
+    if ($values.Count -eq 0) {
+        return "None"
+    }
+    return $values -join ", "
+}
+
 function Invoke-GateStep {
     param(
         [string]$Id,
@@ -481,9 +491,9 @@ try {
     }
     $payload | ConvertTo-Json -Depth 8 | Set-Content -Path $jsonReportPath -Encoding utf8
 
-    $plannedStepList = if (@($payload.planned_step_ids).Count -gt 0) { @($payload.planned_step_ids) -join ", " } else { "None" }
-    $skippedStepList = if (@($payload.skipped_step_ids).Count -gt 0) { @($payload.skipped_step_ids) -join ", " } else { "None" }
-    $stepList = if (@($payload.step_ids).Count -gt 0) { @($payload.step_ids) -join ", " } else { "None" }
+    $plannedStepList = Format-ListOrNone @($payload.planned_step_ids)
+    $skippedStepList = Format-ListOrNone @($payload.skipped_step_ids)
+    $stepList = Format-ListOrNone @($payload.step_ids)
     $lines = @(
         "# PR Release Gate",
         "",

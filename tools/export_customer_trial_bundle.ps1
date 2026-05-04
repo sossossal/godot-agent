@@ -94,6 +94,16 @@ function Read-JsonFile {
     }
 }
 
+function Format-ListOrNone {
+    param([object[]]$Items)
+
+    $values = @($Items)
+    if ($values.Count -eq 0) {
+        return "None"
+    }
+    return $values -join ", "
+}
+
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $resolvedOutputDir = Resolve-RepoPath $OutputDir
 $resolvedPython = if (-not [string]::IsNullOrWhiteSpace($PythonCommand)) {
@@ -464,14 +474,10 @@ try {
     }
     $payload | ConvertTo-Json -Depth 8 | Set-Content -Path $manifestPath -Encoding utf8
 
-    $missingEvidenceLabel = if (@($payload.missing_evidence_files).Count -eq 0) {
-        "None"
-    } else {
-        @($payload.missing_evidence_files) -join ", "
-    }
-    $plannedStepList = if (@($payload.planned_step_ids).Count -gt 0) { @($payload.planned_step_ids) -join ", " } else { "None" }
-    $skippedStepList = if (@($payload.skipped_step_ids).Count -gt 0) { @($payload.skipped_step_ids) -join ", " } else { "None" }
-    $stepList = if (@($payload.step_ids).Count -gt 0) { @($payload.step_ids) -join ", " } else { "None" }
+    $missingEvidenceLabel = Format-ListOrNone @($payload.missing_evidence_files)
+    $plannedStepList = Format-ListOrNone @($payload.planned_step_ids)
+    $skippedStepList = Format-ListOrNone @($payload.skipped_step_ids)
+    $stepList = Format-ListOrNone @($payload.step_ids)
     $lines = @(
         "# Customer Trial Bundle",
         "",
