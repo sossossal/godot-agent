@@ -612,6 +612,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertFalse(readiness_payload["should_fail_on_needs_attention"])
             self.assertTrue(readiness_payload["recommended_action_items"])
             self.assertEqual(readiness_payload["recommended_action_count"], payload["recommended_action_count"])
+            self.assertEqual(readiness_payload["recommended_actions"], payload["recommended_actions"])
             self.assertEqual(readiness_payload["recommended_action_items"][0]["action"], payload["recommended_actions"][0])
             self.assertIn("customer_gate", readiness_payload["blocked_steps"])
             self.assertEqual(readiness_payload["total_duration_seconds"], payload["total_duration_seconds"])

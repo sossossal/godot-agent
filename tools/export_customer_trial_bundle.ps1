@@ -424,6 +424,7 @@ try {
         step_count = @($results).Count
         step_ids = $stepIds
         recommended_action_count = @($recommendedActions).Count
+        recommended_actions = $recommendedActions
         recommended_action_items = $recommendedActionItems
         evidence_file_count = @($readinessEvidenceFiles).Count
         evidence_files = $readinessEvidenceFiles
