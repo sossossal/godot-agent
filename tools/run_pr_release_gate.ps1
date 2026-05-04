@@ -348,6 +348,9 @@ if ($Preview) {
             blocked = 0
             warning = 0
         }
+        total_duration_seconds = 0.0
+        slowest_step_id = ""
+        slowest_step_seconds = 0.0
         fail_on_slow_shards = [bool]$FailOnSlowShards
         continue_on_failure = [bool]$ContinueOnFailure
         prepare_release_fixture = [bool]$PrepareReleaseFixture
@@ -361,6 +364,7 @@ if ($Preview) {
         skipped_step_ids = @()
         step_count = @($stepPlan).Count
         step_ids = $plannedStepIds
+        results = @()
         steps = $stepPlan
     } | ConvertTo-Json -Depth 8
     exit 0

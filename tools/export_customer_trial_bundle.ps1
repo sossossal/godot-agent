@@ -207,6 +207,9 @@ if ($Preview) {
             passed = 0
             blocked = 0
         }
+        total_duration_seconds = 0.0
+        slowest_step_id = ""
+        slowest_step_seconds = 0.0
         fail_on_needs_attention = [bool]$FailOnNeedsAttention
         continue_on_failure = [bool]$ContinueOnFailure
         prepare_release_fixture = [bool]$PrepareReleaseFixture
@@ -220,6 +223,7 @@ if ($Preview) {
         step_count = @($steps).Count
         command_ids = $commandIds
         step_ids = $plannedStepIds
+        results = @()
         command_records = $commandRecords
         steps = $steps
     } | ConvertTo-Json -Depth 8
