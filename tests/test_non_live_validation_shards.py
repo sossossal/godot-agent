@@ -789,10 +789,13 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             rerun_summary = payload["rerun_summary"]
             self.assertEqual(rerun_summary["command_count"], payload["command_count"])
             self.assertEqual(rerun_summary["command_ids"], payload["command_ids"])
-            self.assertEqual(rerun_summary["blocked_command_count"], 1)
-            self.assertEqual(rerun_summary["blocked_command_ids"], ["customer_gate"])
-            self.assertEqual(rerun_summary["blocked_commands"][0]["id"], "customer_gate")
-            self.assertIn("-ReleaseManifestPath missing/release_manifest.json", rerun_summary["blocked_commands"][0]["command_line"])
+            self.assertEqual(rerun_summary["blocked_command_count"], len(payload["blocked_steps"]))
+            self.assertEqual(rerun_summary["blocked_command_ids"], payload["blocked_steps"])
+            self.assertIn("customer_gate", rerun_summary["blocked_command_ids"])
+            customer_gate_rerun = next(
+                item for item in rerun_summary["blocked_commands"] if item["id"] == "customer_gate"
+            )
+            self.assertIn("-ReleaseManifestPath missing/release_manifest.json", customer_gate_rerun["command_line"])
             self.assertEqual(rerun_summary["recommended_command_count"], len(rerun_summary["recommended_commands"]))
             self.assertIn(f"- Blocked rerun commands: {rerun_summary['blocked_command_count']}", markdown)
             self.assertIn(f"- Recommended command actions: {rerun_summary['recommended_command_count']}", markdown)
@@ -827,7 +830,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertIn("## Blocked Rerun Commands", markdown)
             self.assertIn("### customer_gate", markdown)
             self.assertIn("```powershell", markdown)
-            self.assertIn(rerun_summary["blocked_commands"][0]["command_line"], markdown)
+            self.assertIn(customer_gate_rerun["command_line"], markdown)
             self.assertIn("## Recommended Command Actions", markdown)
             self.assertIn("## Blocked Step Output", markdown)
             self.assertIn("## Evidence Files", markdown)
