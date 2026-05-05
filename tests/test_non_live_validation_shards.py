@@ -834,6 +834,9 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertIn("- Non-live pending shard ids: None", markdown)
             self.assertIn("- Non-live failed shard ids: None", markdown)
             self.assertIn("- Non-live slow shard ids: None", markdown)
+            self.assertIn(f"- Evidence files: {payload['evidence_file_count']}", markdown)
+            self.assertIn(f"- Evidence present: {payload['evidence_present_count']}", markdown)
+            self.assertIn(f"- Evidence missing: {payload['missing_evidence_count']}", markdown)
             self.assertIn(f"- Rerun commands: {payload['command_count']}", markdown)
             self.assertIn("[release_live_preflight/", markdown)
             self.assertIn("## Rerun Commands", markdown)
@@ -845,6 +848,9 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertIn("## Recommended Command Actions", markdown)
             self.assertIn("## Blocked Step Output", markdown)
             self.assertIn("## Evidence Files", markdown)
+            self.assertIn(f"- Count: {payload['evidence_file_count']}", markdown)
+            self.assertIn(f"- Present: {payload['evidence_present_count']}", markdown)
+            self.assertIn(f"- Missing count: {payload['missing_evidence_count']}", markdown)
             self.assertIn("- Missing: None", markdown)
             gate_markdown = output_dir / "gate" / "gate_summary.md"
             self.assertTrue(gate_markdown.exists())
@@ -1003,7 +1009,6 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
                 self.assertTrue(Path(item["path"]).exists(), item)
             self.assertIn("customer_trial_commands.json", evidence_paths)
             self.assertIn("customer_trial_readiness.json", evidence_paths)
-            self.assertIn(f"- Count: {payload['evidence_file_count']}", markdown)
         finally:
             shutil.rmtree(output_dir, ignore_errors=True)
 
