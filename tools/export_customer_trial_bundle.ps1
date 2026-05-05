@@ -785,6 +785,9 @@ try {
     $gatePlannedSteps = if ($null -eq $gateSummary) { 0 } else { [int]$gateSummary.planned_step_count }
     $gateSkippedSteps = if ($null -eq $gateSummary) { 0 } else { [int]$gateSummary.skipped_step_count }
     $gateExecutedSteps = if ($null -eq $gateSummary) { 0 } else { [int]$gateSummary.step_count }
+    $gatePlannedStepList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.planned_step_ids) }
+    $gateSkippedStepList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.skipped_step_ids) }
+    $gateExecutedStepList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.step_ids) }
     $gateBlockedList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.blocked_steps) }
     $gateWarningList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.warning_steps) }
     $missingBlockedStepList = Format-ListOrNone @($rerunSummary.missing_blocked_step_ids)
@@ -825,8 +828,11 @@ try {
         "- Gate mode summary: $gateModeLabel",
         "- Gate non-live profile: $gateNonLiveProfile",
         "- Gate planned steps: $gatePlannedSteps",
+        "- Gate planned step ids: $gatePlannedStepList",
         "- Gate skipped steps: $gateSkippedSteps",
+        "- Gate skipped step ids: $gateSkippedStepList",
         "- Gate executed steps: $gateExecutedSteps",
+        "- Gate executed step ids: $gateExecutedStepList",
         "- Gate blocked steps: $gateBlockedList",
         "- Gate warning steps: $gateWarningList",
         "- Live preflight: $($livePreflightSummary.status)",
