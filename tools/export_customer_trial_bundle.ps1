@@ -785,6 +785,9 @@ try {
     $gatePlannedSteps = if ($null -eq $gateSummary) { 0 } else { [int]$gateSummary.planned_step_count }
     $gateSkippedSteps = if ($null -eq $gateSummary) { 0 } else { [int]$gateSummary.skipped_step_count }
     $gateExecutedSteps = if ($null -eq $gateSummary) { 0 } else { [int]$gateSummary.step_count }
+    $gatePassedSteps = if ($null -eq $gateSummary) { 0 } else { [int]$gateSummary.passed_count }
+    $gateBlockedSteps = if ($null -eq $gateSummary) { 0 } else { [int]$gateSummary.blocked_count }
+    $gateWarningSteps = if ($null -eq $gateSummary) { 0 } else { [int]$gateSummary.warning_count }
     $gatePlannedStepList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.planned_step_ids) }
     $gateSkippedStepList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.skipped_step_ids) }
     $gateExecutedStepList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.step_ids) }
@@ -833,6 +836,9 @@ try {
         "- Gate skipped step ids: $gateSkippedStepList",
         "- Gate executed steps: $gateExecutedSteps",
         "- Gate executed step ids: $gateExecutedStepList",
+        "- Gate passed steps: $gatePassedSteps",
+        "- Gate blocked step count: $gateBlockedSteps",
+        "- Gate warning step count: $gateWarningSteps",
         "- Gate blocked steps: $gateBlockedList",
         "- Gate warning steps: $gateWarningList",
         "- Live preflight: $($livePreflightSummary.status)",
