@@ -815,6 +815,38 @@ try {
     foreach ($commandRecord in $commandRecords) {
         $lines += "| $($commandRecord.id) | ``$($commandRecord.command_line)`` |"
     }
+    $lines += @(
+        "",
+        "## Blocked Rerun Commands",
+        ""
+    )
+    if ($rerunSummary.blocked_command_count -eq 0) {
+        $lines += "- None"
+    } else {
+        foreach ($commandRecord in $rerunSummary.blocked_commands) {
+            $lines += "### $($commandRecord.id)"
+            $lines += ""
+            $lines += '```powershell'
+            $lines += [string]$commandRecord.command_line
+            $lines += '```'
+            $lines += ""
+        }
+    }
+    $lines += @(
+        "",
+        "## Recommended Command Actions",
+        ""
+    )
+    if ($rerunSummary.recommended_command_count -eq 0) {
+        $lines += "- None"
+    } else {
+        foreach ($command in $rerunSummary.recommended_commands) {
+            $lines += '```powershell'
+            $lines += [string]$command
+            $lines += '```'
+            $lines += ""
+        }
+    }
     $blockedResults = @($results | Where-Object { $_.status -eq "blocked" })
     if ($blockedResults.Count -gt 0) {
         $lines += @(
