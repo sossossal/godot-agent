@@ -779,6 +779,9 @@ try {
     $nonLiveFailedList = if ($null -eq $nonLiveSummary) { "None" } else { Format-ListOrNone @($nonLiveSummary.failed_shards) }
     $nonLiveSlowList = if ($null -eq $nonLiveSummary) { "None" } else { Format-ListOrNone @($nonLiveSummary.slow_shards) }
     $gateLabel = if ($null -eq $gateSummary) { "None" } else { [string]$gateSummary.status }
+    $gateStage = if ($null -eq $gateSummary) { "None" } else { [string]$gateSummary.stage }
+    $gateModeLabel = if ($null -eq $gateSummary) { "None" } else { [string]$gateSummary.mode }
+    $gateNonLiveProfile = if ($null -eq $gateSummary) { "None" } else { [string]$gateSummary.non_live_profile }
     $gateBlockedList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.blocked_steps) }
     $gateWarningList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.warning_steps) }
     $missingBlockedStepList = Format-ListOrNone @($rerunSummary.missing_blocked_step_ids)
@@ -815,6 +818,9 @@ try {
         "- Missing blocked step ids: $missingBlockedStepList",
         "- Recommended command actions: $($rerunSummary.recommended_command_count)",
         "- Gate summary: $gateLabel",
+        "- Gate stage: $gateStage",
+        "- Gate mode summary: $gateModeLabel",
+        "- Gate non-live profile: $gateNonLiveProfile",
         "- Gate blocked steps: $gateBlockedList",
         "- Gate warning steps: $gateWarningList",
         "- Live preflight: $($livePreflightSummary.status)",
