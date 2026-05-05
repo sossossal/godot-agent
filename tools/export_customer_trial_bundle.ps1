@@ -796,6 +796,8 @@ try {
     $gateExecutedStepList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.step_ids) }
     $gateBlockedList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.blocked_steps) }
     $gateWarningList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.warning_steps) }
+    $liveBlockingCheckList = if ($null -eq $livePreflightSummary) { "None" } else { Format-ListOrNone @($livePreflightSummary.blocking_checks) }
+    $liveWarningCheckList = if ($null -eq $livePreflightSummary) { "None" } else { Format-ListOrNone @($livePreflightSummary.warning_checks) }
     $missingBlockedStepList = Format-ListOrNone @($rerunSummary.missing_blocked_step_ids)
     $recommendedActionSourceLabel = Format-MapOrNone $recommendedActionSourceCounts
     $lines = @(
@@ -849,7 +851,9 @@ try {
         "- Live preflight: $($livePreflightSummary.status)",
         "- Live preflight checks: $($livePreflightSummary.check_count)",
         "- Live preflight blocking count: $($livePreflightSummary.blocking_count)",
+        "- Live preflight blocking checks: $liveBlockingCheckList",
         "- Live preflight warning count: $($livePreflightSummary.warning_count)",
+        "- Live preflight warning checks: $liveWarningCheckList",
         "- Non-live validation: $nonLiveLabel",
         "- Non-live report state: $nonLiveReportState",
         "- Non-live completed shards: $nonLiveCompleted",

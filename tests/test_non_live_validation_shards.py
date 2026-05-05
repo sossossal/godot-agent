@@ -852,7 +852,11 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertIn(f"- Live preflight: {live_summary['status']}", markdown)
             self.assertIn(f"- Live preflight checks: {live_summary['check_count']}", markdown)
             self.assertIn(f"- Live preflight blocking count: {live_summary['blocking_count']}", markdown)
+            live_blocking_label = ", ".join(live_summary["blocking_checks"]) if live_summary["blocking_checks"] else "None"
+            self.assertIn(f"- Live preflight blocking checks: {live_blocking_label}", markdown)
             self.assertIn(f"- Live preflight warning count: {live_summary['warning_count']}", markdown)
+            live_warning_label = ", ".join(live_summary["warning_checks"]) if live_summary["warning_checks"] else "None"
+            self.assertIn(f"- Live preflight warning checks: {live_warning_label}", markdown)
             self.assertIsNone(payload["non_live_summary"])
             self.assertIn("- Non-live validation: None", markdown)
             self.assertIn("- Non-live report state: None", markdown)
