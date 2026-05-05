@@ -326,6 +326,8 @@ if ($Preview) {
             blocked_command_count = 0
             blocked_command_ids = @()
             blocked_commands = @()
+            missing_blocked_step_count = 0
+            missing_blocked_step_ids = @()
             recommended_command_count = 0
             recommended_commands = @()
         }
@@ -601,6 +603,8 @@ try {
             } |
             Where-Object { $null -ne $_ }
     )
+    $blockedCommandIds = @($blockedCommands | ForEach-Object { [string]$_.id })
+    $missingBlockedStepIds = @($blockedSteps | Where-Object { $blockedCommandIds -notcontains [string]$_ })
     $recommendedCommands = @(
         $recommendedActionItems |
             Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_.command) } |
@@ -610,8 +614,10 @@ try {
         command_count = @($commandRecords).Count
         command_ids = $commandIds
         blocked_command_count = @($blockedCommands).Count
-        blocked_command_ids = @($blockedCommands | ForEach-Object { [string]$_.id })
+        blocked_command_ids = $blockedCommandIds
         blocked_commands = @($blockedCommands)
+        missing_blocked_step_count = @($missingBlockedStepIds).Count
+        missing_blocked_step_ids = $missingBlockedStepIds
         recommended_command_count = @($recommendedCommands).Count
         recommended_commands = $recommendedCommands
     }
@@ -771,6 +777,7 @@ try {
         "- Blocked: $blockedStepList",
         "- Recommended actions: $($payload.recommended_action_count)",
         "- Blocked rerun commands: $($rerunSummary.blocked_command_count)",
+        "- Missing blocked rerun commands: $($rerunSummary.missing_blocked_step_count)",
         "- Recommended command actions: $($rerunSummary.recommended_command_count)",
         "- Gate summary: $gateLabel",
         "- Gate blocked steps: $gateBlockedList",

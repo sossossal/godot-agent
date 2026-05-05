@@ -604,6 +604,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertEqual(payload["readiness_summary"]["rerun_summary"]["blocked_command_count"], 0)
         self.assertEqual(payload["readiness_summary"]["rerun_summary"]["blocked_command_ids"], [])
         self.assertEqual(payload["readiness_summary"]["rerun_summary"]["blocked_commands"], [])
+        self.assertEqual(payload["readiness_summary"]["rerun_summary"]["missing_blocked_step_count"], 0)
+        self.assertEqual(payload["readiness_summary"]["rerun_summary"]["missing_blocked_step_ids"], [])
         self.assertEqual(payload["readiness_summary"]["rerun_summary"]["recommended_command_count"], 0)
         self.assertEqual(payload["readiness_summary"]["rerun_summary"]["recommended_commands"], [])
         self.assertEqual(payload["rerun_summary"], payload["readiness_summary"]["rerun_summary"])
@@ -791,6 +793,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertEqual(rerun_summary["command_ids"], payload["command_ids"])
             self.assertEqual(rerun_summary["blocked_command_count"], len(payload["blocked_steps"]))
             self.assertEqual(rerun_summary["blocked_command_ids"], payload["blocked_steps"])
+            self.assertEqual(rerun_summary["missing_blocked_step_count"], 0)
+            self.assertEqual(rerun_summary["missing_blocked_step_ids"], [])
             self.assertIn("customer_gate", rerun_summary["blocked_command_ids"])
             customer_gate_rerun = next(
                 item for item in rerun_summary["blocked_commands"] if item["id"] == "customer_gate"
@@ -798,6 +802,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertIn("-ReleaseManifestPath missing/release_manifest.json", customer_gate_rerun["command_line"])
             self.assertEqual(rerun_summary["recommended_command_count"], len(rerun_summary["recommended_commands"]))
             self.assertIn(f"- Blocked rerun commands: {rerun_summary['blocked_command_count']}", markdown)
+            self.assertIn(f"- Missing blocked rerun commands: {rerun_summary['missing_blocked_step_count']}", markdown)
             self.assertIn(f"- Recommended command actions: {rerun_summary['recommended_command_count']}", markdown)
             self.assertIn("- Gate summary: blocked", markdown)
             self.assertIn("- Gate blocked steps: release_live_preflight", markdown)
