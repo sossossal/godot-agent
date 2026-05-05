@@ -750,6 +750,7 @@ try {
     $gateLabel = if ($null -eq $gateSummary) { "None" } else { [string]$gateSummary.status }
     $gateBlockedList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.blocked_steps) }
     $gateWarningList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.warning_steps) }
+    $missingBlockedStepList = Format-ListOrNone @($rerunSummary.missing_blocked_step_ids)
     $lines = @(
         "# Customer Trial Bundle",
         "",
@@ -778,6 +779,7 @@ try {
         "- Recommended actions: $($payload.recommended_action_count)",
         "- Blocked rerun commands: $($rerunSummary.blocked_command_count)",
         "- Missing blocked rerun commands: $($rerunSummary.missing_blocked_step_count)",
+        "- Missing blocked step ids: $missingBlockedStepList",
         "- Recommended command actions: $($rerunSummary.recommended_command_count)",
         "- Gate summary: $gateLabel",
         "- Gate blocked steps: $gateBlockedList",

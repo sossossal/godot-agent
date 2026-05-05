@@ -803,6 +803,12 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertEqual(rerun_summary["recommended_command_count"], len(rerun_summary["recommended_commands"]))
             self.assertIn(f"- Blocked rerun commands: {rerun_summary['blocked_command_count']}", markdown)
             self.assertIn(f"- Missing blocked rerun commands: {rerun_summary['missing_blocked_step_count']}", markdown)
+            missing_blocked_label = (
+                ", ".join(rerun_summary["missing_blocked_step_ids"])
+                if rerun_summary["missing_blocked_step_ids"]
+                else "None"
+            )
+            self.assertIn(f"- Missing blocked step ids: {missing_blocked_label}", markdown)
             self.assertIn(f"- Recommended command actions: {rerun_summary['recommended_command_count']}", markdown)
             self.assertIn("- Gate summary: blocked", markdown)
             self.assertIn("- Gate blocked steps: release_live_preflight", markdown)
