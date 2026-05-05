@@ -320,6 +320,15 @@ if ($Preview) {
         recommended_action_count = 0
         recommended_actions = @()
         recommended_action_items = @()
+        rerun_summary = [ordered]@{
+            command_count = @($commandRecords).Count
+            command_ids = $commandIds
+            blocked_command_count = 0
+            blocked_command_ids = @()
+            blocked_commands = @()
+            recommended_command_count = 0
+            recommended_commands = @()
+        }
         gate_summary = $previewGateSummary
         live_preflight_summary = $previewLivePreflightSummary
         non_live_summary = $previewNonLiveSummary
@@ -371,6 +380,7 @@ if ($Preview) {
         recommended_action_count = 0
         recommended_actions = @()
         recommended_action_items = @()
+        rerun_summary = $previewReadinessSummary.rerun_summary
         readiness_summary = $previewReadinessSummary
         gate_summary = $previewGateSummary
         live_preflight_summary = $previewLivePreflightSummary
@@ -583,6 +593,28 @@ try {
     $skippedStepIds = @($plannedStepIds | Where-Object { $stepIds -notcontains $_ })
     $blockedSteps = @($results | Where-Object { $_.status -eq "blocked" } | ForEach-Object { $_.id })
     $blockedCount = @($results | Where-Object { $_.status -eq "blocked" }).Count
+    $blockedCommands = @(
+        $blockedSteps |
+            ForEach-Object {
+                $blockedId = [string]$_
+                @($commandRecords | Where-Object { $_.id -eq $blockedId } | Select-Object -First 1)
+            } |
+            Where-Object { $null -ne $_ }
+    )
+    $recommendedCommands = @(
+        $recommendedActionItems |
+            Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_.command) } |
+            ForEach-Object { [string]$_.command }
+    )
+    $rerunSummary = [ordered]@{
+        command_count = @($commandRecords).Count
+        command_ids = $commandIds
+        blocked_command_count = @($blockedCommands).Count
+        blocked_command_ids = @($blockedCommands | ForEach-Object { [string]$_.id })
+        blocked_commands = @($blockedCommands)
+        recommended_command_count = @($recommendedCommands).Count
+        recommended_commands = $recommendedCommands
+    }
     $totalDurationSeconds = [Math]::Round((@($results | ForEach-Object { [double]$_.duration_seconds }) | Measure-Object -Sum).Sum, 2)
     $slowestStep = @($results | Sort-Object { [double]$_.duration_seconds } -Descending | Select-Object -First 1)
     $statusCounts = [ordered]@{
@@ -616,6 +648,7 @@ try {
         recommended_action_count = @($recommendedActions).Count
         recommended_actions = $recommendedActions
         recommended_action_items = $recommendedActionItems
+        rerun_summary = $rerunSummary
         gate_summary = $gateSummary
         live_preflight_summary = $livePreflightSummary
         non_live_summary = $nonLiveSummary
@@ -665,6 +698,7 @@ try {
         recommended_action_count = @($recommendedActions).Count
         recommended_actions = $recommendedActions
         recommended_action_items = $recommendedActionItems
+        rerun_summary = $rerunSummary
         readiness_level = $readinessLevel
         readiness_summary = $readinessSummary
         gate_summary = $gateSummary
@@ -736,6 +770,8 @@ try {
         "- Blocked count: $($payload.blocked_count)",
         "- Blocked: $blockedStepList",
         "- Recommended actions: $($payload.recommended_action_count)",
+        "- Blocked rerun commands: $($rerunSummary.blocked_command_count)",
+        "- Recommended command actions: $($rerunSummary.recommended_command_count)",
         "- Gate summary: $gateLabel",
         "- Gate blocked steps: $gateBlockedList",
         "- Gate warning steps: $gateWarningList",
