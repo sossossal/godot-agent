@@ -104,6 +104,15 @@ function Format-ListOrNone {
     return $values -join ", "
 }
 
+function Format-MapOrNone {
+    param([object]$Map)
+
+    if ($null -eq $Map -or @($Map.Keys).Count -eq 0) {
+        return "None"
+    }
+    return (@($Map.Keys) | ForEach-Object { "$_=$($Map[$_])" }) -join ", "
+}
+
 function Get-EvidenceCompleteness {
     param(
         [object[]]$EvidenceFiles,
@@ -130,6 +139,23 @@ function Get-EvidenceCompleteness {
             missing = @($missing).Count
         }
     }
+}
+
+function Get-ActionSourceCounts {
+    param([object[]]$Items)
+
+    $counts = [ordered]@{}
+    foreach ($item in @($Items)) {
+        $source = [string]$item.source
+        if ([string]::IsNullOrWhiteSpace($source)) {
+            $source = "unknown"
+        }
+        if (-not $counts.Contains($source)) {
+            $counts[$source] = 0
+        }
+        $counts[$source] = [int]$counts[$source] + 1
+    }
+    return $counts
 }
 
 function Get-NonLiveSummary {
@@ -320,6 +346,7 @@ if ($Preview) {
         recommended_action_count = 0
         recommended_actions = @()
         recommended_action_items = @()
+        recommended_action_source_counts = [ordered]@{}
         rerun_summary = [ordered]@{
             command_count = @($commandRecords).Count
             command_ids = $commandIds
@@ -382,6 +409,7 @@ if ($Preview) {
         recommended_action_count = 0
         recommended_actions = @()
         recommended_action_items = @()
+        recommended_action_source_counts = $previewReadinessSummary.recommended_action_source_counts
         rerun_summary = $previewReadinessSummary.rerun_summary
         readiness_summary = $previewReadinessSummary
         gate_summary = $previewGateSummary
@@ -534,6 +562,7 @@ try {
             }
     )
     $recommendedActions = @($recommendedActionItems | ForEach-Object { [string]$_.action })
+    $recommendedActionSourceCounts = Get-ActionSourceCounts -Items $recommendedActionItems
     $livePreflightSummary = if ($livePreflightReport) {
         [ordered]@{
             status = [string]$livePreflightReport.status
@@ -654,6 +683,7 @@ try {
         recommended_action_count = @($recommendedActions).Count
         recommended_actions = $recommendedActions
         recommended_action_items = $recommendedActionItems
+        recommended_action_source_counts = $recommendedActionSourceCounts
         rerun_summary = $rerunSummary
         gate_summary = $gateSummary
         live_preflight_summary = $livePreflightSummary
@@ -704,6 +734,7 @@ try {
         recommended_action_count = @($recommendedActions).Count
         recommended_actions = $recommendedActions
         recommended_action_items = $recommendedActionItems
+        recommended_action_source_counts = $recommendedActionSourceCounts
         rerun_summary = $rerunSummary
         readiness_level = $readinessLevel
         readiness_summary = $readinessSummary
@@ -751,6 +782,7 @@ try {
     $gateBlockedList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.blocked_steps) }
     $gateWarningList = if ($null -eq $gateSummary) { "None" } else { Format-ListOrNone @($gateSummary.warning_steps) }
     $missingBlockedStepList = Format-ListOrNone @($rerunSummary.missing_blocked_step_ids)
+    $recommendedActionSourceLabel = Format-MapOrNone $recommendedActionSourceCounts
     $lines = @(
         "# Customer Trial Bundle",
         "",
@@ -777,6 +809,7 @@ try {
         "- Blocked count: $($payload.blocked_count)",
         "- Blocked: $blockedStepList",
         "- Recommended actions: $($payload.recommended_action_count)",
+        "- Recommended action sources: $recommendedActionSourceLabel",
         "- Blocked rerun commands: $($rerunSummary.blocked_command_count)",
         "- Missing blocked rerun commands: $($rerunSummary.missing_blocked_step_count)",
         "- Missing blocked step ids: $missingBlockedStepList",

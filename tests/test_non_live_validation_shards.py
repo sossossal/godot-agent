@@ -599,6 +599,8 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
         self.assertEqual(payload["readiness_summary"]["planned_step_ids"], payload["planned_step_ids"])
         self.assertEqual(payload["readiness_summary"]["step_ids"], payload["step_ids"])
         self.assertEqual(payload["readiness_summary"]["recommended_actions"], [])
+        self.assertEqual(payload["readiness_summary"]["recommended_action_source_counts"], {})
+        self.assertEqual(payload["recommended_action_source_counts"], {})
         self.assertEqual(payload["readiness_summary"]["rerun_summary"]["command_count"], payload["command_count"])
         self.assertEqual(payload["readiness_summary"]["rerun_summary"]["command_ids"], payload["command_ids"])
         self.assertEqual(payload["readiness_summary"]["rerun_summary"]["blocked_command_count"], 0)
@@ -788,6 +790,12 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             payload_blocked_label = ", ".join(payload["blocked_steps"]) if payload["blocked_steps"] else "None"
             self.assertIn(f"- Blocked: {payload_blocked_label}", markdown)
             self.assertIn(f"- Recommended actions: {payload['recommended_action_count']}", markdown)
+            source_counts = {}
+            for item in payload["recommended_action_items"]:
+                source_counts[item["source"]] = source_counts.get(item["source"], 0) + 1
+            self.assertEqual(payload["recommended_action_source_counts"], source_counts)
+            source_label = ", ".join(f"{key}={value}" for key, value in source_counts.items()) if source_counts else "None"
+            self.assertIn(f"- Recommended action sources: {source_label}", markdown)
             rerun_summary = payload["rerun_summary"]
             self.assertEqual(rerun_summary["command_count"], payload["command_count"])
             self.assertEqual(rerun_summary["command_ids"], payload["command_ids"])
@@ -966,6 +974,7 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertEqual(readiness_payload["recommended_action_count"], payload["recommended_action_count"])
             self.assertEqual(readiness_payload["recommended_actions"], payload["recommended_actions"])
             self.assertEqual(readiness_payload["recommended_action_items"][0]["action"], payload["recommended_actions"][0])
+            self.assertEqual(readiness_payload["recommended_action_source_counts"], payload["recommended_action_source_counts"])
             self.assertEqual(readiness_payload["rerun_summary"], payload["rerun_summary"])
             self.assertEqual(readiness_payload["gate_summary"], payload["gate_summary"])
             self.assertEqual(readiness_payload["live_preflight_summary"], payload["live_preflight_summary"])
