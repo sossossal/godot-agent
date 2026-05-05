@@ -822,6 +822,9 @@ class NonLiveValidationShardsTestCase(unittest.TestCase):
             self.assertIn(f"- Gate stage: {payload['gate_summary']['stage']}", markdown)
             self.assertIn(f"- Gate mode summary: {payload['gate_summary']['mode']}", markdown)
             self.assertIn(f"- Gate non-live profile: {payload['gate_summary']['non_live_profile']}", markdown)
+            self.assertIn(f"- Gate planned steps: {payload['gate_summary']['planned_step_count']}", markdown)
+            self.assertIn(f"- Gate skipped steps: {payload['gate_summary']['skipped_step_count']}", markdown)
+            self.assertIn(f"- Gate executed steps: {payload['gate_summary']['step_count']}", markdown)
             self.assertIn("- Gate blocked steps: release_live_preflight", markdown)
             self.assertIn("- Gate warning steps: None", markdown)
             live_summary = payload["live_preflight_summary"]
